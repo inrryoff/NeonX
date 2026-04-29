@@ -1,15 +1,30 @@
-Copyright (C) 2026 Inrryoff
+LICENÇA DE USO - NeonX (C - VERSION)
+---------------------------------------
+Copyright (c) 2024 @inrryoff
 
-Este programa é software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da GNU General Public License versão 3 (GPLv3), com a seguinte adaptação: este código **não pode ser usado para fins comerciais** sem permissão explícita do autor.
+Pelo presente, fica concedida permissão a qualquer pessoa que obtenha uma cópia 
+deste software para usá-lo gratuitamente, sujeito às seguintes condições:
 
-Você pode redistribuir e modificar este código, desde que:
+1. ATRIBUIÇÃO (CRÉDITOS):
+   O nome do autor original (@inrryoff) e os avisos de copyright devem ser 
+   mantidos em todos os arquivos de código-fonte, cabeçalhos e na saída de 
+   versão do binário compilado (ex: neonx --version).
 
-1. Qualquer distribuição ou modificação seja **gratuita** (não comercial).
-2. Você **atribua créditos** ao autor original: Inrryoff.
-3. Todas as versões modificadas sejam distribuídas sob **esta mesma licença** (copyleft).
+2. PROIBIÇÃO DE COMERCIALIZAÇÃO:
+   É TERMINANTEMENTE PROIBIDA a venda, aluguel ou qualquer forma de 
+   comercialização deste software, seja do código-fonte ou do binário 
+   compilado, de forma isolada ou integrada a pacotes pagos.
 
-Este software é distribuído na esperança de que seja útil, mas **SEM NENHUMA GARANTIA**; sem mesmo a garantia implícita de COMERCIALIZAÇÃO ou ADEQUAÇÃO A UM DETERMINADO FIM. O autor não se responsabiliza por qualquer dano resultante do uso deste software.
+3. DERIVAÇÕES E MODIFICAÇÕES:
+   Alterações no código são permitidas para melhorias ou uso pessoal, desde que:
+   a) O trabalho derivado NÃO seja vendido.
+   b) A versão modificada seja mantida em repositório público (Open Source).
+   c) Os créditos ao autor original sejam mantidos de forma clara.
 
-Para pedidos de uso comercial ou outras permissões, entre em contato: <https://t.me/Inrryoff> ou inrrymacollemcastroreis@gmail.com.
+4. DISTRIBUIÇÃO EM MÓDULOS (MAGISK/KERNELSU):
+   O uso deste binário em módulos de otimização é permitido e encorajado, 
+   desde que o módulo seja distribuído gratuitamente.
 
-Para detalhes completos sobre a GPLv3, consulte: <https://www.gnu.org/licenses/gpl-3.0.html>.
+O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU 
+IMPLÍCITA. EM NENHUM EVENTO O AUTOR SERÁ RESPONSÁVEL POR QUALQUER RECLAMAÇÃO, 
+DANOS OU OUTRA RESPONSABILIDADE RESULTANTE DO USO DESTE SOFTWARE.
