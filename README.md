@@ -35,7 +35,7 @@ sudo apt install zig # Ubuntu/Debian
 ## Gerando builds
 Clone este repositório e rode o script de compilação da comunidade:
 ```bash
-git clone [https://github.com/inrryoff/NeonX.git](https://github.com/inrryoff/NeonX.git)
+git clone https://github.com/inrryoff/NeonX.git
 cd NeonX
 chmod +x build.sh
 ./build.sh
