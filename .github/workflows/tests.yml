@@ -45,7 +45,7 @@ jobs:
 
       - name: Test basic shader pipeline
         run: |
-          echo "NeonX test" | build/neonx --preset cyberpunk > /dev/null
+          echo "NeonX test" | build/neonx -S --preset cyberpunk
 
       - name: Test license option
         run: build/neonx --license | grep -q "LICENÇA DE USO"
