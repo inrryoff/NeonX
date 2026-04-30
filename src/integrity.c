@@ -90,20 +90,13 @@ static bool verify_neonx_seal(void) {
     return (memcmp(decrypted_secret, SECRET_KEY, SECRET_KEY_LEN) == 0);
 }
 
-int check_integrity(void) {
-    bool auth_ok = (strcmp(ORIGINAL_CREATOR, "@inrryoff") == 0);
-    bool seal_ok = verify_neonx_seal();
+    int check_integrity(void) {
+        bool auth_ok = (strcmp(ORIGINAL_CREATOR, "@inrryoff") == 0);
+        bool seal_ok = verify_neonx_seal();
 
-    if (!auth_ok || !seal_ok) {
-        fprintf(stderr,
-            "\n\033[1;33m"
-            " [!] AVISO DE INTEGRIDADE NEONX [!]\n"
-            " Esta parece ser uma build nao-oficial ou modificada.\n"
-            " Builds oficiais estao disponiveis em: https://github.com/inrryoff/NeonX/releases\n"
-            " Para ocultar este aviso, execute com a flag: --allow-mod\n"
-            "\033[0m\n"
-        );
-        return 2;
+        if (!auth_ok || !seal_ok) {
+            return 2;
     }
     return 0;
 }
+

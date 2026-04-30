@@ -37,10 +37,18 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, handle_sigint);
     
     int auth_status = check_integrity();
-    set_integrity_status(auth_status);
-    if (auth_status == 2) {
-        if (!has_flag(argc, argv, "--allow-mod")) {
-            sleep_us(1500000);
+        if (auth_status == 2) {
+            int allow_mod = has_flag(argc, argv, "--allow-mod");
+            if (!allow_mod) {
+                fprintf(stderr,
+                    "\n\033[1;33m"
+                    " [!] AVISO DE INTEGRIDADE NEONX [!]\n"
+                    " Esta parece ser uma build nao-oficial ou modificada.\n"
+                    " Builds oficiais estao disponiveis em: https://github.com/inrryoff/NeonX/releases\n"
+                    " Para ocultar este aviso, execute com a flag: --allow-mod\n"
+                    "\033[0m\n"
+            );
+            sleep_us(1500000); 
         }
     }
 
