@@ -21,12 +21,14 @@ jobs:
       - name: Build for testing
         run: |
           bash build.sh --target x86_64-linux-musl --output neonx
-
+          
       - name: Test help output
-        run: build/neonx -h | grep -q "Uso: cat arquivo"
+        run: |
+          build/neonx -h | grep -q "Uso: cat arquivo"
 
       - name: Test version output
-        run: build/neonx -v | grep -q "Status: UNOFFICIAL"
+        run: |
+          build/neonx -v | grep -q "Status: UNOFFICIAL"
 
       - name: Test integrity warning (without --allow-mod)
         run: |
