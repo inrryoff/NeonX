@@ -1,0 +1,30 @@
+LICENÇA DE USO - NeonX (C - VERSION)
+---------------------------------------
+Copyright (c) 2024 @inrryoff
+
+Pelo presente, fica concedida permissão a qualquer pessoa que obtenha uma cópia 
+deste software para usá-lo gratuitamente, sujeito às seguintes condições:
+
+1. ATRIBUIÇÃO (CRÉDITOS):
+   O nome do autor original (@inrryoff) e os avisos de copyright devem ser 
+   mantidos em todos os arquivos de código-fonte, cabeçalhos e na saída de 
+   versão do binário compilado (ex: neonx --version).
+
+2. PROIBIÇÃO DE COMERCIALIZAÇÃO:
+   É TERMINANTEMENTE PROIBIDA a venda, aluguel ou qualquer forma de 
+   comercialização deste software, seja do código-fonte ou do binário 
+   compilado, de forma isolada ou integrada a pacotes pagos.
+
+3. DERIVAÇÕES E MODIFICAÇÕES:
+   Alterações no código são permitidas para melhorias ou uso pessoal, desde que:
+   a) O trabalho derivado NÃO seja vendido.
+   b) A versão modificada seja mantida em repositório público (Open Source).
+   c) Os créditos ao autor original sejam mantidos de forma clara.
+
+4. DISTRIBUIÇÃO EM MÓDULOS (MAGISK/KERNELSU):
+   O uso deste binário em módulos de otimização é permitido e encorajado, 
+   desde que o módulo seja distribuído gratuitamente.
+
+O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU 
+IMPLÍCITA. EM NENHUM EVENTO O AUTOR SERÁ RESPONSÁVEL POR QUALQUER RECLAMAÇÃO, 
+DANOS OU OUTRA RESPONSABILIDADE RESULTANTE DO USO DESTE SOFTWARE.

@@ -109,6 +109,11 @@ fi
 # Procura a hash no registro oficial
 # =============================================
 FOUND_LINE=$(grep "|$ACTUAL_HASH$" "$VERIFIED_FILE")
+<<<<<<< HEAD
+=======
+AUTHOR=$(echo "$FOUND_LINE" | awk -F'|' '{print $1}')
+BINARY_NAME=$(echo "$FOUND_LINE" | awk -F'|' '{print $2}')
+>>>>>>> 7f130e8ca5239cdea155eed46eab8bea8d163d4f
 
 if [ -z "$FOUND_LINE" ]; then
     echo ""
@@ -139,4 +144,8 @@ echo -e "${GREEN}   Este é um binário OFICIAL e íntegro.${NC}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 rm -f "$VERIFIED_FILE"
+<<<<<<< HEAD
 exit 0
+=======
+exit 0
+>>>>>>> 7f130e8ca5239cdea155eed46eab8bea8d163d4f
