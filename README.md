@@ -143,6 +143,6 @@ Para bugs ou sugestões, abra uma issue.
 ## 📄 Licença
 NeonX é distribuído sob a **NeonX Custom License**.
 Veja o texto completo com neonx --license ou no arquivo LICENSE.
-**Autor:** @inrryoff
-**Versão:** 2.0.0-STABLE
-**Plataformas:** Linux • Android (Termux) • Windows
+- **Autor:** @inrryoff
+- **Versão:** 2.0.0-STABLE
+- **Plataformas:** Linux • Android • Windows
