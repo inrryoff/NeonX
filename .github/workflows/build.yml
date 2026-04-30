@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-matrix:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-linux-musl
+            os: ubuntu-latest
+            artifact: neonx-linux-x64
+            binary: neonx
+
+          - target: aarch64-linux-musl
+            os: ubuntu-latest
+            artifact: neonx-linux-arm64
+            binary: neonx
+
+          - target: x86_64-windows-gnu
+            os: ubuntu-latest
+            artifact: neonx-windows-x64
+            binary: neonx.exe
+
+          - target: aarch64-linux-musl   # Android ARM64
+            os: ubuntu-latest
+            artifact: neonx-android-arm64
+            binary: neonx
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.11.0   # ou a versão que preferir
+
+      - name: Compile
+        run: |
+          zig cc src/*.c -o ${{ matrix.binary }} -target ${{ matrix.target }} -static \
+            -O2 -ffast-math -fstack-protector-strong -D_FORTIFY_SOURCE=2 \
+            -DVERSION="CI-${GITHUB_SHA::7}" \
+            -DBUILD_STATUS="CI-UNOFFICIAL" \
+            -DBUILD_MAINTAINER="GitHub Actions" \
+            -DSECRET_KEY="CI_KEY" -lm
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.binary }}
