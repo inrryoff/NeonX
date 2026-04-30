@@ -1,0 +1,36 @@
+name: NeonX Build & Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Baixar o código
+      uses: actions/checkout@v4
+
+    - name: Instalar Zig Compiler
+      uses: goto-bus-stop/setup-zig@v2
+      with:
+        version: 0.16.0
+
+    - name: Dar permissão de execução
+      run: chmod +x build.sh
+
+    - name: Compilar o Arsenal Completo
+      run: ./build.sh --ci
+
+    - name: Testar Execução (Linux x64)
+      run: |
+        echo "Teste de integridade..."
+        ./build/neonx_linux_x64 --version
+        
+    - name: Testar Pipeline de Cor
+      run: |
+        echo "Sucesso total!" | ./build/neonx_linux_x64 -S -m 7
+        
