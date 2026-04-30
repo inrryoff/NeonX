@@ -34,10 +34,8 @@ OUTPUT_DIR="build"
 HASH_BIN="$TOOLS_DIR/neonx_hash"
 
 # Macros que serão embutidas no binário
-MACRO_FLAGS="-DVERSION=\\\"$VERSION\\\" -DBUILD_STATUS=\\\"$BUILD_STATUS\\\" \
--DBUILD_MAINTAINER=\\\"$BUILD_MAINTAINER\\\" -DSECRET_KEY=\\\"$SECRET_KEY\\\""
-
-BASE_FLAGS="-O2 -ffast-math -fstack-protector-strong -D_FORTIFY_SOURCE=2"
+MACRO_FLAGS="-DVERSION=\"$VERSION\" -DBUILD_STATUS=\"$BUILD_STATUS\" -DBUILD_MAINTAINER=\"$BUILD_MAINTAINER\" -DSECRET_KEY=\"$SECRET_KEY\""
+BASE_FLAGS="-O2 -ffast-math -fstack-protector-strong -D_FORTIFY_SOURCE=2 $MACRO_FLAGS"
 
 print_info()  { echo -e "${BLUE}ℹ${NC} $1"; }
 print_success() { echo -e "${GREEN}✓${NC} $1"; }
