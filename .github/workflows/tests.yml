@@ -28,7 +28,7 @@ jobs:
 
       - name: Test version output
         run: |
-          build/neonx -v | grep -q "Status: UNOFFICIAL"
+          build/neonx -v | grep -q "Status: MODIFICADO"
 
       - name: Test integrity warning (without --allow-mod)
         run: |
