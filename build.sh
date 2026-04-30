@@ -23,9 +23,9 @@ NC='\033[0m'
 # Configurações que o desenvolvedor PODE alterar:
 # (pode sobrescrever com export VARIÁVEL=valor antes de rodar)
 VERSION="${VERSION:-2.0.1-DEV}"
-BUILD_MAINTAINER="${BUILD_MAINTAINER:-Desenvolvedor Anônimo}"
+BUILD_MAINTAINER="${BUILD_MAINTAINER:-Desenvolvedor_Anônimo}"
 BUILD_STATUS="${BUILD_STATUS:-UNOFFICIAL_MOD}"
-SECRET_KEY="${SECRET_KEY:-CHAVE_MOD_LOCAL}"   # chave local, sem impacto
+SECRET_KEY="${SECRET_KEY:-CHAVE_MOD_LOCAL}"   # chave local
 # ------------------------------------------------------------
 
 SRC_DIR="src"
