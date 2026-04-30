@@ -4,7 +4,7 @@
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20Android%20%7C%20Windows-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
 [![Build Oficial](https://img.shields.io/badge/build-oficial-green)]()
-[![Build Comunidade](https://img.shields.io/badge/build-comunidade-orange)](./build.sh)[![NeonX Build & Test](https://github.com/inrryoff/NeonX/actions/workflows/testes.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions)
+[![Build Comunidade](https://img.shields.io/badge/build-comunidade-orange)](./build.sh)[![NeonX Build & Test](https://github.com/inrryoff/NeonX/actions/workflows/build.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions)
 
 
 **NeonX** é um motor de renderização de terminal que aplica efeitos de cor dinâmicos (shaders) a qualquer texto recebido via `stdin`. Funciona como um filtro de cores: você envia texto (código, logs, arte ASCII) e o NeonX devolve o mesmo conteúdo colorizado com animações contínuas, estáticas ou em tempo real (modo stream).
