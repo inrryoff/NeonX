@@ -1,0 +1,49 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.11.0
+
+      - name: Build for testing
+        run: |
+          bash build.sh --target x86_64-linux-musl --output neonx
+
+      - name: Test help output
+        run: build/neonx -h | grep -q "Uso: cat arquivo"
+
+      - name: Test version output
+        run: build/neonx -v | grep -q "Status: UNOFFICIAL"
+
+      - name: Test integrity warning (without --allow-mod)
+        run: |
+          build/neonx -v 2>&1 | grep -q "AVISO DE INTEGRIDADE"
+
+      - name: Test --allow-mod flag
+        run: |
+          if build/neonx --allow-mod -v 2>&1 | grep -q "AVISO DE INTEGRIDADE"; then
+              echo "✗ Warning should not appear with --allow-mod"
+              exit 1
+          else
+              echo "✓ Warning suppressed with --allow-mod"
+          fi
+
+      - name: Test basic shader pipeline
+        run: |
+          echo "NeonX test" | build/neonx --preset cyberpunk > /dev/null
+
+      - name: Test license option
+        run: build/neonx --license | grep -q "LICENÇA DE USO"
