@@ -21,11 +21,11 @@ jobs:
     - name: Build NeonX (GCC)
       run: |
         mkdir -p build
-        gcc src/*.c -o build/neonx -lm -O3 -DVERSION="CI-BUILD" -DBUILD_STATUS="UNOFFICIAL" -DBUILD_MAINTAINER="GitHub-Actions"
+        gcc src/*.c -o build/neonx -lm -O3 -DVERSION='"CI-BUILD"' -DBUILD_STATUS='"UNOFFICIAL"' -DBUILD_MAINTAINER='"GitHub-Actions"'
         
     - name: Build NeonX (Clang)
       run: |
-        clang src/*.c -o build/neonx_clang -lm -O3 -DVERSION="CI-BUILD"
+        clang src/*.c -o build/neonx_clang -lm -O3 -DVERSION='"CI-BUILD"' -DBUILD_STATUS='"UNOFFICIAL"' -DBUILD_MAINTAINER='"GitHub-Actions"'
         
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
