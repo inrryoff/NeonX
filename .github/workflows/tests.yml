@@ -57,3 +57,4 @@ jobs:
       run: |
         echo "Test" | ./build/neonx_test -S -s 0.5 -f 1.0 -o 0.5 -D 0.2 -c 100
         echo "Complex argument parsing passed."
+        
