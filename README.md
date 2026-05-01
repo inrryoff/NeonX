@@ -1,16 +1,16 @@
-# 🌈 NeonX – Colorizador de Texto com Shaders avançado
+# 🌈 NeonX – Colorizador de Texto com Shaders Avançados
 
-[![Versão](https://img.shields.io/badge/version-2.0.0--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.0.1--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20Android%20%7C%20Windows-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
 [![Build Oficial](https://img.shields.io/badge/build-oficial-green)]()
-[![Build Comunidade](https://img.shields.io/badge/build-comunidade-orange)](./build.sh)[![NeonX Build](https://github.com/inrryoff/NeonX/actions/workflows/build.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions)[![NeonX Test](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions)
-
+[![Build](https://github.com/inrryoff/NeonX/actions/workflows/build.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions/workflows/build.yml)
+[![Testes](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml)
 
 # 🎨 NeonX — Shader Engine para Terminal
 
 **Dê vida aos seus textos no terminal com 11 shaders animados.**  
-Simples, rápido e totalmente *open source* – agora mais seguro e modular.
+Simples, rápido e totalmente *open source* – agora com verificação de integridade por assinatura digital.
 
 ---
 
@@ -23,6 +23,7 @@ O **NeonX** é um filtro de cores para o terminal. Você envia um texto via `std
 - **Desempenho máximo** – tabelas de seno pré-calculadas e buffers otimizados
 - **Portátil** – binário estático único (Linux, Android, Windows)
 - **Código aberto** – licença que permite modificações e distribuição gratuita, com créditos ao autor original
+- **Integridade verificável** – assinatura digital Ed25519 interna e externa (Minisign)
 
 ---
 
@@ -40,7 +41,6 @@ cat banner.txt | neonx -S
 ```
 
 ### Opções principais
-## 🧰 Opções de linha de comando
 | Opção | Descrição | Padrão |
 |---|---|---|
 | -m [0-11] | Modo de animação (veja tabela abaixo) | 0 |
@@ -88,28 +88,31 @@ Os presets ajustam automaticamente várias opções para um tema específico:
 | retro | 4 | 0.2 | 0.8 | 0.0 |
 | matrix | 10 | 0.5 | 1.2 | 0.0 |
 | sunset | 1 | 0.15 | 0.3 | 0.05 |
+
 Exemplo:
 ```bash
 cat arquivo | neonx --preset matrix -F 30 -d 5
-
 ```
 
 ---
 
 ## 🔒 Integridade e segurança
 
-O NeonX possui um sistema **não destrutivo** de verificação de integridade:
+O NeonX adota um sistema de verificação de integridade **transparente e não invasivo**, baseado em assinatura digital Ed25519.
 
-- **Binários oficiais** são compilados e assinados por **@inrryoff** e não exibem aviso.
-- **Builds não oficiais** (compiladas localmente, modificadas ou de terceiros) mostram um aviso amarelo **sem bloquear a execução**.
-- A flag `--allow-mod` omite esse aviso e fica memorizada para aquele binário (cache em `~/.neonx_cache/`).
-- Nenhum arquivo é deletado ou alterado – **transparência total**.
+- **Binários oficiais** são compilados e assinados por **@inrryoff** com uma chave privada. Ao serem executados, reconhecem-se como oficiais e exibem os metadados completos no `--version`.
+- **Builds não oficiais** (compiladas localmente ou modificadas) não possuem a assinatura válida e, portanto, mostram naturalmente o status **MODIFICADO** no `--version`. Nenhum aviso, mensagem ou bloqueio é exibido durante a execução normal – apenas a informação verdadeira quando solicitada.
+- **Verificação externa**: além da verificação interna, cada binário oficial é acompanhado de uma assinatura Minisign (`.minisig`). Você pode verificar a autenticidade do arquivo **antes mesmo de executá-lo** usando o script `verify_neonx.sh` (ou o Minisign diretamente).
 
-> **Verifique a autenticidade de um binário baixado** com nosso verificador público:
+> **Verifique um binário baixado** com:
 > ```bash
-> curl -O https://raw.githubusercontent.com/inrryoff/NeonX/main/verified_public.sh
-> bash verified_public.sh ./neonx
+> # Baixe o verificador público (uma única vez)
+> curl -O https://raw.githubusercontent.com/inrryoff/NeonX/main/verify_neonx.sh
+> chmod +x verify_neonx.sh
+> # Verifique o binário (ex: neonx_arm64)
+> ./verify_neonx.sh ./neonx_arm64
 > ```
+> O script confere a assinatura Minisign e informa se o binário é oficial e íntegro.
 
 ---
 
@@ -117,12 +120,16 @@ O NeonX possui um sistema **não destrutivo** de verificação de integridade:
 
 ### Binários oficiais
 
-Acesse a **[página de releases](https://github.com/inrryoff/NeonX/releases)** e baixe o binário para sua plataforma:
-- Android /ARM64 /ARM32 (via Termux)
-- Linux x86_64 / ARM64 / ARM32
-- Windows x64 / x86
+Acesse a **[página de releases](https://github.com/inrryoff/NeonX/releases)** e baixe o pacote `.zip` para sua plataforma:
+- **Linux x86_64 / x86 / ARM64 / ARM32**
+- **Windows x64 / x86**
+- **Android** (via Termux, use os binários ARM)
 
-Cada release inclui os hashes para verificação manual.
+Cada pacote inclui:
+- O binário estático (`neonx` ou `neonx.exe`)
+- A assinatura Minisign correspondente (`.minisig`)
+
+A chave pública Minisign (`keys/neonx_public.pub`) está disponível no repositório para verificação.
 
 ### Compilando você mesmo (build local)
 
@@ -132,7 +139,9 @@ cd NeonX
 bash build.sh
 ```
 
-Será gerado um binário `build/neonx` (não oficial) que você pode usar livremente.
+Será gerado um binário `build/neonx` (não oficial). Você pode usá‑lo livremente. O `--version` indicará que é uma build modificada.
+
+Para desenvolvedores que desejam submeter modificações, veja o [Guia do Desenvolvedor](DEVELOPMENT.md).
 
 ---
 
@@ -141,8 +150,9 @@ Será gerado um binário `build/neonx` (não oficial) que você pode usar livrem
 Quer modificar, adicionar shaders ou entender a arquitetura?  
 Leia o **[Guia do Desenvolvedor](DEVELOPMENT.md)** para:
 - Estrutura modular do código (`src/`)
-- Como usar `build.sh` e submeter modificações para aprovação
-- Funcionamento do selo criptográfico e do cache de integridade
+- Como usar `build-devs.sh` e submeter modificações para aprovação
+- Funcionamento das assinaturas Ed25519 e Minisign
+- Criação de builds oficiais (`release-build.sh`)
 
 ---
 
