@@ -1,144 +1,134 @@
 #!/usr/bin/env bash
+set -e
 
 # =====================================================
-# NeonX Public Verifier v4.0
-# Verifica pela hash, não pelo nome do arquivo
+# NeonX Public Verifier v5.0 – Minisign
+# =====================================================
+# Verifica a autenticidade e integridade de qualquer
+# binário NeonX (oficial ou modificado) usando a
+# assinatura Minisign e a chave pública oficial.
 # =====================================================
 
-GITHUB_RAW="https://raw.githubusercontent.com/inrryoff/NeonX/main/verified_bins.txt"
-GITHUB_RELEASES="https://raw.githubusercontent.com/inrryoff/NeonX/main/bin"
-HASH_TOOL="./neonx_hash"
-BINARY="$1"
+# URLs oficiais
+PUBLIC_KEY_URL="https://raw.githubusercontent.com/inrryoff/NeonX/main/keys/neonx_public.pub"
+RELEASES_BASE="https://github.com/inrryoff/NeonX/releases/latest/download"
 
-if [ -d "$TMPDIR" ] && [ -w "$TMPDIR" ]; then
-    TMP_DIR="$TMPDIR"
-elif [ -d "$HOME/tmp" ] && [ -w "$HOME/tmp" ]; then
-    TMP_DIR="$HOME/tmp"
-else
-    TMP_DIR="/tmp"
-fi
-VERIFIED_FILE="${TMP_DIR}/neonx_verified_$$_$RANDOM.txt"
-rm -f "$VERIFIED_FILE" 2>/dev/null
-
+# Cores
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
-    echo -e "${RED}Uso: $0 <arquivo_binario>${NC}"
+BINARY="$1"
+
+usage() {
+    echo -e "${RED}Uso: $0 <arquivo_binario_ou_zip> [assinatura.minisig]${NC}"
     echo ""
     echo -e "${CYAN}Exemplos:${NC}"
     echo "  $0 neonx"
     echo "  $0 ./meu_neonx_arm64"
-    echo "  $0 /caminho/qualquer/neonx.exe"
+    echo "  $0 neonx neonx_linux_x64.minisig"
+    echo "  $0 neonx-linux-arm64.zip"
+    exit 1
+}
+
+# Verifica argumento
+if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
+    usage
+fi
+
+# Verifica se minisign está disponível
+if ! command -v minisign &> /dev/null; then
+    echo -e "${RED}❌ minisign não encontrado.${NC}"
+    echo -e "${YELLOW}Instale com:${NC}"
+    echo "  Termux:   pkg install minisign"
+    echo "  Debian/Ubuntu: sudo apt install minisign"
+    echo "  macOS:    brew install minisign"
     exit 1
 fi
 
-echo -e "${YELLOW}⬇  Baixando registro oficial...${NC}"
-rm -f "$VERIFIED_FILE"
+# Cria diretório temporário
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
 
-if command -v curl &> /dev/null; then
-    curl -sSL "$GITHUB_RAW" -o "$VERIFIED_FILE" || {
-        echo -e "${RED}❌ Falha ao baixar registro.${NC}"
+# --------------------------------------------------
+# 1. Baixar chave pública oficial
+# --------------------------------------------------
+echo -e "${YELLOW}⬇  Baixando chave pública oficial...${NC}"
+if ! curl -sSL "$PUBLIC_KEY_URL" -o "$TMP_DIR/neonx_public.pub"; then
+    echo -e "${RED}❌ Falha ao baixar chave pública.${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ Chave pública obtida.${NC}"
+
+# --------------------------------------------------
+# 2. Extrair binário e assinatura (se zip)
+# --------------------------------------------------
+SIG_FILE_ARG="$2"
+
+if [[ "$BINARY" == *.zip ]]; then
+    echo -e "${YELLOW}📦 Extraindo $BINARY...${NC}"
+    unzip -qo "$BINARY" -d "$TMP_DIR"
+    sig_file=$(ls "$TMP_DIR"/*.minisig 2>/dev/null | head -n1)
+    binary_file=$(find "$TMP_DIR" -type f ! -name "*.minisig" ! -name "*.pub" | head -n1)
+    if [ -z "$binary_file" ]; then
+        echo -e "${RED}❌ Nenhum binário encontrado no zip.${NC}"
         exit 1
-    }
-elif command -v wget &> /dev/null; then
-    wget -q "$GITHUB_RAW" -O "$VERIFIED_FILE" || {
-        echo -e "${RED}❌ Falha ao baixar registro.${NC}"
-        exit 1
-    }
+    fi
 else
-    echo -e "${RED}❌ curl ou wget não encontrados.${NC}"
-    exit 1
-fi
-
-if [ ! -s "$VERIFIED_FILE" ]; then
-    echo -e "${RED}❌ Registro oficial vazio ou não disponível.${NC}"
-    exit 1
-fi
-
-# =============================================
-# Download do motor de hash (se necessário)
-# =============================================
-if [ ! -f "$HASH_TOOL" ]; then
-    echo -e "${YELLOW}🔍 Baixando motor de hash...${NC}"
-    
-    OS="$(uname -s 2>/dev/null || echo 'Windows')"
-    ARCH="$(uname -m 2>/dev/null || echo 'x86_64')"
-    
-    if [ "$OS" = "Windows" ] || [ "$OS" = "MINGW64_NT" ] || [ "$OS" = "MSYS_NT" ]; then
-        if [ "$PROCESSOR_ARCHITECTURE" = "AMD64" ]; then ARCH="x86_64"
-        elif [ "$PROCESSOR_ARCHITECTURE" = "x86" ]; then ARCH="i686"; fi
-        HASH_TOOL="./neonx_hash.exe"
-    fi
-    
-    case "$ARCH" in
-        aarch64|arm64)  TOOL_SRC="neonx_hash_arm64" ;;
-        x86_64|amd64)   TOOL_SRC="neonx_hash_x86_64" ;;
-        armv7l|armhf)   TOOL_SRC="neonx_hash_arm32" ;;
-        i686|i386)      TOOL_SRC="neonx_hash_x86" ;;
-        *) echo -e "${RED}❌ Arquitetura não suportada.${NC}"; rm -f "$VERIFIED_FILE"; exit 1 ;;
-    esac
-    
-    [ "$OS" = "Windows" ] || [ "$OS" = "MINGW64_NT" ] || [ "$OS" = "MSYS_NT" ] && TOOL_SRC="${TOOL_SRC}.exe"
-    
-    if command -v curl &> /dev/null; then
-        curl -sSL "${GITHUB_RELEASES}/${TOOL_SRC}" -o "$HASH_TOOL"
+    binary_file="$BINARY"
+    # Prioridade: argumento explícito > arquivo .minisig ao lado com mesmo nome > download da release
+    if [ -n "$SIG_FILE_ARG" ] && [ -f "$SIG_FILE_ARG" ]; then
+        sig_file="$SIG_FILE_ARG"
+        echo -e "${CYAN}ℹ Usando assinatura fornecida: $sig_file${NC}"
+    elif [ -f "${binary_file}.minisig" ]; then
+        sig_file="${binary_file}.minisig"
     else
-        wget -q "${GITHUB_RELEASES}/${TOOL_SRC}" -O "$HASH_TOOL"
+        base_name=$(basename "$BINARY")
+        remote_sig="${RELEASES_BASE}/${base_name}.minisig"
+        echo -e "${YELLOW}⬇  Tentando baixar assinatura oficial (${base_name}.minisig)...${NC}"
+        if ! curl -sSL "$remote_sig" -o "$TMP_DIR/${base_name}.minisig"; then
+            echo -e "${RED}❌ Assinatura não encontrada.${NC}"
+            echo -e "${YELLOW}   Use: $0 $BINARY <arquivo.minisig>${NC}"
+            exit 1
+        fi
+        sig_file="$TMP_DIR/${base_name}.minisig"
     fi
-    chmod +x "$HASH_TOOL" 2>/dev/null || true
-    echo -e "${GREEN}✅ Motor de hash pronto.${NC}"
 fi
 
-# =============================================
-# Calcula o hash do binário fornecido
-# =============================================
-echo -e "${YELLOW}🔐 Calculando hash do arquivo...${NC}"
-ACTUAL_HASH=$("$HASH_TOOL" "$BINARY")
+echo -e "${YELLOW}🔐 Verificando assinatura Minisign...${NC}"
 
-if [ -z "$ACTUAL_HASH" ]; then
-    echo -e "${RED}❌ Falha ao calcular hash.${NC}"
-    rm -f "$VERIFIED_FILE"
-    exit 1
-fi
+# --------------------------------------------------
+# 3. Executar minisign -V
+# --------------------------------------------------
+set +e
+output=$(minisign -V -x "$sig_file" -p "$TMP_DIR/neonx_public.pub" -m "$binary_file" 2>&1)
+exit_code=$?
+set -e
 
-# =============================================
-# Procura a hash no registro oficial
-# =============================================
-FOUND_LINE=$(grep "|$ACTUAL_HASH$" "$VERIFIED_FILE")
-AUTHOR=$(echo "$FOUND_LINE" | awk -F'|' '{print $1}')
-BINARY_NAME=$(echo "$FOUND_LINE" | awk -F'|' '{print $2}')
-
-if [ -z "$FOUND_LINE" ]; then
+if [ $exit_code -eq 0 ]; then
     echo ""
-    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo -e "${GREEN}✅ BINÁRIO OFICIAL VERIFICADO!${NC}"
+    echo ""
+    echo -e "${CYAN}   Binário:       $(basename "$binary_file")${NC}"
+    echo -e "${CYAN}   Assinatura:    $(basename "$sig_file")${NC}"
+    echo ""
+    echo -e "${GREEN}   Origem confirmada: @inrryoff${NC}"
+    echo -e "${GREEN}   Este é um binário OFICIAL e íntegro.${NC}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+else
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo -e "${RED}❌ Binário NÃO É OFICIAL!${NC}"
-    echo -e "${RED}   Hash: $ACTUAL_HASH${NC}"
-    echo -e "${RED}   Esta hash não consta no registro oficial.${NC}"
-    echo -e "${RED}   O arquivo pode estar corrompido ou não ser legítimo.${NC}"
-    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    rm -f "$VERIFIED_FILE"
+    echo ""
+    echo -e "${RED}   A assinatura Minisign não confere.${NC}"
+    echo -e "${RED}   O arquivo pode estar corrompido, modificado${NC}"
+    echo -e "${RED}   ou não ser uma build oficial do NeonX.${NC}"
+    echo ""
+    echo -e "${YELLOW}   Detalhes:${NC}"
+    echo "$output"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     exit 1
 fi
-
-# Extrai informações da linha encontrada
-BINARY_NAME=$(echo "$FOUND_LINE" | awk -F'|' '{print $1}')
-PLATFORM=$(echo "$FOUND_LINE" | awk -F'|' '{print $2}')
-
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "${GREEN}✅ BINÁRIO OFICIAL VERIFICADO!${NC}"
-echo ""
-echo -e "${CYAN}   Nome oficial: ${BINARY_NAME}${NC}"
-echo -e "${CYAN}   Plataforma:   ${PLATFORM}${NC}"
-echo -e "${CYAN}   Hash:         ${ACTUAL_HASH}${NC}"
-echo ""
-echo -e "${GREEN}   Origem confirmada: @inrryoff${NC}"
-echo -e "${GREEN}   Este é um binário OFICIAL e íntegro.${NC}"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-rm -f "$VERIFIED_FILE"
-exit 0
