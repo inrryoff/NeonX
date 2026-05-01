@@ -2,6 +2,8 @@
 #define TERMINAL_H
 
 #include <wchar.h>
+#include <stdbool.h>
+#include <signal.h>
 
 #define MAX_LINES 1024
 #define MAX_LINE_LEN 2048

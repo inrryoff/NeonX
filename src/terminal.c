@@ -1,8 +1,6 @@
 #include "terminal.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
-
 #ifdef _WIN32
     #include <windows.h>
     #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
@@ -12,7 +10,9 @@
     #include <unistd.h>
 #endif
 
+const char* ORIGINAL_CREATOR = "@inrryoff";
 Content content = {.count = 0};
+static int g_integrity_status = 2;
 
 #ifndef VERSION
     #define VERSION "2.0.1-MOD"
@@ -24,7 +24,9 @@ Content content = {.count = 0};
     #define BUILD_STATUS "UNOFFICIAL"
 #endif
 
-extern const char* ORIGINAL_CREATOR;
+void set_integrity_status(int status) {
+    g_integrity_status = status;
+}
 
 void setup_terminal(void) {
     #ifdef _WIN32
@@ -48,7 +50,9 @@ void sleep_us(long microseconds) {
 }
 
 void free_content(Content *c) {
-    for(int i=0; i<c->count; i++) if(c->lines[i]) free(c->lines[i]);
+    for (int i = 0; i < c->count; i++) {
+        if (c->lines[i]) free(c->lines[i]);
+    }
     c->count = 0;
 }
 
@@ -60,12 +64,6 @@ void handle_sigint(int sig) {
 
 int sigint_triggered(void) {
     return sigint_received != 0;
-}
-
-static int g_integrity_status = 2;
-
-void set_integrity_status(int status) {
-    g_integrity_status = status;
 }
 
 void print_version(void) {
@@ -108,7 +106,6 @@ void print_license(void) {
     wprintf(L"IMPLÍCITA. EM NENHUM EVENTO O AUTOR SERÁ RESPONSÁVEL POR QUALQUER RECLAMAÇÃO,\n");  
     wprintf(L"DANOS OU OUTRA RESPONSABILIDADE RESULTANTE DO USO DESTE SOFTWARE.\n");
 }
-
 
 void show_help(void) {
     wprintf(L"NeonX v%s | Core por: %s | Build por: %s\n\n", VERSION, ORIGINAL_CREATOR, BUILD_MAINTAINER);

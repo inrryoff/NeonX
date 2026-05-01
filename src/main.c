@@ -37,33 +37,6 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, handle_sigint);
     int auth_status = check_integrity();
     set_integrity_status(auth_status);
-    
-    int explicit_allow = has_flag(argc, argv, "--allow-mod");
-    int allow_mod = explicit_allow;
-
-    if (auth_status == 2) {
-        if (!explicit_allow) {
-            if (check_allow_mod_cache()) {
-                allow_mod = 1;
-            }
-        }
-
-        if (!allow_mod) {
-            fprintf(stderr,
-                "\n\033[1;33m"
-                " [!] AVISO DE INTEGRIDADE NEONX [!]\n"
-                " Esta parece ser uma build nao-oficial ou modificada.\n"
-                " Builds oficiais estao disponiveis em: https://github.com/inrryoff/NeonX/releases\n"
-                " Para ocultar este aviso, execute com a flag: --allow-mod\n"
-                "\033[0m\n"
-            );
-            sleep_us(1500000);
-        } else {
-            if (explicit_allow) {
-                save_allow_mod_cache();
-            }
-        }
-    }
 
     bool static_mode = false, stream_mode = false;
     int anim_mode = 0;
@@ -79,7 +52,6 @@ int main(int argc, char *argv[]) {
         if (!strcmp(arg,"--license")) { print_license(); return 0; }
         if (!strcmp(arg,"-S")) { static_mode = true; continue; }
         if (!strcmp(arg,"-L")) { stream_mode = true; continue; }
-        if (!strcmp(arg,"--allow-mod")) { continue; }
 
         if (!strcmp(arg,"--preset") && i+1 < argc) {
             i++;
@@ -203,7 +175,6 @@ int main(int argc, char *argv[]) {
         if (static_mode) break;
 
         phase += speed;
-        sleep_us((long)frame_time_us);
     }
 
     printf("\033[?7h\033[?25h\033[0m"); fflush(stdout);
