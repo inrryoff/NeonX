@@ -155,4 +155,3 @@ Veja o texto completo com `neonx --license` ou no arquivo [LICENSE](./LICENSE).
 ---
 
 **Divirta-se colorindo seu terminal!** 🌈
-```
