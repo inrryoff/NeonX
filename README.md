@@ -7,37 +7,39 @@
 [![Build Comunidade](https://img.shields.io/badge/build-comunidade-orange)](./build.sh)[![NeonX Build](https://github.com/inrryoff/NeonX/actions/workflows/build.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions)[![NeonX Test](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions)
 
 
-**NeonX** é um motor de renderização de terminal que aplica efeitos de cor dinâmicos (shaders) a qualquer texto recebido via `stdin`. Funciona como um filtro de cores: você envia texto (código, logs, arte ASCII) e o NeonX devolve o mesmo conteúdo colorizado com animações contínuas, estáticas ou em tempo real (modo stream).
+# 🎨 NeonX — Shader Engine para Terminal
+
+**Dê vida aos seus textos no terminal com 11 shaders animados.**  
+Simples, rápido e totalmente *open source* – agora mais seguro e modular.
 
 ---
 
-## ✨ Características principais
+## ✨ O que é o NeonX?
 
-- 🎨 **11 modos de animação** (shaders) – de gradientes suaves a efeitos matrix e pulsos
-- 🧠 **Renderização otimizada** – tabela de seno pré-calculada e buffer de saída
-- 🌐 **Suporte a texto Unicode (wide chars)**
-- 🖥️ **Multi-plataforma** – Linux, Android (Termux) e Windows (com ANSI habilitado)
-- 📦 **Binário estático único** (via Zig + musl) – sem dependências externas
-- 🔐 **Verificação de integridade criptográfica** – impede execução de binários modificados
-- 🏷️ **Presets de fábrica**: `cyberpunk`, `retro`, `matrix`, `sunset`
-- ⚙️ **Controle preciso**: velocidade, frequência de cor, FPS, opacidade, duração, largura fixa
+O **NeonX** é um filtro de cores para o terminal. Você envia um texto via `stdin` e ele retorna o mesmo texto renderizado com animações contínuas de cores – como se fossem *shaders* aplicados a caracteres ASCII. Ideal para deixar logs, banners e saídas de comando visualmente impressionantes.
+
+- **11 modos de animação** (cyberpunk, matrix, pulse, retro, sunset…)
+- **Renderização em tempo real** (modo animado ou stream linha a linha)
+- **Desempenho máximo** – tabelas de seno pré-calculadas e buffers otimizados
+- **Portátil** – binário estático único (Linux, Android, Windows)
+- **Código aberto** – licença que permite modificações e distribuição gratuita, com créditos ao autor original
 
 ---
 
-## 📥 Uso básico
+## 🚀 Uso rápido
 
 ```bash
-cat arquivo.txt | neonx
+# Exemplo com preset cyberpunk (animado, com duração de 5 segundos)
+echo "NeonX" | neonx --preset cyberpunk -d 5
 
+# Modo stream (cada linha é colorida imediatamente)
+tail -f log.txt | neonx --preset matrix -L
+
+# Frame estático (-S)
+cat banner.txt | neonx -S
 ```
-Ou com opções:
-```bash
-cat logo.txt | neonx -d 5 -m 1 -s 0.15 -f 0.3 --preset sunset -F 60 -o 0
 
-```
-
----
-
+### Opções principais
 ## 🧰 Opções de linha de comando
 | Opção | Descrição | Padrão |
 |---|---|---|
@@ -88,62 +90,69 @@ Os presets ajustam automaticamente várias opções para um tema específico:
 | sunset | 1 | 0.15 | 0.3 | 0.05 |
 Exemplo:
 ```bash
-cat arquivo | neonx --preset matrix -F 30
+cat arquivo | neonx --preset matrix -F 30 -d 5
 
 ```
 
 ---
 
-## 🔐 Integridade do binário
-O NeonX verifica sua própria integridade em cada execução. Um selo criptográfico (FNV-1a + cifra XOR com chave secreta) é injetado durante o build oficial. Se o binário for modificado, ele se autodestrói e exibe:
-```text
-[FATAL] Integridade do NeonX violada. Binario corrompido.
+## 🔒 Integridade e segurança
 
-```
-### ✅ Verificando um binário oficial
-Use o script verify_public.sh para confirmar a origem:
+O NeonX possui um sistema **não destrutivo** de verificação de integridade:
+
+- **Binários oficiais** são compilados e assinados por **@inrryoff** e não exibem aviso.
+- **Builds não oficiais** (compiladas localmente, modificadas ou de terceiros) mostram um aviso amarelo **sem bloquear a execução**.
+- A flag `--allow-mod` omite esse aviso e fica memorizada para aquele binário (cache em `~/.neonx_cache/`).
+- Nenhum arquivo é deletado ou alterado – **transparência total**.
+
+> **Verifique a autenticidade de um binário baixado** com nosso verificador público:
+> ```bash
+> curl -O https://raw.githubusercontent.com/inrryoff/NeonX/main/verified_public.sh
+> bash verified_public.sh ./neonx
+> ```
+
+---
+
+## 📦 Obtendo o NeonX
+
+### Binários oficiais
+
+Acesse a **[página de releases](https://github.com/inrryoff/NeonX/releases)** e baixe o binário para sua plataforma:
+- Android /ARM64 /ARM32 (via Termux)
+- Linux x86_64 / ARM64 / ARM32
+- Windows x64 / x86
+
+Cada release inclui os hashes para verificação manual.
+
+### Compilando você mesmo (build local)
+
 ```bash
-bash verify_public.sh neonx
-
-```
-O script baixa o registro de hashes oficiais do GitHub e compara com o arquivo fornecido – **independentemente do nome do arquivo**.
-
----
-
-## 🧪 Exemplos criativos
-```bash
-# Efeito arco-íris sobre um logo
-figlet "NeonX" | neonx -m 0 -s 0.3 -f 0.8 -D 0.1
-
-# Modo Matrix com texto de um arquivo
-cat hack.txt | neonx --preset matrix -F 15
-
-# Congelar uma imagem colorida (estático)
-cat arte.txt | neonx -m 5 -S -p 1.5
-
-# Stream contínuo (monitoramento de logs com cores)
-tail -f /var/log/syslog | neonx -L -m 3 -s 0.1
-
+git clone https://github.com/inrryoff/NeonX.git
+cd NeonX
+bash build.sh
 ```
 
----
-
-## 🏗️ Compilação
-Um script de build é fornecido:
- * **build-community.sh** – gera binários genéricos para a comunidade (chave pública GENERIC_KEY_UNOFFICIAL)
-Cria automaticamente pacotes .zip com o binário renomeado para neonx (ou neonx.exe), prontos para distribuição.
+Será gerado um binário `build/neonx` (não oficial) que você pode usar livremente.
 
 ---
 
-## 🤝 Contribuição
-Pull requests são bem-vindos, desde que mantenham os créditos e a licença original.
-Para bugs ou sugestões, abra uma issue.
+## 🧑‍💻 Para desenvolvedores
+
+Quer modificar, adicionar shaders ou entender a arquitetura?  
+Leia o **[Guia do Desenvolvedor](DEVELOPMENT.md)** para:
+- Estrutura modular do código (`src/`)
+- Como usar `build.sh` e submeter modificações para aprovação
+- Funcionamento do selo criptográfico e do cache de integridade
 
 ---
 
-## 📄 Licença
-NeonX é distribuído sob a **NeonX Custom License**.
-Veja o texto completo com neonx --license ou no arquivo LICENSE.
-- **Autor:** @inrryoff
-- **Versão:** 2.0.0-STABLE
-- **Plataformas:** Linux • Android • Windows
+## 📜 Licença
+
+Copyright © 2024 [@inrryoff](https://github.com/inrryoff).  
+Licenciado sob condições especiais – **uso gratuito, modificações permitidas, proibida a venda**.  
+Veja o texto completo com `neonx --license` ou no arquivo [LICENSE](./LICENSE).
+
+---
+
+**Divirta-se colorindo seu terminal!** 🌈
+```
