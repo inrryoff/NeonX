@@ -1,49 +1,34 @@
-name: Build
+name: C Build CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
-  build-matrix:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-linux-musl
-            artifact: neonx-linux-x64
-            binary: neonx
-
-          - target: aarch64-linux-musl
-            artifact: neonx-linux-arm64
-            binary: neonx
-
-          - target: x86_64-windows-gnu
-            artifact: neonx-windows-x64
-            binary: neonx.exe
-
-          - target: arm-linux-musleabihf
-            artifact: neonx-linux-arm32
-            binary: neonx
-
+  build-linux:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Zig
-        uses: goto-bus-stop/setup-zig@v2
-        with:
-          version: 0.11.0
-
-      - name: Compile with build.sh
-        run: |
-          bash build.sh --target ${{ matrix.target }} --output ${{ matrix.binary }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact }}
-          path: build/${{ matrix.binary }}
+    - uses: actions/checkout@v4
+    
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential clang
+        
+    - name: Build NeonX (GCC)
+      run: |
+        mkdir -p build
+        gcc src/*.c -o build/neonx -lm -O3 -DVERSION="CI-BUILD" -DBUILD_STATUS="UNOFFICIAL" -DBUILD_MAINTAINER="GitHub-Actions"
+        
+    - name: Build NeonX (Clang)
+      run: |
+        clang src/*.c -o build/neonx_clang -lm -O3 -DVERSION="CI-BUILD"
+        
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: neonx-linux-x64
+        path: build/neonx

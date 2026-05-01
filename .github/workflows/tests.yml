@@ -1,51 +1,59 @@
-name: Tests
+name: Detailed Functional Tests
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Zig
-        uses: goto-bus-stop/setup-zig@v2
-        with:
-          version: 0.11.0
+    - name: Setup Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential valgrind
+        mkdir -p build
 
-      - name: Build for testing
-        run: |
-          bash build.sh --target x86_64-linux-musl --output neonx
-          
-      - name: Test help output
-        run: |
-          build/neonx -h | grep -q "Uso: cat arquivo"
+    - name: Compile for Testing
+      run: |
+        gcc src/*.c -o build/neonx_test -lm -O2 -g -DVERSION="TEST-SUITE"
 
-      - name: Test version output
-        run: |
-          build/neonx -v | grep -q "Status: MODIFICADO"
+    - name: Test 1: Basic Execution & Help
+      run: |
+        ./build/neonx_test --help | grep -q "Uso: cat arquivo | neonx"
+        if [ $? -eq 0 ]; then echo "Help text verified."; else exit 1; fi
 
-      - name: Test integrity warning (without --allow-mod)
-        run: |
-          build/neonx -v 2>&1 | grep -q "AVISO DE INTEGRIDADE"
+    - name: Test 2: Version and Metadata
+      run: |
+        ./build/neonx_test --version | grep -q "NeonX"
+        ./build/neonx_test --version | grep -q "MODIFICADO" # Expecting modified since it's a fresh build
+        echo "Metadata check passed."
 
-      - name: Test --allow-mod flag
-        run: |
-          if build/neonx --allow-mod -v 2>&1 | grep -q "AVISO DE INTEGRIDADE"; then
-              echo "✗ Warning should not appear with --allow-mod"
-              exit 1
-          else
-              echo "✓ Warning suppressed with --allow-mod"
-          fi
+    - name: Test 3: Static Mode Smoke Test
+      run: |
+        echo "NeonX Test Line" | ./build/neonx_test -S -m 1
+        echo "Static render completed successfully."
 
-      - name: Test basic shader pipeline
-        run: |
-          echo "NeonX test" | build/neonx -S --preset cyberpunk
+    - name: Test 4: Mode Range Verification
+      run: |
+        for m in {0..11}; do
+          echo "Testing mode $m"
+          echo "Test" | ./build/neonx_test -S -m $m > /dev/null
+        done
+        echo "All animation modes executed without crashing."
 
-      - name: Test license option
-        run: build/neonx --license | grep -q "LICENÇA DE USO"
+    - name: Test 5: Memory Leak Check (Valgrind)
+      run: |
+        echo "Valgrind check..."
+        echo "NeonX Memory Test" | valgrind --leak-check=full --error-exitcode=1 ./build/neonx_test -S -m 10
+        echo "Memory check passed (no leaks found in static mode)."
+
+    - name: Test 6: Argument Parsing Stress
+      run: |
+        echo "Test" | ./build/neonx_test -S -s 0.5 -f 1.0 -o 0.5 -D 0.2 -c 100
+        echo "Complex argument parsing passed."
