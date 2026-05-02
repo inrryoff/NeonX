@@ -28,7 +28,8 @@ PRIVATE_KEY="keys/priv.key"
 PUBLIC_KEY="keys/pub.key"
 
 # Flags de Performance
-PERF_FLAGS="-O3 -ffast-math -fstack-protector-strong -D_FORTIFY_SOURCE=2"
+PERF_FLAGS="-O3 -ffast-math -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
+
 
 # --------------------------------------------------
 # Funções Auxiliares
@@ -134,7 +135,7 @@ while [[ $# -gt 0 ]]; do
         --target) AUTO_TARGET="$2"; shift 2 ;;
         --output) AUTO_OUTPUT="$2"; shift 2 ;;
         --label)  AUTO_LABEL="$2";  shift 2 ;;
-        --native) AUTO_TARGET="native"; AUTO_OUTPUT="neonx"; AUTO_LABEL="native"; shift ;;
+        --native) AUTO_TARGET="native"; AUTO_OUTPUT="neonx"; AUTO_LABEL="local"; shift ;;
         *) shift ;;
     esac
 done
@@ -181,7 +182,7 @@ while true; do
             for i in "${!targets[@]}"; do compile_tool "${targets[$i]}" "neonx" "${labels[$i]}" "false"; done
             break ;;
         8)
-            compile_tool "native" "neonx" "native" "true"
+            compile_tool "native" "neonx" "local" "true"
             break ;;
         0) exit 0 ;;
         *) print_error "Opção inválida!"; sleep 1 ;;
