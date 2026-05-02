@@ -1,0 +1,53 @@
+name: Builder
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-sign:
+    name: Build & Sign (${{ matrix.label }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-linux-musl
+            output: neonx
+            label: linux-x64
+          - target: aarch64-linux-musl
+            output: neonx
+            label: android-arm64
+          - target: x86_64-windows-gnu
+            output: neonx.exe
+            label: windows-x64
+
+    steps:
+      - name: 📥 Baixar código fonte
+        uses: actions/checkout@v4
+
+      - name: ⚡ Instalar ambiente Zig
+        uses: goto-bus-stop/setup-zig@v2
+
+      - name: 🔐 Injetar Chaves de Segurança (Monocypher)
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.MONOCYPHER_PRIV_KEY }}" > keys/priv.key
+          echo "${{ secrets.MONOCYPHER_PUB_KEY }}" > keys/pub.key
+          echo "${{ secrets.MINISIGN_PRIVATE_KEY }}" > keys/neonx_private.key || true
+
+      - name: 🛠️ Compilar e Assinar
+        run: |
+          chmod +x build.sh
+          export BUILD_STATUS="OFFICIAL_STABLE_BUILD"
+          export BUILD_MAINTAINER="@inrryoff_CI"          
+          ./build.sh --target ${{ matrix.target }} --output ${{ matrix.output }} --label ${{ matrix.label }}
+
+      - name: 📦 Upload do Pacote ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeonX-${{ matrix.label }}
+          path: build/neonx_${{ matrix.label }}.zip
+          retention-days: 7
