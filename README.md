@@ -7,6 +7,9 @@
 [![Build](https://github.com/inrryoff/NeonX/actions/workflows/build.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions/workflows/build.yml)
 [![Testes](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml)
 
+![Termux](https://img.shields.io/badge/Developed_on-Termux-000000?style=for-the-badge&logo=termux)
+![C](https://img.shields.io/badge/C_Puro-00599C?style=for-the-badge&logo=c&logoColor=white)
+
 # 🎨 NeonX — Shader Engine para Terminal
 
 **Dê vida aos seus textos no terminal com 11 shaders animados.**  
@@ -164,4 +167,14 @@ Veja o texto completo com `neonx --license` ou no arquivo [LICENSE](./LICENSE).
 
 ---
 
-**Divirta-se colorindo seu terminal!** 🌈
+## 📱 Da limitação à inovação: Nascido no Termux
+
+**Por que o NeonX existe?**
+O clássico `lolcat` é uma ferramenta histórica que inspirou a customização de terminais no mundo todo. No entanto, ele trazia algumas dores de cabeça estruturais: engasgava com banners gigantes, quebrava arte ASCII complexa em UTF-8, exigia dependências externas (Ruby). O NeonX nasceu para resolver tudo isso, entregando uma ferramenta visual estonteante com foco absoluto em **performance extrema, estabilidade e segurança**.
+
+**Engenharia de Produto com Restrições (100% Mobile)**
+Para provar que engenharia de software de verdade não exige setups caros com múltiplos monitores, tenho muito orgulho de dizer que **todo o processo de desenvolvimento do NeonX foi realizado em um smartphone Android, utilizando o Termux e um teclado virtual**.
+
+Desde a primeira linha escrita em C puro, passando pela matemática trigonométrica dos shaders, a compilação cruzada via Zig, até a implementação de assinaturas criptográficas Ed25519 (Monocypher) e a integração contínua (CI/CD) no GitHub Actions — tudo foi auditado, codificado e testado no bolso.
+
+Engenharia sob fortes restrições gera inovação e pragmatismo. Espero que o NeonX deixe o seu terminal tão incrível quanto foi a jornada de criá-lo! 🚀📱
