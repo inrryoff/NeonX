@@ -1,0 +1,104 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-suite:
+    name: Build & Functional Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Baixar código fonte
+        uses: actions/checkout@v4
+
+      - name: ⚡ Instalar ambiente Zig
+        uses: goto-bus-stop/setup-zig@v2
+
+      - name: 🛠️ Dar permissão e Compilar Nativo
+        run: |
+          chmod +x build.sh
+          # Usamos --native para gerar um binário executável no próprio runner do GitHub
+          ./build.sh --native
+
+      - name: 🧪 Teste 1 - Verificação de Identidade e Versão
+        run: |
+          echo "Testando a saída de versão..."
+          OUTPUT=$(./build/neonx_native -v)
+          echo "$OUTPUT"
+          # Verifica se a string "NeonX" aparece na saída
+          if ! echo "$OUTPUT" | grep -q "NeonX"; then
+            echo "Falha: Comando de versão não retornou a string esperada."
+            exit 1
+          fi
+
+      - name: 🧪 Teste 2 - Menu de Ajuda (--help)
+        run: |
+          ./build/neonx_native --help > /dev/null
+          echo "Menu de ajuda executado com sucesso."
+
+      - name: 🧪 Teste 3 - Renderização Estática (Modo -S)
+        run: |
+          echo "Testando pipe de texto com Modo Estático..."
+          # Passa um banner de texto e exige saída imediata (-S)
+          echo -e "NEONX\nTEST BANNER" | ./build/neonx_native -m 7 -S -o 0 > result.txt
+          
+          # Verifica se o arquivo gerado não está vazio
+          if [ ! -s result.txt ]; then
+            echo "Falha: O NeonX não gerou saída no Modo Estático."
+            exit 1
+          fi
+          echo "Renderização estática OK."
+
+      - name: 🧪 Teste 4 - Processamento de Presets
+        run: |
+          echo "Testando presets de shader..."
+          echo "CYBERPUNK" | ./build/neonx_native -S --preset cyberpunk > /dev/null
+          echo "MATRIX" | ./build/neonx_native -S --preset matrix > /dev/null
+          echo "RETRO" | ./build/neonx_native -S --preset retro > /dev/null
+          echo "Presets validados com sucesso."
+
+      - name: 🧪 Teste 5 - Limite de Duração (-d)
+        run: |
+          echo "Testando loop de animação com auto-kill de 1 segundo..."
+          # O script deve rodar por 1 segundo e fechar sozinho (status 0)
+          echo "ANIMATION TEST" | ./build/neonx_native -m 1 -d 1
+          echo "Duração limite testada com sucesso."
+
+      - name: 🧪 Teste 6 - Bateria de Spinners (--spin)
+        run: |
+          echo "Testando gerador de paleta spinner..."
+          ./build/neonx_native --spin > /dev/null
+          echo "Spinner OK."
+
+      - name: 🧪 Teste 7 - Cross-Compile de Segurança (ARM64)
+        run: |
+          echo "Garantindo que compila para Android/ARM64 via Zig..."
+          ./build.sh --target aarch64-linux-musl --output neonx --label test-arm64
+          if [ ! -f "build/neonx_test-arm64.zip" ]; then
+            echo "Falha no empacotamento do Cross-Compile."
+            exit 1
+          fi
+          echo "Cross-compile OK."
+
+      - name: 🧪 Teste 8 - Banners Grandes (UTF-8 Stress Test)
+        run: |
+          echo "Testando buffer e caracteres wide (UTF-8) por 5 segundos..."
+          cat << 'EOF' | ./build/neonx_native -d 5 -m 7 -o 0 -F 60 -f 0.18 -s 0.15
+          ╔══════════════════════════════════════════════════════════════════╗
+          ║                                                                  ║
+          ║  ██╗███╗░░██╗██████╗░██████╗░██╗░░░██╗░█████╗░███████╗███████╗   ║
+          ║  ██║████╗░██║██╔══██╗██╔══██╗╚██╗░██╔╝██╔══██╗██╔════╝██╔════╝   ║
+          ║  ██║██╔██╗██║██████╔╝██████╔╝░╚████╔╝░██║░░██║█████╗░░█████╗░░   ║
+          ║  ██║██║╚████║██╔══██╗██╔══██╗░░╚██╔╝░░██║░░██║██╔══╝░░██╔══╝░░   ║
+          ║  ██║██║░╚███║██║░░██║██║░░██║░░░██║░░░╚█████╔╝██║░░░░░██║░░░░░   ║
+          ║  ╚═╝╚═╝░░╚══╝╚═╝░░╚═╝╚═╝░░╚═╝░░░╚═╝░░░░╚════╝░╚═╝░░░░░╚═╝░░░░░   ║
+          ║                                                                  ║
+          ╚══════════════════════════════════════════════════════════════════╝
+          EOF
+          echo "Renderização de banner grande concluída com sucesso."
+          
+          
