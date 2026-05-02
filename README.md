@@ -4,7 +4,6 @@
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20Android%20%7C%20Windows-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
 [![Build Oficial](https://img.shields.io/badge/build-oficial-green)]()
-[![Build](https://github.com/inrryoff/NeonX/actions/workflows/build.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions/workflows/build.yml)
 [![Testes](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml)
 
 ![Termux](https://img.shields.io/badge/Developed_on-Termux-000000?style=for-the-badge&logo=termux)
