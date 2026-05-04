@@ -58,6 +58,7 @@ cat banner.txt | neonx -S
 | -L | Modo linha por linha (stream) | desligado |
 | --preset [nome] | Aplica um preset (cyberpunk, retro, matrix, sunset) | – |
 | --spin | Exibe paleta de cores em formato 38;2;R;G;B para uso externo | – |
+| --lang | Selecionar idioma Português ou Inglês | sistem |
 | --license | Mostra a licença de uso | – |
 | -v, --version | Versão e metadados do binário | – |
 | -h, --help | Esta ajuda | – |
