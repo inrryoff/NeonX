@@ -23,7 +23,7 @@ int main() {
     crypto_eddsa_key_pair(secret_key, public_key, secret_key);
 
     // 4. Salvar chave privada (os 64 bytes)
-    f = fopen("priv.key", "wb");
+    f = fopen("../keys/priv.key", "wb");
     if (f) {
         fwrite(secret_key, 1, 64, f);
         fclose(f);
