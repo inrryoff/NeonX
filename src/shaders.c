@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 double freq = 0.3;
-double diagonal = 0.0;
+double gradient_angle = -1.0;
 double opacity = 1.0;
 double sin_lut[LUT_SIZE];
 
@@ -12,9 +12,12 @@ void init_lut(void) {
 }
 
 static inline double fast_sin(double x) {
-    int idx = (int)(fmod(x*LUT_SIZE/(2.0*M_PI), LUT_SIZE));
-    if(idx < 0) idx += LUT_SIZE;
-    return sin_lut[idx];
+    double scaled = x * (LUT_SIZE / (2.0 * M_PI));
+    int idx = (int)scaled;
+    double frac = scaled - idx;
+    idx &= (LUT_SIZE - 1);
+    int next = (idx + 1) & (LUT_SIZE - 1);
+    return sin_lut[idx] + frac * (sin_lut[next] - sin_lut[idx]);
 }
 
 double shader_sunset(int x, int y, double phase) {
@@ -25,14 +28,16 @@ double shader_matrix(int x, int y, double phase, double *intensity) {
     double p = phase + x * 0.1 + y * 0.1;
     double pulse = sin(phase * 3.0) * 0.15 + 0.85;
     double scanline = (fmod(y - phase * 5.0, 10.0) < 1.0) ? 0.7 : 1.0;
-    *intensity = pulse * scanline * ((rand() % 100 > 98) ? 0.5 : 1.0);
+    double sparkle = (rand() % 100 > 98) ? 0.5 : 1.0;
+    *intensity = pulse * scanline * sparkle;
+    if (*intensity < 0.15) *intensity = 0.15;
     return p;
 }
 
 double shader_pulse(int x, int y, int len, int count, double phase, double *intensity) {
     double dx = x - len / 2.0;
     double dy = y - count / 2.0;
-    double dist = sqrt(dx * dx + dy * dy);
+    double dist = sqrt(dx * dx + dy * dy);    
     double p = dist - phase;
     *intensity = (sin(dist * 0.5 - phase * 2.0) + 1.0) / 2.0;
     *intensity = *intensity * 0.8 + 0.2;
@@ -67,12 +72,13 @@ void get_color_fast(int x, int y, int mode, int len, int count, double phase, in
         case 9: p = phase+x*0.1; intensity=(x%2==0)?1.0:0.2; break;
         case 10: p = shader_matrix(x, y, phase, &intensity); break;  
         case 11: p = shader_pulse(x, y, len, count, phase, &intensity); break;
-        default: p = phase+x*0.2+y*0.1+(diagonal*(x+y)); break;  
+        default: p = phase + x*0.2 + y*0.1; if (gradient_angle >= 0.0) {
+        double rad = gradient_angle * M_PI / 180.0; p += cos(rad) * x + sin(rad) * y; } break;
     }
     
     *r = (int)((fast_sin(freq*p+0)*127+128)*intensity);
     *g = (int)((fast_sin(freq*p+2.094)*127+128)*intensity);
     *b = (int)((fast_sin(freq*p+4.188)*127+128)*intensity);
-    
+
     apply_border_opacity(x, y, len, count, opacity, r, g, b);
 }

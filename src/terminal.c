@@ -77,7 +77,7 @@ void show_help(void) {
     wprintf(L"-s [valor]     Velocidade (0.2 padrao)\n");
     wprintf(L"-f [valor]     Frequência (0.3 padrao)\n");
     wprintf(L"-d [valor]     Duração (0: infinito)\n");
-    wprintf(L"-D [valor]     Inclinação diagonal\n");
+    wprintf(L"-A [angulo]    Ângulo do gradiente (0-360 graus)\n");
     wprintf(L"-p [valor]     Seeds fixas\n");
     wprintf(L"-S             Modo estático\n");
     wprintf(L"-c [largura]   Largura fixa do gradiente\n");
@@ -85,7 +85,6 @@ void show_help(void) {
     wprintf(L"-F [valor]     FPS (ex: 60, 90)\n");
     wprintf(L"-L             Modo linha por linha (stream)\n");
     wprintf(L"--preset [nome] Carregar preset (cyberpunk, retro, matrix, sunset)\n");
-    wprintf(L"--termux       Modo de compatibilidade com Termux\n");
     wprintf(L"--spin         Lista de cores para spinner\n");
     wprintf(L"--license      Licença de software\n");
     wprintf(L"-v,--version   Versão do binário\n");

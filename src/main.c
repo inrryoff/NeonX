@@ -27,12 +27,12 @@ double frame_time_us = 50000;
 int main(int argc, char *argv[]) {
     setlocale(LC_ALL, "");
     init_lut();
-    signal(SIGINT, handle_sigint);
+   signal(SIGINT, handle_sigint);
     srand((unsigned int)time(NULL));
     int auth_status = check_integrity();
     set_integrity_status(auth_status);
     
-    bool static_mode = false, stream_mode = false, termux_mode = true;
+    bool static_mode = false, stream_mode = false;
     int anim_mode = 0;
     double speed = 0.2, duration = 0;
     double start_phase = -1.0;
@@ -42,7 +42,6 @@ int main(int argc, char *argv[]) {
         if (!strcmp(arg,"-h") || !strcmp(arg,"--help")) { show_help(); return 0; }
         if (!strcmp(arg,"-v") || !strcmp(arg,"--version")) { print_version(); return 0; }
         if (!strcmp(arg,"--license")) { print_license(); return 0; }
-        if (!strcmp(arg,"--termux")) { termux_mode = true; continue; }
         if (!strcmp(arg,"-S")) { static_mode = true; continue; }
         if (!strcmp(arg,"-L")) { stream_mode = true; continue; }
 
@@ -57,10 +56,10 @@ int main(int argc, char *argv[]) {
 
         if (!strcmp(arg,"--preset") && i+1 < argc) {
             i++;
-            if (!strcmp(argv[i],"cyberpunk")) { anim_mode=0; speed=0.3; freq=0.5; diagonal=0.1; }
-            else if (!strcmp(argv[i],"retro")) { anim_mode=4; speed=0.2; freq=0.8; diagonal=0.0; }
-            else if (!strcmp(argv[i],"matrix")) { anim_mode=10; speed=0.5; freq=1.2; diagonal=0.0; }
-            else if (!strcmp(argv[i],"sunset")) { anim_mode=1; speed=0.15; freq=0.3; diagonal=0.05; }
+            if (!strcmp(argv[i],"cyberpunk")) { anim_mode=0; speed=0.3; freq=0.5; gradient_angle=45.0; }
+            else if (!strcmp(argv[i],"retro")) { anim_mode=4; speed=0.2; freq=0.8; gradient_angle=0.0; }
+            else if (!strcmp(argv[i],"matrix")) { anim_mode=10; speed=0.5; freq=1.2; gradient_angle=90.0; }
+            else if (!strcmp(argv[i],"sunset")) { anim_mode=1; speed=0.15; freq=0.3; gradient_angle=30.0; }
             continue;
         }
 
@@ -70,7 +69,7 @@ int main(int argc, char *argv[]) {
             if (!strcmp(arg,"-s")) { speed = atof(val); i++; continue; }
             if (!strcmp(arg,"-f")) { freq = atof(val); i++; continue; }
             if (!strcmp(arg,"-m")) { int tmp=atoi(val); if(tmp>=0&&tmp<=11) anim_mode=tmp; i++; continue; }
-            if (!strcmp(arg,"-D")) { diagonal=atof(val); i++; continue; }
+            if (!strcmp(arg,"-A")) { gradient_angle = atof(val); i++; continue; }
             if (!strcmp(arg,"-c")) { fixed_width=atoi(val); i++; continue; }
             if (!strcmp(arg,"-o")) { opacity=atof(val); i++; continue; }
             if (!strcmp(arg,"-p")) { start_phase = atof(val); i++; continue; }
@@ -82,8 +81,8 @@ int main(int argc, char *argv[]) {
         wchar_t buffer[MAX_LINE_LEN];
         double phase = (start_phase >= 0.0) ? start_phase : (rand() % 1000) / 10.0;
         int line_count = 0;
-        // Tamanho exato (11) para não lançar \0
         write(STDOUT_FILENO, "\033[?7l\033[?25l", 11);
+        int exit_status = 0;
         while (fgetws(buffer, MAX_LINE_LEN, stdin)) {
             size_t len = wcslen(buffer);
             if (len > 0 && buffer[len-1] == L'\n') buffer[len-1] = L'\0';
@@ -99,9 +98,13 @@ int main(int argc, char *argv[]) {
             fflush(stdout);
             phase += speed;
             line_count++;
+            if (ferror(stdin)) {
+                exit_status = 1;
+                break;
+            }
         }
         write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16);
-        return 0;
+        return exit_status;
     }
 
     wchar_t buf[MAX_LINE_LEN];
@@ -148,6 +151,8 @@ int main(int argc, char *argv[]) {
         if (duration > 0 && difftime(time(NULL), start_time) > duration) break;
         
         char *ptr = frame_buf;
+        SAFE_APPEND("\033[?2026h"); 
+        
         if (!first_frame) { SAFE_APPEND("\033[%dA", content.count); }
         first_frame = false;
         
@@ -155,17 +160,36 @@ int main(int argc, char *argv[]) {
             wchar_t *line = content.lines[y];
             int line_len = wcslen(line);
             
-            for (int x = 0; x < max_w; x++) {
-                get_color_fast(x, y, anim_mode, max_w, content.count, phase,
-                               &color_cache[x].r, &color_cache[x].g, &color_cache[x].b);
-            }
-            
+        for (int x = 0; x < max_w; x++) {
+            get_color_fast(x, y, anim_mode, max_w, content.count, phase,
+                           &color_cache[x].r, &color_cache[x].g, &color_cache[x].b);
+        }
+
             SAFE_APPEND("\r");
+
+            int last_r = -1, last_g = -1, last_b = -1;
+            
             for (int x = 0; x < line_len; x++) {
-                SAFE_APPEND("\033[38;2;%d;%d;%dm%lc", color_cache[x].r, color_cache[x].g, color_cache[x].b, line[x]);
+                if (line[x] == L' ') {
+                    SAFE_APPEND(" ");
+                } else {
+                    int r = color_cache[x].r;
+                    int g = color_cache[x].g;
+                    int b = color_cache[x].b;
+                    if (r != last_r || g != last_g || b != last_b) {
+                        SAFE_APPEND("\033[38;2;%d;%d;%dm", r, g, b);
+                        last_r = r;
+                        last_g = g;
+                        last_b = b;
+                    }
+                    SAFE_APPEND("%lc", line[x]);
+                }
             }
             SAFE_APPEND("\033[0m\033[K\n");
         }
+
+        SAFE_APPEND("\033[?2026l"); 
+        
         write(STDOUT_FILENO, frame_buf, ptr - frame_buf);
         
         if (static_mode) break;

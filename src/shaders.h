@@ -7,7 +7,7 @@
 #define PI_2 1.57079632679
 
 extern double freq;
-extern double diagonal;
+extern double gradient_angle;
 extern double opacity;
 extern double sin_lut[LUT_SIZE];
 
