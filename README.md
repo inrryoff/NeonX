@@ -53,7 +53,7 @@ cat banner.txt | neonx -S
 | -p [valor] | Fase inicial (seed fixa) | aleatória |
 | -S | Modo estático (congela primeiro frame) | desligado |
 | -c [largura] | Largura fixa do gradiente | automática |
-| -o [0-1] | Opacidade das bordas (vinheta radial) | 1.0 |
+| -o [1-0] | Opacidade das bordas (vinheta radial) | 0.0 |
 | -F [fps] | Taxa de quadros por segundo | 20 (50ms) |
 | -L | Modo linha por linha (stream) | desligado |
 | --preset [nome] | Aplica um preset (cyberpunk, retro, matrix, sunset) | – |
