@@ -4,7 +4,7 @@
 
 double freq = 0.3;
 double gradient_angle = -1.0;
-double opacity = 1.0;
+double opacity = 0.0;
 double sin_lut[LUT_SIZE];
 
 void init_lut(void) { 

@@ -16,6 +16,7 @@
 #include "integrity.h"
 #include "shaders.h"
 #include "terminal.h"
+#include "msgs.h"
 
 typedef struct { 
     int r, g, b; 
@@ -27,6 +28,17 @@ double frame_time_us = 50000;
 int main(int argc, char *argv[]) {
     setlocale(LC_ALL, "");
     init_lut();
+    msgs_init();
+    for (int i = 1; i < argc; i++) {
+      if (!strcmp(argv[i], "--lang") && i+1 < argc) {
+          i++;
+          if (strncmp(argv[i], "pt", 2) == 0)
+            idioma_atual = 0;
+          else
+            idioma_atual = 1;
+            break;
+      }
+    }
    signal(SIGINT, handle_sigint);
     srand((unsigned int)time(NULL));
     int auth_status = check_integrity();
@@ -42,6 +54,7 @@ int main(int argc, char *argv[]) {
         if (!strcmp(arg,"-h") || !strcmp(arg,"--help")) { show_help(); return 0; }
         if (!strcmp(arg,"-v") || !strcmp(arg,"--version")) { print_version(); return 0; }
         if (!strcmp(arg,"--license")) { print_license(); return 0; }
+        if (!strcmp(arg, "--lang")) { if (i+1 < argc) i++; continue; }
         if (!strcmp(arg,"-S")) { static_mode = true; continue; }
         if (!strcmp(arg,"-L")) { stream_mode = true; continue; }
 
