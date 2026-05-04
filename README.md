@@ -49,7 +49,7 @@ cat banner.txt | neonx -S
 | -s [valor] | Velocidade da animação | 0.2 |
 | -f [valor] | Frequência das cores (onda senoidal) | 0.3 |
 | -d [segundos] | Duração total (0 = infinito) | 0 |
-| -D [valor] | Inclinação diagonal do gradiente | 0.0 |
+| -A [Angulo] | Define o angulo do gradiente  graus | 0 - 360 |
 | -p [valor] | Fase inicial (seed fixa) | aleatória |
 | -S | Modo estático (congela primeiro frame) | desligado |
 | -c [largura] | Largura fixa do gradiente | automática |
