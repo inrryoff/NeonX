@@ -62,7 +62,13 @@ const char *mensagens[2][MSG_TOTAL] = {
         "--lang [idioma] Selecione Português ou Inglês\n",
         "--license      Licença de software\n",
         "-v,--version   Versão do binário\n",
-        "-h,--help      Exibe esta ajuda\n"
+        "-h,--help      Exibe esta ajuda\n",
+
+        // Erros
+        "Erro: A opcao '%s' exige um valor numerico apos ela.\n",
+        "Erro: A opcao '%s' exige um valor numerico, recebido: '%s'\n",
+        "Erro: O modo de animacao (-m) deve ser entre 0 e 11.\n",
+        "Erro: Opção inválida ou argumento solto '%s'\n"
     },
 
     // ---------------- ENGLISH (1) ----------------
@@ -122,7 +128,13 @@ const char *mensagens[2][MSG_TOTAL] = {
         "--lang [Language] Select Portuguese or English\n",
         "--license      Software license\n",
         "-v,--version   Binary version\n",
-        "-h,--help      Display this help\n"
+        "-h,--help      Display this help\n",
+
+       // Errors
+        "Error: Option '%s' requires a numeric value after it.\n",
+        "Error: Option '%s' requires a numeric value, received: '%s'\n",
+        "Error: Animation mode (-m) must be between 0 and 11.\n",
+        "Error: Invalid option or loose argument '%s'\n"
     }
 };
 

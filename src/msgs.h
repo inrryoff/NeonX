@@ -36,6 +36,12 @@ enum Mensagem {
     MSG_HELP_VERSION,
     MSG_HELP_HELP,
 
+    // Erros
+    MSG_ERR_MISSING_VALUE,
+    MSG_ERR_INVALID_NUMBER,
+    MSG_ERR_MODE_LIMIT,
+    MSG_ERR_INVALID_OPTION,
+
     MSG_TOTAL
 };
 

@@ -29,14 +29,17 @@ int main(int argc, char *argv[]) {
     setlocale(LC_ALL, "");
     init_lut();
     msgs_init();
-    for (int i = 1; i < argc; i++) {
+     for (int i = 1; i < argc; i++) {
       if (!strcmp(argv[i], "--lang") && i+1 < argc) {
-          i++;
-          if (strncmp(argv[i], "pt", 2) == 0)
-            idioma_atual = 0;
-          else
-            idioma_atual = 1;
-            break;
+          // Só consome o próximo argumento se não for outra flag
+          if (argv[i+1][0] != '-') {
+              i++;
+              if (strncmp(argv[i], "pt", 2) == 0)
+                idioma_atual = 0;
+              else
+                idioma_atual = 1;
+          }
+          break;
       }
     }
    signal(SIGINT, handle_sigint);
@@ -48,13 +51,19 @@ int main(int argc, char *argv[]) {
     int anim_mode = 0;
     double speed = 0.2, duration = 0;
     double start_phase = -1.0;
-    
+   
+   
     for (int i = 1; i < argc; i++) {
         char *arg = argv[i];
         if (!strcmp(arg,"-h") || !strcmp(arg,"--help")) { show_help(); return 0; }
         if (!strcmp(arg,"-v") || !strcmp(arg,"--version")) { print_version(); return 0; }
         if (!strcmp(arg,"--license")) { print_license(); return 0; }
-        if (!strcmp(arg, "--lang")) { if (i+1 < argc) i++; continue; }
+        
+        if (!strcmp(arg, "--lang")) { 
+            if (i+1 < argc && argv[i+1][0] != '-') i++; 
+            continue; 
+        }
+        
         if (!strcmp(arg,"-S")) { static_mode = true; continue; }
         if (!strcmp(arg,"-L")) { stream_mode = true; continue; }
 
@@ -63,8 +72,8 @@ int main(int argc, char *argv[]) {
                 int r=(int)(sin(freq*j*0.4+0)*127+128);
                 int g=(int)(sin(freq*j*0.4+2.094)*127+128);
                 int b=(int)(sin(freq*j*0.4+4.188)*127+128);
-                printf("38;2;%d;%d;%d ", r,g,b);
-            } printf("\n"); return 0;
+                printf("\033[38;2;%d;%d;%dm ", r,g,b);
+            } printf("\033[0m\n"); return 0;
         }
 
         if (!strcmp(arg,"--preset") && i+1 < argc) {
@@ -75,20 +84,50 @@ int main(int argc, char *argv[]) {
             else if (!strcmp(argv[i],"sunset")) { anim_mode=1; speed=0.15; freq=0.3; gradient_angle=30.0; }
             continue;
         }
+        
+        bool is_numeric_flag = (!strcmp(arg,"-d") || !strcmp(arg,"-s") || !strcmp(arg,"-f") || 
+                                !strcmp(arg,"-m") || !strcmp(arg,"-A") || !strcmp(arg,"-c") || 
+                                !strcmp(arg,"-o") || !strcmp(arg,"-p") || !strcmp(arg,"-F"));
 
-        if ((i+1)<argc) {
+        if (is_numeric_flag) {
+            if (i + 1 >= argc || argv[i+1][0] == '-') {
+                fprintf(stderr, MSG(MSG_ERR_MISSING_VALUE), arg);
+                return 1;
+            }
             char *val = argv[i+1];
-            if (!strcmp(arg,"-d")) { duration = atof(val); i++; continue; }
-            if (!strcmp(arg,"-s")) { speed = atof(val); i++; continue; }
-            if (!strcmp(arg,"-f")) { freq = atof(val); i++; continue; }
-            if (!strcmp(arg,"-m")) { int tmp=atoi(val); if(tmp>=0&&tmp<=11) anim_mode=tmp; i++; continue; }
-            if (!strcmp(arg,"-A")) { gradient_angle = atof(val); i++; continue; }
-            if (!strcmp(arg,"-c")) { fixed_width=atoi(val); i++; continue; }
-            if (!strcmp(arg,"-o")) { opacity=atof(val); i++; continue; }
-            if (!strcmp(arg,"-p")) { start_phase = atof(val); i++; continue; }
-            if (!strcmp(arg,"-F")) { frame_time_us=1000000.0/atof(val); i++; continue; }
+            char *endptr;
+            strtod(val, &endptr); 
+            
+            if (*endptr != '\0') {
+                fprintf(stderr, MSG(MSG_ERR_INVALID_NUMBER), arg, val);
+                return 1;
+            }
+            if (!strcmp(arg,"-d")) { duration = atof(val); }
+            else if (!strcmp(arg,"-s")) { speed = atof(val); }
+            else if (!strcmp(arg,"-f")) { freq = atof(val); }
+            else if (!strcmp(arg,"-m")) { 
+                int tmp = atoi(val); 
+                if (tmp >= 0 && tmp <= 11) anim_mode = tmp; 
+                else { 
+                    fprintf(stderr, "%s", MSG(MSG_ERR_MODE_LIMIT)); 
+                    return 1; 
+                }
+            }
+            else if (!strcmp(arg,"-A")) { gradient_angle = atof(val); }
+            else if (!strcmp(arg,"-c")) { fixed_width = atoi(val); }
+            else if (!strcmp(arg,"-o")) { opacity = atof(val); }
+            else if (!strcmp(arg,"-p")) { start_phase = atof(val); }
+            else if (!strcmp(arg,"-F")) { frame_time_us = 1000000.0 / atof(val); }
+
+            i++;
+            continue;
         }
+        
+        fprintf(stderr, MSG(MSG_ERR_INVALID_OPTION), arg);
+        show_help();
+        return 1;
     }
+
 
     if (stream_mode) {
         wchar_t buffer[MAX_LINE_LEN];
