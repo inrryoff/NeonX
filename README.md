@@ -1,6 +1,6 @@
 # 🌈 NeonX – Colorizador de Texto com Shaders Avançados
 
-[![Versão](https://img.shields.io/badge/version-2.0.2--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.0.3--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20Android%20%7C%20Windows-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
 [![Build Oficial](https://img.shields.io/badge/build-oficial-green)]()
