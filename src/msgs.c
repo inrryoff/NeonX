@@ -10,12 +10,10 @@ const char *mensagens[2][MSG_TOTAL] = {
         "Erro ao abrir arquivo",
         
         // Versão
-        "NeonX (versao modificada)\n",
         "Criador Original: %s\n",
         "Compilado por: %s\n",
         "Status: OFICIAL_BY_INRRYOFF\n",
-        "Status: MODIFICADO (nao oficial)\n",
-        "DESCONHECIDO",
+        "Status: MODIFICADO\n",
 
         // Licença
         "LICENÇA DE USO - NEONX (C - VERSION)\n"
@@ -77,12 +75,10 @@ const char *mensagens[2][MSG_TOTAL] = {
         "Error opening file",
         
         // Version
-        "NeonX (modified version)\n",
         "Original Creator: %s\n",
         "Compiled by: %s\n",
         "Status: OFFICIAL_BY_INRRYOFF\n",
-        "Status: MODIFIED (unofficial)\n",
-        "UNKNOWN",
+        "Status: MODIFIED\n",
 
         // License
         "USAGE LICENSE - NEONX (C - VERSION)\n"

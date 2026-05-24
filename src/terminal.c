@@ -11,10 +11,10 @@ static int g_integrity_status = 2;
 const char* ORIGINAL_CREATOR = "@inrryoff";
 
 #ifndef BUILD_MAINTAINER
-    #define BUILD_MAINTAINER "@inrryoff"
+    #define BUILD_MAINTAINER "Unspecified"
 #endif
 #ifndef VERSION
-    #define VERSION "2.0.3-LAB"
+    #define VERSION "Unspecified"
 #endif
 
 void set_integrity_status(int status) {
@@ -31,15 +31,12 @@ void free_content(Content *c) {
 }
 
 void print_version(void) {
+    printf("NeonX v%s\n", VERSION);
+    printf(MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR);
+    printf(MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
     if (g_integrity_status == 0) {
-        printf("NeonX v%s\n", VERSION);
-        printf(MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR);
-        printf(MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
         printf("%s", MSG(MSG_VERSION_STATUS_OFFICIAL));
     } else {
-        printf("%s", MSG(MSG_VERSION_MODIFIED));
-        printf(MSG(MSG_VERSION_ORIGINAL_CREATOR), MSG(MSG_UNKNOWN));
-        printf(MSG(MSG_VERSION_COMPILED_BY), MSG(MSG_UNKNOWN));
         printf("%s", MSG(MSG_VERSION_STATUS_MODIFIED));
     }
 }
