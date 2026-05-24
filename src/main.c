@@ -1,0 +1,270 @@
+#define _XOPEN_SOURCE 700
+#define _DEFAULT_SOURCE
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <locale.h>
+#include <signal.h>
+#include <wchar.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+#include "integrity.h"
+#include "shaders.h"
+#include "terminal.h"
+#include "msgs.h"
+
+typedef struct { 
+    int r, g, b; 
+} RGBColor;
+
+int fixed_width = 0;
+uint32_t frame_time_us = 50000;
+
+int main(int argc, char *argv[]) {
+    setlocale(LC_ALL, "");
+    init_lut();
+    msgs_init();
+    
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "--lang") && i+1 < argc) {
+            if (argv[i+1][0] != '-') {
+                i++;
+                if (strncmp(argv[i], "pt", 2) == 0) idioma_atual = 0;
+                else idioma_atual = 1;
+            }
+        }
+    }
+    
+    signal(SIGINT, handle_sigint);
+    srand((unsigned int)time(NULL));
+    int auth_status = check_integrity();
+    set_integrity_status(auth_status);
+    
+    bool static_mode = false, stream_mode = false;
+    int anim_mode = 0;
+    double speed = 0.2, duration = 0;
+    double start_phase = -1.0;
+   
+    for (int i = 1; i < argc; i++) {
+        char *arg = argv[i];
+        
+        if (!strcmp(arg,"-h") || !strcmp(arg,"--help")) { show_help(); return 0; }
+        if (!strcmp(arg,"-v") || !strcmp(arg,"--version")) { print_version(); return 0; }
+        if (!strcmp(arg,"--license")) { print_license(); return 0; }
+        if (!strcmp(arg, "--lang")) { 
+            if (i+1 < argc && argv[i+1][0] != '-') i++; 
+            continue; 
+        }
+        
+        if (!strcmp(arg,"-S")) { static_mode = true; continue; }
+        if (!strcmp(arg,"-L")) { stream_mode = true; continue; }
+        if (!strcmp(arg,"--quantized")) { use_quantization = true; continue; }
+        if (!strcmp(arg, "--spin")) {
+            const int32_t FIXED_TWO_PI = 0x0006487F; 
+            const int32_t PHASE_G_OFFSET = 0x0002182A;
+            const int32_t PHASE_B_OFFSET = 0x00043054;
+            const int CYCLES = 2; 
+            for (int j = 0; j < 60; j++) {
+                int32_t base_phase = (FIXED_TWO_PI * CYCLES * j) / 60;
+                int32_t phase_r = base_phase;
+                int32_t phase_g = base_phase + PHASE_G_OFFSET;
+                int32_t phase_b = base_phase + PHASE_B_OFFSET;
+                int32_t sin_r = fast_sin_fixed(phase_r);
+                int32_t sin_g = fast_sin_fixed(phase_g);
+                int32_t sin_b = fast_sin_fixed(phase_b);
+                int r = ((sin_r * 127) / FIXED_ONE) + 128;
+                int g = ((sin_g * 127) / FIXED_ONE) + 128;
+                int b = ((sin_b * 127) / FIXED_ONE) + 128;
+                if (r < 0) r = 0; if (r > 255) r = 255;
+                if (g < 0) g = 0; if (g > 255) g = 255;
+                if (b < 0) b = 0; if (b > 255) b = 255;
+                printf("38;2;%d;%d;%d ", r, g, b);
+            } 
+            printf("\n"); 
+            return 0;
+        }
+
+        if (!strcmp(arg,"--preset") && i+1 < argc) {
+            i++;
+            if (!strcmp(argv[i],"cyberpunk")) { anim_mode=0; speed=0.3; freq=0.5; gradient_angle=45.0; }
+            else if (!strcmp(argv[i],"retro")) { anim_mode=4; speed=0.2; freq=0.8; gradient_angle=0.0; }
+            else if (!strcmp(argv[i],"matrix")) { anim_mode=10; speed=0.5; freq=1.2; gradient_angle=90.0; }
+            else if (!strcmp(argv[i],"sunset")) { anim_mode=1; speed=0.15; freq=0.3; gradient_angle=30.0; }
+            continue;
+        }
+        
+        bool is_numeric_flag = (!strcmp(arg,"-d") || !strcmp(arg,"-s") || !strcmp(arg,"-f") || 
+                                !strcmp(arg,"-m") || !strcmp(arg,"-A") || !strcmp(arg,"-c") || 
+                                !strcmp(arg,"-o") || !strcmp(arg,"-p") || !strcmp(arg,"-F"));
+
+        if (is_numeric_flag) {
+            if (i + 1 >= argc || argv[i+1][0] == '-') {
+                fprintf(stderr, MSG(MSG_ERR_MISSING_VALUE), arg);
+                return 1;
+            }
+            char *val = argv[i+1];
+            char *endptr;
+            strtod(val, &endptr); 
+            
+            if (*endptr != '\0') {
+                fprintf(stderr, MSG(MSG_ERR_INVALID_NUMBER), arg, val);
+                return 1;
+            }
+            if (!strcmp(arg,"-d")) { duration = atof(val); }
+            else if (!strcmp(arg,"-s")) { speed = atof(val); }
+            else if (!strcmp(arg,"-f")) { freq = atof(val); }
+            else if (!strcmp(arg,"-m")) { 
+                int tmp = atoi(val); 
+                if (tmp >= 0 && tmp <= 11) anim_mode = tmp; 
+                else { 
+                    fprintf(stderr, "%s", MSG(MSG_ERR_MODE_LIMIT)); 
+                    return 1; 
+                }
+            }
+            else if (!strcmp(arg,"-A")) { gradient_angle = atof(val); }
+            else if (!strcmp(arg,"-c")) { fixed_width = atoi(val); }
+            else if (!strcmp(arg,"-o")) { opacity = atof(val); }
+            else if (!strcmp(arg,"-p")) { start_phase = atof(val); }
+            else if (!strcmp(arg,"-F")) { frame_time_us = (uint32_t)(1000000.0 / atof(val)); }
+
+            i++;
+            continue;
+        }
+        
+        fprintf(stderr, MSG(MSG_ERR_INVALID_OPTION), arg);
+        show_help();
+        return 1;
+    }
+
+    if (stream_mode) {
+        wchar_t buffer[MAX_LINE_LEN];
+        double phase = (start_phase >= 0.0) ? start_phase : (rand() % 1000) / 10.0;
+        int line_count = 0;
+        write(STDOUT_FILENO, "\033[?7l\033[?25l", 11);
+        int exit_status = 0;
+        while (fgetws(buffer, MAX_LINE_LEN, stdin)) {
+            size_t len = wcslen(buffer);
+            if (len > 0 && buffer[len-1] == L'\n') buffer[len-1] = L'\0';
+            
+            for (size_t k = 0; k < len; k++) { if (buffer[k] == 0x1B) buffer[k] = L'?'; }
+            
+            for (size_t x = 0; x < len; x++) {
+                int r,g,b;
+                get_color_fast((int)x, line_count, anim_mode, (int)len, 1, phase, &r, &g, &b);
+                printf("\033[38;2;%d;%d;%dm%lc", r, g, b, buffer[x]);
+            }
+            printf("\033[0m\n");
+            fflush(stdout);
+            phase += speed;
+            line_count++;
+            if (ferror(stdin)) {
+                exit_status = 1;
+                break;
+            }
+        }
+        write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16);
+        return exit_status;
+    }
+
+    wchar_t buf[MAX_LINE_LEN];
+    while (fgetws(buf, MAX_LINE_LEN, stdin) && content.count < MAX_LINES) {
+        size_t len = wcslen(buf);
+        if (len > 0 && buf[len-1] == L'\n') buf[len-1] = L'\0';
+        
+        for (size_t k = 0; k < len; k++) { if (buf[k] == 0x1B) buf[k] = L'?'; }
+        
+        content.lines[content.count++] = wcsdup(buf);
+    }
+    if (content.count == 0) return 0;
+
+    int max_w = 0;
+    for(int i=0; i<content.count; i++) { 
+        int l = wcslen(content.lines[i]); 
+        if(l>max_w) max_w=l;
+    }
+    if (fixed_width > 0) max_w = fixed_width;
+    
+    size_t buf_size = content.count * (max_w * 32 + 100);
+    char *frame_buf = malloc(buf_size);
+    RGBColor *color_cache = malloc(max_w * sizeof(RGBColor));
+    if (!frame_buf || !color_cache) {
+        free_content(&content);
+        if (frame_buf) free(frame_buf);
+        if (color_cache) free(color_cache);
+        return 1;
+    }
+
+    #define SAFE_APPEND(...) do { \
+        size_t rem = buf_size - (ptr - frame_buf); \
+        int n = snprintf(ptr, rem, __VA_ARGS__); \
+        if (n > 0 && (size_t)n < rem) ptr += n; \
+    } while(0)
+
+    double phase = (start_phase >= 0.0) ? start_phase : (rand() % 1000) / 10.0;
+    time_t start_time = time(NULL);
+    
+    write(STDOUT_FILENO, "\033[?25l\033[?7l", 11);
+    bool first_frame = true;
+    
+    while (1) {
+        if (duration > 0 && difftime(time(NULL), start_time) > duration) break;
+        
+        char *ptr = frame_buf;
+        SAFE_APPEND("\033[?2026h"); 
+        
+        if (!first_frame) { SAFE_APPEND("\033[%dA", content.count); }
+        first_frame = false;
+        
+        for (int y = 0; y < content.count; y++) {
+            wchar_t *line = content.lines[y];
+            int line_len = wcslen(line);
+            
+        for (int x = 0; x < max_w; x++) {
+            get_color_fast(x, y, anim_mode, max_w, content.count, phase,
+                           &color_cache[x].r, &color_cache[x].g, &color_cache[x].b);
+        }
+
+            SAFE_APPEND("\r");
+
+            int last_r = -1, last_g = -1, last_b = -1;
+            
+            for (int x = 0; x < line_len; x++) {
+                if (line[x] == L' ') {
+                    SAFE_APPEND(" ");
+                } else {
+                    int r = color_cache[x].r;
+                    int g = color_cache[x].g;
+                    int b = color_cache[x].b;
+                    if (r != last_r || g != last_g || b != last_b) {
+                        SAFE_APPEND("\033[38;2;%d;%d;%dm", r, g, b);
+                        last_r = r;
+                        last_g = g;
+                        last_b = b;
+                    }
+                    SAFE_APPEND("%lc", line[x]);
+                }
+            }
+            SAFE_APPEND("\033[0m\033[K\n");
+        }
+
+        SAFE_APPEND("\033[?2026l"); 
+        
+        write(STDOUT_FILENO, frame_buf, ptr - frame_buf);
+        
+        if (static_mode) break;
+        phase += speed;
+        sleep_us(frame_time_us);
+    }
+
+    write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m", 15);
+    
+    free_content(&content);
+    free(frame_buf);
+    free(color_cache);
+    return 0;
+}

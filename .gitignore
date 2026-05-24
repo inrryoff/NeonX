@@ -1,0 +1,5 @@
+keys/priv.key
+keys/pub.key
+build-release.sh
+tools/keygen
+tools/sign_binary

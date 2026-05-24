@@ -1,0 +1,56 @@
+#ifndef MSGS_H
+#define MSGS_H
+
+enum Mensagem {
+    MSG_ERRO_ABRIR,
+    
+    // Versão
+    MSG_VERSION_MODIFIED,
+    MSG_VERSION_ORIGINAL_CREATOR,
+    MSG_VERSION_COMPILED_BY,
+    MSG_VERSION_STATUS_OFFICIAL,
+    MSG_VERSION_STATUS_MODIFIED,
+    MSG_UNKNOWN,
+
+    // Licença
+    MSG_LICENSE_TEXT,
+
+    // Ajuda
+    MSG_HELP_HEADER,
+    MSG_HELP_USAGE,
+    MSG_HELP_M,
+    MSG_HELP_S,
+    MSG_HELP_F,
+    MSG_HELP_D,
+    MSG_HELP_A,
+    MSG_HELP_P,
+    MSG_HELP_S_UPPER,
+    MSG_HELP_C,
+    MSG_HELP_O,
+    MSG_HELP_F_UPPER,
+    MSG_HELP_L,
+    MSG_HELP_PRESET,
+    MSG_HELP_QUANTIZED,
+    MSG_HELP_SPIN,
+    MSG_HELP_LANG,
+    MSG_HELP_LICENSE,
+    MSG_HELP_VERSION,
+    MSG_HELP_HELP,
+
+    // Erros
+    MSG_ERR_MISSING_VALUE,
+    MSG_ERR_INVALID_NUMBER,
+    MSG_ERR_MODE_LIMIT,
+    MSG_ERR_INVALID_OPTION,
+
+    MSG_TOTAL
+};
+
+extern const char *mensagens[2][MSG_TOTAL];
+extern int idioma_atual;
+
+#define MSG(id) mensagens[idioma_atual][id]
+
+void msgs_init(void);
+
+#endif
