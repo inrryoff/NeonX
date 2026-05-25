@@ -3,5 +3,5 @@ keys/minisign.key
 Make-NeonX.sh
 tools/keygen
 tools/sign_binary
-bzip
-build
+build/
+bzip/

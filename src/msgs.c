@@ -18,7 +18,7 @@ const char *mensagens[2][MSG_TOTAL] = {
         // Licença
         "LICENÇA DE USO - NEONX (C - VERSION)\n"
         "-----------------------------------------------------------------\n"
-        "Copyright (c) 2024 @inrryoff - Licenciado sob condições especiais NeonX LICENSE\n\n"
+        "Copyright (c) 2026 @inrryoff - Licenciado sob condições especiais NeonX LICENSE\n\n"
         "Pelo presente, fica concedida permissão a qualquer pessoa que obtenha uma cópia\n"
         "deste software para usá-lo gratuitamente, sujeito às seguintes condições:\n\n"
         "1. ATRIBUIÇÃO (CRÉDITOS):\n"
@@ -83,7 +83,7 @@ const char *mensagens[2][MSG_TOTAL] = {
         // License
         "USAGE LICENSE - NEONX (C - VERSION)\n"
         "-----------------------------------------------------------------\n"
-        "Copyright (c) 2024 @inrryoff - Licensed under special conditions NeonX LICENSE\n\n"
+        "Copyright (c) 2026 @inrryoff - Licensed under special conditions NeonX LICENSE\n\n"
         "Permission is hereby granted to any person obtaining a copy\n"
         "of this software to use it free of charge, subject to the following conditions:\n\n"
         "1. ATTRIBUTION (CREDITS):\n"
