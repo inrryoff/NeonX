@@ -57,9 +57,9 @@
 namespace MONOCYPHER_CPP_NAMESPACE {
 #endif
 
-/////////////////
+//////////////////////
 /// Utilities ///
-/////////////////
+////////////////////
 #define FOR_T(type, i, start, end) for (type i = (start); i < (end); i++)
 #define FOR(i, start, end)         FOR_T(size_t, i, start, end)
 #define COPY(dst, src, size)       FOR(_i_, 0, size) (dst)[_i_] = (src)[_i_]
@@ -167,9 +167,9 @@ void crypto_wipe(void *secret, size_t size)
 	ZERO(v_secret, size);
 }
 
-/////////////////
+//////////////////////////
 /// Chacha 20 ///
-/////////////////
+////////////////////////
 #define QUARTERROUND(a, b, c, d)	\
 	a += b;  d = rotl32(d ^ a, 16); \
 	c += d;  b = rotl32(b ^ c, 12); \
@@ -297,9 +297,9 @@ u64 crypto_chacha20_x(u8 *cipher_text, const u8 *plain_text,
 	return ctr;
 }
 
-/////////////////
+/////////////////////////
 /// Poly 1305 ///
-/////////////////
+///////////////////////
 
 // h = (h + c) * r
 // preconditions:
@@ -449,9 +449,9 @@ void crypto_poly1305(u8     mac[16],  const u8 *message,
 	crypto_poly1305_final (&ctx, mac);
 }
 
-////////////////
+/////////////////////////
 /// BLAKE2 b ///
-////////////////
+///////////////////////
 static const u64 iv[8] = {
 	0x6a09e667f3bcc908, 0xbb67ae8584caa73b,
 	0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
@@ -651,9 +651,9 @@ void crypto_blake2b(u8 *hash, size_t hash_size, const u8 *msg, size_t msg_size)
 	crypto_blake2b_keyed(hash, hash_size, 0, 0, msg, msg_size);
 }
 
-//////////////
+/////////////////////
 /// Argon2 ///
-//////////////
+///////////////////
 // references to R, Z, Q etc. come from the spec
 
 // Argon2 operates on 1024 byte blocks.
@@ -920,9 +920,9 @@ void crypto_argon2(u8 *hash, u32 hash_size, void *work_area,
 	WIPE_BUFFER(final_block);
 }
 
-////////////////////////////////////
+//////////////////////////////////////////////////////////
 /// Arithmetic modulo 2^255 - 19 ///
-////////////////////////////////////
+////////////////////////////////////////////////////////
 //  Originally taken from SUPERCOP's ref10 implementation.
 //  A bit bigger than TweetNaCl, over 4 times faster.
 
@@ -1482,9 +1482,9 @@ static int scalar_bit(const u8 s[32], int i)
 	return (s[i>>3] >> (i&7)) & 1;
 }
 
-///////////////
+//////////////////////
 /// X-25519 /// Taken from SUPERCOP's ref10 implementation.
-///////////////
+////////////////////
 static void scalarmult(u8 q[32], const u8 scalar[32], const u8 p[32],
                        int nb_bits)
 {
@@ -1562,9 +1562,9 @@ void crypto_x25519_public_key(u8       public_key[32],
 	crypto_x25519(public_key, secret_key, base_point);
 }
 
-///////////////////////////
+///////////////////////////////////////////
 /// Arithmetic modulo L ///
-///////////////////////////
+/////////////////////////////////////////
 static const u32 L[8] = {
 	0x5cf5d3ed, 0x5812631a, 0xa2f79cd6, 0x14def9de,
 	0x00000000, 0x00000000, 0x00000000, 0x10000000,
@@ -1678,9 +1678,9 @@ void crypto_eddsa_mul_add(u8 r[32],
 	WIPE_BUFFER(B);
 }
 
-///////////////
+///////////////////////
 /// Ed25519 ///
-///////////////
+/////////////////////
 
 // Point (group element, ge) in a twisted Edwards curve,
 // in extended projective coordinates.
@@ -2337,9 +2337,9 @@ int crypto_eddsa_check(const u8  signature[64], const u8 public_key[32],
 	return crypto_eddsa_check_equation(signature, public_key, h);
 }
 
-/////////////////////////
+////////////////////////////////////////
 /// EdDSA <--> X25519 ///
-/////////////////////////
+//////////////////////////////////////
 void crypto_eddsa_to_x25519(u8 x25519[32], const u8 eddsa[32])
 {
 	// (u, v) = ((1+y)/(1-y), sqrt(-486664)*u/x)
@@ -2370,9 +2370,9 @@ void crypto_x25519_to_eddsa(u8 eddsa[32], const u8 x25519[32])
 	WIPE_BUFFER(t2);
 }
 
-/////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 /// Dirty ephemeral public key generation ///
-/////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 
 // Those functions generates a public key, *without* clearing the
 // cofactor.  Sending that key over the network leaks 3 bits of the
@@ -2558,9 +2558,9 @@ void crypto_x25519_dirty_fast(u8 public_key[32], const u8 secret_key[32])
 	WIPE_BUFFER(scalar);
 }
 
-///////////////////
+//////////////////////////
 /// Elligator 2 ///
-///////////////////
+////////////////////////
 static const fe A = {486662};
 
 // Elligator direct map
@@ -2734,9 +2734,9 @@ void crypto_elligator_key_pair(u8 hidden[32], u8 secret_key[32], u8 seed[32])
 	WIPE_BUFFER(pk);
 }
 
-///////////////////////
+/////////////////////////////////
 /// Scalar division ///
-///////////////////////
+///////////////////////////////
 
 // Montgomery reduction.
 // Divides x by (2^256), and reduces the result modulo L
@@ -2853,9 +2853,9 @@ void crypto_x25519_inverse(u8 blind_salt [32], const u8 private_key[32],
 	WIPE_BUFFER(product);  WIPE_BUFFER(m_inv);
 }
 
-////////////////////////////////
+///////////////////////////////////////////////////
 /// Authenticated encryption ///
-////////////////////////////////
+/////////////////////////////////////////////////
 static void lock_auth(u8 mac[16], const u8  auth_key[32],
                       const u8 *ad         , size_t ad_size,
                       const u8 *cipher_text, size_t text_size)

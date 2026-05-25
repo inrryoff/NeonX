@@ -1,5 +1,7 @@
-keys/priv.key
-keys/pub.key
-build-release.sh
+keys/NeonX.key
+keys/minisign.key
+Make-NeonX.sh
 tools/keygen
 tools/sign_binary
+bzip
+build

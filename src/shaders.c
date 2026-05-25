@@ -2,18 +2,50 @@
 #include <math.h>
 #include <stdlib.h>
 
-float freq = 0.3f;
-float gradient_angle = -1.0f;
-float opacity = 0.0f;
+int32_t freq_fixed = FLOAT_TO_FIXED(0.3f);
+int32_t opacity_fixed = 0;
+int32_t gradient_angle_fixed = FLOAT_TO_FIXED(-1.0f);
 bool use_quantization = false;
-int32_t sin_lut_fixed[LUT_SIZE];
 
-#define RAD_TO_INDEX_FIXED 42722831 
+int32_t sin_lut_fixed[LUT_SIZE];
+int32_t grad_cos_fixed = 0;
+int32_t grad_sin_fixed = 0;
+
+#define RAD_TO_INDEX_FIXED 42722831L
 
 void init_lut(void) { 
-    for(int i=0; i<LUT_SIZE; i++) {
+    for(int i = 0; i < LUT_SIZE; i++) {
         sin_lut_fixed[i] = FLOAT_TO_FIXED(sin(2.0 * M_PI * i / LUT_SIZE));
     }
+}
+
+void precalc_gradient_angle(void) {
+    if (gradient_angle_fixed >= 0) {
+        float rad = FIXED_TO_FLOAT(gradient_angle_fixed) * M_PI / 180.0f;
+        grad_cos_fixed = FLOAT_TO_FIXED(cosf(rad));
+        grad_sin_fixed = FLOAT_TO_FIXED(sinf(rad));
+    }
+}
+
+uint32_t isqrt64(uint64_t n) {
+    uint32_t root = 0;
+    uint64_t bit = 1ULL << 62;
+    while (bit > n) bit >>= 2;
+    while (bit != 0) {
+        if (n >= root + bit) {
+            n -= root + bit;
+            root = (root >> 1) + bit;
+        } else {
+            root >>= 1;
+        }
+        bit >>= 2;
+    }
+    return root;
+}
+
+int32_t fast_dist_fixed(int32_t dx, int32_t dy) {
+    uint64_t sq = (uint64_t)dx * dx + (uint64_t)dy * dy;
+    return (int32_t)isqrt64(sq);
 }
 
 int32_t fast_sin_fixed(int32_t x_fixed) {
@@ -26,83 +58,112 @@ int32_t fast_sin_fixed(int32_t x_fixed) {
     return val1 + FIXED_MUL(frac, (val2 - val1));
 }
 
-float fast_sin(float x) {
-    int32_t x_fixed = FLOAT_TO_FIXED(x);
-    return FIXED_TO_FLOAT(fast_sin_fixed(x_fixed));
+int32_t shader_sunset_fixed(int32_t x, int32_t y, int32_t phase) {
+    int32_t p1 = FIXED_MUL(x, FLOAT_TO_FIXED(0.15f)) + phase;
+    int32_t p2 = FIXED_MUL(y, FLOAT_TO_FIXED(0.15f)) + (phase >> 1);
+    return fast_sin_fixed(p1) + fast_sin_fixed(p2);
 }
 
-float shader_sunset(int x, int y, float phase) {
-    return sinf(x * 0.15f + phase) + sinf(y * 0.15f + phase * 0.5f);
+static inline int32_t pseudo_rand(int32_t x, int32_t y, int32_t phase) {
+    uint32_t state = (uint32_t)x * 1103515245U;
+    state += (uint32_t)y * 123456789U;
+    state += (uint32_t)phase * 987654321U;
+    state = state ^ (state >> 16);
+    return (int32_t)(state & 0x7FFFFFFF);
 }
 
-float shader_matrix(int x, int y, float phase, float *intensity) {
-    float p = phase + x * 0.1f + y * 0.1f;
-    float pulse = sinf(phase * 3.0f) * 0.15f + 0.85f;
-    float scanline = (fmodf(y - phase * 5.0f, 10.0f) < 1.0f) ? 0.7f : 1.0f;
-    float sparkle = (rand() % 100 > 98) ? 0.5f : 1.0f;
-    *intensity = pulse * scanline * sparkle;
-    if (*intensity < 0.15f) *intensity = 0.15f;
+int32_t shader_matrix_fixed(int32_t x, int32_t y, int32_t phase, int32_t *intensity) {
+    int32_t p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.1f)) + FIXED_MUL(y, FLOAT_TO_FIXED(0.1f));
+    int32_t pulse = FIXED_MUL(fast_sin_fixed(FIXED_MUL(phase, 3)), FLOAT_TO_FIXED(0.15f)) + FLOAT_TO_FIXED(0.85f);
+    int32_t y_int = y >> FIXED_SHIFT;
+    int32_t phase_int = (FIXED_MUL(phase, 5)) >> FIXED_SHIFT;
+    int32_t y_mod_int = (y_int - phase_int) % 10;
+    if (y_mod_int < 0) y_mod_int += 10;
+    int32_t scanline = (y_mod_int < 1) ? FLOAT_TO_FIXED(0.7f) : FIXED_ONE;
+    int32_t sparkle = (pseudo_rand(x, y, phase) % 100 > 98) ? FLOAT_TO_FIXED(0.5f) : FIXED_ONE;
+    
+    *intensity = FIXED_MUL(FIXED_MUL(pulse, scanline), sparkle);
+    if (*intensity < FLOAT_TO_FIXED(0.15f)) *intensity = FLOAT_TO_FIXED(0.15f);
     return p;
 }
 
-float shader_pulse(int x, int y, int len, int count, float phase, float *intensity) {
-    float dx = x - len / 2.0f;
-    float dy = y - count / 2.0f;
-    float dist = sqrtf(dx * dx + dy * dy);    
-    float p = dist - phase;
-    *intensity = (sinf(dist * 0.5f - phase * 2.0f) + 1.0f) / 2.0f;
-    *intensity = *intensity * 0.8f + 0.2f;
+int32_t shader_pulse_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, int32_t phase, int32_t *intensity) {
+    int32_t dx = x - cx;
+    int32_t dy = y - cy;
+    int32_t dist = fast_dist_fixed(dx, dy);    
+    int32_t p = dist - phase;
+    
+    int32_t sin_val = fast_sin_fixed((dist >> 1) - (phase << 1));
+    *intensity = (sin_val + FIXED_ONE) >> 1;
+    *intensity = FIXED_MUL(*intensity, FLOAT_TO_FIXED(0.8f)) + FLOAT_TO_FIXED(0.2f);
     return p;
 }
 
-void apply_border_opacity(int x, int y, int len, int count, float op, int *r, int *g, int *b) {
-    if (op <= 0.0f) return;
-    float cx = len / 2.0f, cy = count / 2.0f;
-    float dx = x - cx, dy = y - cy;
-    float factor = 1.0f - (sqrtf(dx*dx + dy*dy) / sqrtf(cx*cx + cy*cy));
-    factor = 1.0f - (1.0f - factor) * op;
-    *r = (int)(*r * factor);
-    *g = (int)(*g * factor);
-    *b = (int)(*b * factor);
-    if(*r<0) *r=0; else if(*r>255) *r=255;
-    if(*g<0) *g=0; else if(*g>255) *g=255;
-    if(*b<0) *b=0; else if(*b>255) *b=255;
+void apply_border_opacity_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, int32_t max_dist, int32_t op, int *r, int *g, int *b) {
+    if (op <= 0) return;
+    int32_t dx = x - cx;
+    int32_t dy = y - cy;
+    int32_t dist = fast_dist_fixed(dx, dy);
+    int32_t dist_ratio = (max_dist == 0) ? 0 : (int32_t)(((int64_t)dist << FIXED_SHIFT) / max_dist);
+    int32_t factor = FIXED_ONE - FIXED_MUL(dist_ratio, op);
+    *r = (int)(((int64_t)*r * factor) >> FIXED_SHIFT);
+    *g = (int)(((int64_t)*g * factor) >> FIXED_SHIFT);
+    *b = (int)(((int64_t)*b * factor) >> FIXED_SHIFT);
+
+    if(*r < 0) *r = 0; else if(*r > 255) *r = 255;
+    if(*g < 0) *g = 0; else if(*g > 255) *g = 255;
+    if(*b < 0) *b = 0; else if(*b > 255) *b = 255;
 }
 
-void get_color_fast(int x, int y, int mode, int len, int count, float phase, int *r, int *g, int *b) {
-    float p, intensity = 1.0f;
+void get_color_fast(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t max_dist, int32_t phase, int *r, int *g, int *b) {
+    int32_t p;
+    int32_t intensity = FIXED_ONE;
     
     switch(mode) {  
-        case 1: p = shader_sunset(x, y, phase); break;
+        case 1: p = shader_sunset_fixed(x, y, phase); break;
         case 2: p = phase; break;
-        case 3: p = y*0.5f+phase; break;
-        case 4: p = y*0.8f+fast_sin(x*0.3f)*3.0f+phase; break;
-        case 5: { float dx=x-len/2.0f, dy=y-count/2.0f; p=sqrtf(dx*dx+dy*dy)-phase; break; }  
-        case 6: p = fast_sin(x*0.2f)*fast_sin(y*0.2f+PI_2)*10.0f+phase; break;  
-        case 7: { float center=len/2.0f; p=phase+x*0.1f; intensity=1.0f-(fabsf(x-center)/center)*0.8f; if(intensity<0.2f) intensity=0.2f; break;}  
-        case 8: { float center_y=count/2.0f; p=phase+y*0.2f; intensity=1.0f-(fabsf(y-center_y)/center_y)*0.7f; if(intensity<0.3f) intensity=0.3f; break;}  
-        case 9: p = phase+x*0.1f; intensity=(x%2==0)?1.0f:0.2f; break;
-        case 10: p = shader_matrix(x, y, phase, &intensity); break;  
-        case 11: p = shader_pulse(x, y, len, count, phase, &intensity); break;
-        default: p = phase + x*0.2f + y*0.1f; if (gradient_angle >= 0.0f) {
-        float rad = gradient_angle * M_PI / 180.0f; p += cosf(rad) * x + sinf(rad) * y; } break;
+        case 3: p = (y >> 1) + phase; break;
+        case 4: p = FIXED_MUL(y, FLOAT_TO_FIXED(0.8f)) + FIXED_MUL(fast_sin_fixed(FIXED_MUL(x, FLOAT_TO_FIXED(0.3f))), FLOAT_TO_FIXED(3.0f)) + phase; break;
+        case 5: p = fast_dist_fixed(x - cx, y - cy) - phase; break;  
+        case 6: p = FIXED_MUL(FIXED_MUL(fast_sin_fixed(FIXED_MUL(x, FLOAT_TO_FIXED(0.2f))), fast_sin_fixed(FIXED_MUL(y, FLOAT_TO_FIXED(0.2f)) + FIXED_PI_2)), FLOAT_TO_FIXED(10.0f)) + phase; break;  
+        case 7: { 
+            p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.1f)); 
+            int32_t diff = x > cx ? x - cx : cx - x;
+            int32_t ratio = (cx == 0) ? 0 : (int32_t)(((int64_t)diff * FIXED_ONE) / cx);
+            intensity = FIXED_ONE - FIXED_MUL(ratio, FLOAT_TO_FIXED(0.8f)); 
+            if(intensity < FLOAT_TO_FIXED(0.2f)) intensity = FLOAT_TO_FIXED(0.2f); 
+            break;
+        }  
+        case 8: { 
+            p = phase + FIXED_MUL(y, FLOAT_TO_FIXED(0.2f)); 
+            int32_t diff = y > cy ? y - cy : cy - y;
+            int32_t ratio = (cy == 0) ? 0 : (int32_t)(((int64_t)diff * FIXED_ONE) / cy);
+            intensity = FIXED_ONE - FIXED_MUL(ratio, FLOAT_TO_FIXED(0.7f)); 
+            if(intensity < FLOAT_TO_FIXED(0.3f)) intensity = FLOAT_TO_FIXED(0.3f); 
+            break;
+        }  
+        case 9: p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.1f)); intensity = ((x >> FIXED_SHIFT) % 2 == 0) ? FIXED_ONE : FLOAT_TO_FIXED(0.2f); break;
+        case 10: p = shader_matrix_fixed(x, y, phase, &intensity); break;  
+        case 11: p = shader_pulse_fixed(x, y, cx, cy, phase, &intensity); break;
+        default: 
+            p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.2f)) + FIXED_MUL(y, FLOAT_TO_FIXED(0.1f)); 
+            if (gradient_angle_fixed >= 0) {
+                p += FIXED_MUL(grad_cos_fixed, x) + FIXED_MUL(grad_sin_fixed, y); 
+            } 
+            break;
     }
-
-    int32_t p_fixed = FLOAT_TO_FIXED(p);
-    int32_t freq_fixed = FLOAT_TO_FIXED(freq);
-    int32_t base_phase = FIXED_MUL(freq_fixed, p_fixed);
-
+    int32_t base_phase = FIXED_MUL(freq_fixed, p);
     int32_t sin_r = fast_sin_fixed(base_phase);
     int32_t sin_g = fast_sin_fixed(base_phase + FLOAT_TO_FIXED(2.094f));
     int32_t sin_b = fast_sin_fixed(base_phase + FLOAT_TO_FIXED(4.188f));
 
-    int raw_r = ((sin_r * 127) / FIXED_ONE) + 128;
-    int raw_g = ((sin_g * 127) / FIXED_ONE) + 128;
-    int raw_b = ((sin_b * 127) / FIXED_ONE) + 128;
+    int raw_r = ((sin_r * 127) >> FIXED_SHIFT) + 128;
+    int raw_g = ((sin_g * 127) >> FIXED_SHIFT) + 128;
+    int raw_b = ((sin_b * 127) >> FIXED_SHIFT) + 128;
 
-    *r = (int)(raw_r * intensity);
-    *g = (int)(raw_g * intensity);
-    *b = (int)(raw_b * intensity);
+    *r = (raw_r * intensity) >> FIXED_SHIFT;
+    *g = (raw_g * intensity) >> FIXED_SHIFT;
+    *b = (raw_b * intensity) >> FIXED_SHIFT;
 
     if (use_quantization) {
         *r &= 0xF8; *g &= 0xF8; *b &= 0xF8;
@@ -111,6 +172,6 @@ void get_color_fast(int x, int y, int mode, int len, int count, float phase, int
     if (*r < 0) *r = 0; if (*r > 255) *r = 255;
     if (*g < 0) *g = 0; if (*g > 255) *g = 255;
     if (*b < 0) *b = 0; if (*b > 255) *b = 255;
-
-    apply_border_opacity(x, y, len, count, opacity, r, g, b);
+    
+    apply_border_opacity_fixed(x, y, cx, cy, max_dist, opacity_fixed, r, g, b);
 }

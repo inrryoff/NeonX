@@ -1,6 +1,6 @@
-# 🌈 NeonX – Colorizador de Texto com Shaders Avançados
+# 🌈 NeonX – Shaders avançadas para terminal
 
-[![Versão](https://img.shields.io/badge/version-2.0.2--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.0.3--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20Android%20%7C%20Windows-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
 [![Build Oficial](https://img.shields.io/badge/build-oficial-green)]()
@@ -57,11 +57,12 @@ cat banner.txt | neonx -S
 | -F [fps] | Taxa de quadros por segundo | 20 (50ms) |
 | -L | Modo linha por linha (stream) | desligado |
 | --preset [nome] | Aplica um preset (cyberpunk, retro, matrix, sunset) | – |
+| --quantized | Aplica logica de quantização, reduz qualidade visual | – |
 | --spin | Exibe paleta de cores em formato 38;2;R;G;B para uso externo | – |
 | --lang | Selecionar idioma Português ou Inglês | sistem |
 | --license | Mostra a licença de uso | – |
 | -v, --version | Versão e metadados do binário | – |
-| -h, --help | Esta ajuda | – |
+| -h, --help | Exibe esta ajuda | – |
 
 ---
 
@@ -105,15 +106,22 @@ O NeonX adota um sistema de verificação de integridade **transparente e não i
 
 - **Binários oficiais** são compilados e assinados por **@inrryoff** com uma chave privada. Ao serem executados, reconhecem-se como oficiais e exibem os metadados completos no `--version`.
 - **Builds não oficiais** (compiladas localmente ou modificadas) não possuem a assinatura válida e, portanto, mostram naturalmente o status **MODIFICADO** no `--version`. Nenhum aviso, mensagem ou bloqueio é exibido durante a execução normal – apenas a informação verdadeira quando solicitada.
-- **Verificação externa**: além da verificação interna, cada binário oficial é acompanhado de uma assinatura Minisign (`.minisig`). Você pode verificar a autenticidade do arquivo **antes mesmo de executá-lo** usando o script `verify_neonx.sh` (ou o Minisign diretamente).
+- **Verificação externa**: além da verificação interna, cada binário oficial é acompanhado de uma assinatura Minisign (`.minisig`). Você pode verificar a autenticidade do arquivo **antes mesmo de executá-lo** usando o script `verify.sh` (ou o Minisign diretamente).
 
 > **Verifique um binário baixado** com:
 > ```bash
 > # Baixe o verificador público (uma única vez)
-> curl -O https://raw.githubusercontent.com/inrryoff/NeonX/main/verify_neonx.sh
-> chmod +x verify_neonx.sh
+> curl -O https://raw.githubusercontent.com/inrryoff/NeonX/main/verify.sh
+> chmod +x verify.sh
 > # Verifique o binário (ex: neonx_arm64)
-> ./verify_neonx.sh ./neonx_arm64
+> ./verify.sh ./neonx_arm64
+> ```
+> ```bash
+> # Para checar de um zip
+> curl -O https://raw.githubusercontent.com/inrryoff/NeonX/main/verify.sh
+> chmod +x verify.sh
+> # Verifique direto do zip
+> ./verify.sh ./neonx_linux-arm64.zip
 > ```
 > O script confere a assinatura Minisign e informa se o binário é oficial e íntegro.
 
@@ -155,7 +163,6 @@ Leia o **[Guia do Desenvolvedor](DEVELOPMENT.md)** para:
 - Estrutura modular do código (`src/`)
 - Como usar `build.sh` e submeter modificações para aprovação
 - Funcionamento das assinaturas Ed25519 e Minisign
-- Criação de builds oficiais (`release-build.sh`)
 
 ---
 

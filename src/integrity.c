@@ -10,21 +10,27 @@
     #ifndef MAX_PATH
         #define MAX_PATH 260
     #endif
+#elif defined(__APPLE__)
+    #include <mach-o/dyld.h>
 #else
     #include <unistd.h>
 #endif
 
 static const unsigned char PUBLIC_KEY[32] = {
-    0x80, 0x2E, 0x82, 0xEF, 0xD4, 0xBB, 0x33, 0xBF,
-    0x75, 0xEE, 0x95, 0x29, 0xFC, 0x88, 0x98, 0xC2,
-    0xEB, 0x80, 0x2B, 0x2C, 0x7A, 0x85, 0x1B, 0x79,
-    0x67, 0x7C, 0xB1, 0xB8, 0x29, 0x2A, 0xCA, 0xB9
+	0xB1, 0x78, 0x32, 0x30, 0x71, 0xA4, 0xFF, 0x79,
+    0xA5, 0xBC, 0x69, 0x08, 0x48, 0x7A, 0xA3, 0x59,
+    0x30, 0xD8, 0x7B, 0xCD, 0x17, 0x6A, 0x7A, 0x42,
+    0x83, 0x2F, 0xB1, 0xE0, 0x89, 0x66, 0x7D, 0x8C
 };
 
 int check_integrity(void) {
     char path[1024];
+    
     #ifdef _WIN32
-        if (GetModuleFileNameA(NULL, path, MAX_PATH) == 0) return 2;
+        if (GetModuleFileNameA(NULL, path, sizeof(path)) == 0) return 2;
+    #elif defined(__APPLE__)
+        uint32_t size = sizeof(path);
+        if (_NSGetExecutablePath(path, &size) != 0) return 2;
     #else
         ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
         if (len == -1) return 2;
@@ -52,9 +58,11 @@ int check_integrity(void) {
     size_t data_len = total_size - 128;
     unsigned char *data = malloc(data_len);
     if (!data) { fclose(f); return 2; }
+    
     fseek(f, 0, SEEK_SET);
     size_t bytes_read = fread(data, 1, data_len, f);
     fclose(f);
+    
     if (bytes_read != data_len) {
         free(data);
         return 2;

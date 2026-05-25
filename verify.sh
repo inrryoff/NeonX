@@ -101,13 +101,36 @@ output=$(minisign -V -x "$sig_file" -p "$TMP_DIR/minisign.pub" -m "$binary_file"
 exit_code=$?
 set -e
 
+echo -e "${YELLOW}🔍 Checando assinatura EdDSA (Monocypher/C)...${NC}"
+chmod +x "$binary_file"
+set +e
+"$binary_file" --verify-sig > /dev/null 2>&1
+internal_exit_code=$?
+set -e
+
+if [ $internal_exit_code -eq 0 ]; then
+    SIG_CHECK_MSG="${GREEN}Matematicamente Autenticada (Self-Check C)${NC}"
+    INTERNAL_SIG=$(tail -c 128 "$binary_file")
+    if [[ "$INTERNAL_SIG" =~ ^[0-9a-fA-F]{128}$ ]]; then
+        SIG_PREVIEW="${INTERNAL_SIG:0:16}...${INTERNAL_SIG: -16}"
+    else
+        SIG_PREVIEW="${YELLOW}Preview indisponível${NC}"
+    fi
+else
+    echo -e "${RED}❌ ALERTA: A assinatura EdDSA interna falhou na validação matemática!${NC}"
+    echo -e "${RED}   O arquivo foi adulterado.${NC}"
+    exit 1
+fi
+
 if [ $exit_code -eq 0 ]; then
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo -e "${GREEN}✅ BINÁRIO OFICIAL VERIFICADO!${NC}"
     echo ""
     echo -e "${CYAN}   Binário Original: $REAL_NAME${NC}"
-    echo -e "${CYAN}   Assinatura:       $expected_sig_name${NC}"
+    echo -e "${CYAN}   Ass. Externa:     $expected_sig_name (Minisign)${NC}"
+    echo -e "${CYAN}   Ass. Interna:     $SIG_CHECK_MSG${NC}"
+    echo -e "${CYAN}   Hex Preview:      $SIG_PREVIEW${NC}"
     echo ""
     echo -e "${GREEN}   Origem confirmada: @inrryoff${NC}"
     echo -e "${GREEN}   Este é um binário OFICIAL e íntegro.${NC}"

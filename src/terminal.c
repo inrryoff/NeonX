@@ -5,6 +5,17 @@
 #include <unistd.h>
 #include <wchar.h>
 
+#ifdef _WIN32
+    #include <windows.h>
+    #include <io.h>
+    #ifndef STDOUT_FILENO
+        #define STDOUT_FILENO 1
+    #endif
+    #define write _write
+#else
+    #include <unistd.h>
+#endif
+
 Content content = {.count = 0};
 static int g_integrity_status = 2;
 
@@ -21,8 +32,12 @@ void set_integrity_status(int status) {
     g_integrity_status = status;
 }
 
-void sleep_us(double microseconds) {
-    usleep((useconds_t)microseconds);
+void sleep_us(uint32_t microseconds) {
+#ifdef _WIN32
+    Sleep(microseconds / 1000); 
+#else
+    usleep(microseconds);
+#endif
 }
 
 void free_content(Content *c) {

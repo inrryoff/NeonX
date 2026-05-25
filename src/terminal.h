@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define MAX_LINES 1024
 #define MAX_LINE_LEN 2048
@@ -16,7 +17,7 @@ typedef struct {
 extern Content content;
 
 void set_integrity_status(int status);
-void sleep_us(double microseconds);
+void sleep_us(uint32_t microseconds);
 void free_content(Content *c);
 void print_version(void);
 void print_license(void);
