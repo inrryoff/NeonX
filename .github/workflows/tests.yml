@@ -18,6 +18,16 @@ jobs:
       - name: ⚡ Instalar ambiente Zig
         uses: goto-bus-stop/setup-zig@v2
 
+      - name: ⚙️ Instalar dependências (Minisign)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y minisign
+
+      - name: ⚙️ Instalar dependências (unzip)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+
       - name: 🛠️ Dar permissão e Compilar Nativo
         run: |
           chmod +x build.sh
@@ -26,62 +36,92 @@ jobs:
       - name: 🧪 Teste 1 - Verificação de Identidade e Versão
         run: |
           echo "Testando a saída de versão..."
-          OUTPUT=$(./build/neonx_native -v)
+          OUTPUT=$(./build/neonx -v)
           echo "$OUTPUT"
           if ! echo "$OUTPUT" | grep -q "NeonX"; then
             echo "Falha: Comando de versão não retornou a string esperada."
             exit 1
           fi
 
-      - name: 🧪 Teste 2 - Menu de Ajuda (--help)
+      - name: 🧪 Teste 2 - Verificação de Segurança (Negative Test)
         run: |
-          ./build/neonx_native --help > /dev/null
+          echo "Testando a Verificação com verify.sh..."
+          set +e
+          ./verify.sh ./build/neonx
+          EXIT_CODE=$?
+          set -e
+          if [ $EXIT_CODE -eq 1 ]; then
+            echo "✅ SUCESSO: O verify.sh barrou o binário de teste corretamente!"
+            exit 0
+          else
+            echo "❌ ERRO CRÍTICO: O verify.sh aceitou um binário modificado (ou deu outro erro)!"
+            exit 1
+          fi
+
+      - name: 🧪 Teste 3 - Menu de Ajuda (--help)
+        run: |
+          ./build/neonx --help > /dev/null
           echo "Menu de ajuda executado com sucesso."
 
-      - name: 🧪 Teste 3 - Renderização Estática (Modo -S)
+      - name: 🧪 Teste 4 - Renderização Estática (Modo -S)
         run: |
           echo "Testando pipe de texto com Modo Estático..."
-          echo -e "NEONX\nTEST BANNER" | ./build/neonx_native -m 7 -S -o 0 > result.txt
+          echo -e "NEONX\nTEST BANNER" | ./build/neonx -m 7 -S -o 0 > result.txt
           if [ ! -s result.txt ]; then
             echo "Falha: O NeonX não gerou saída no Modo Estático."
             exit 1
           fi
           echo "Renderização estática OK."
 
-      - name: 🧪 Teste 4 - Processamento de Presets
+      - name: 🧪 Teste 5 - Processamento de Presets
         run: |
           echo "Testando presets de shader..."
-          echo "CYBERPUNK" | ./build/neonx_native -S --preset cyberpunk > /dev/null
-          echo "MATRIX" | ./build/neonx_native -S --preset matrix > /dev/null
-          echo "RETRO" | ./build/neonx_native -S --preset retro > /dev/null
+          echo "CYBERPUNK" | ./build/neonx -S --preset cyberpunk > /dev/null
+          echo "MATRIX" | ./build/neonx -S --preset matrix > /dev/null
+          echo "RETRO" | ./build/neonx -S --preset retro > /dev/null
           echo "Presets validados com sucesso."
 
-      - name: 🧪 Teste 5 - Limite de Duração (-d)
+      - name: 🧪 Teste 6 - Limite de Duração (-d)
         run: |
           echo "Testando loop de animação com auto-kill de 1 segundo..."
-          echo "ANIMATION TEST" | ./build/neonx_native -m 1 -d 1
+          echo "ANIMATION TEST" | ./build/neonx -m 1 -d 1
           echo "Duração limite testada com sucesso."
 
-      - name: 🧪 Teste 6 - Bateria de Spinners (--spin)
+      - name: 🧪 Teste 7 - Bateria de Spinners (--spin)
         run: |
           echo "Testando gerador de paleta spinner..."
-          ./build/neonx_native --spin > /dev/null
+          ./build/neonx --spin > /dev/null
           echo "Spinner OK."
 
-      - name: 🧪 Teste 7 - Cross-Compile de Segurança (ARM64)
+      - name: 🧪 Teste 9 - Cross-Compile de Segurança (ARM64)
         run: |
           echo "Garantindo que compila para Android/ARM64 via Zig..."
           ./build.sh --target aarch64-linux-musl --output neonx --label test-arm64
-          if [ ! -f "build/neonx_test-arm64.zip" ]; then
+          if [ ! -f "bzip/neonx_test-arm64.zip" ]; then
             echo "Falha no empacotamento do Cross-Compile."
             exit 1
           fi
           echo "Cross-compile OK."
 
-      - name: 🧪 Teste 8 - Banners Grandes (UTF-8 Stress Test)
+      - name: 🧪 Teste 10 - Verificação de Segurança (Negative Test (zips))
+        run: |
+          echo "Testando a Verificação com verify.sh..."
+          set +e
+          ./verify.sh ./bzip/neonx_test-arm64.zip
+          EXIT_CODE=$?
+          set -e
+          if [ $EXIT_CODE -eq 1 ]; then
+            echo "✅ SUCESSO: O verify.sh barrou o binário de teste corretamente!"
+            exit 0
+          else
+            echo "❌ ERRO CRÍTICO: O verify.sh aceitou um binário modificado (ou deu outro erro)!"
+            exit 1
+          fi
+
+      - name: 🧪 Teste 11 - Banners Grandes (UTF-8 Stress Test)
         run: |
           echo "Testando buffer e caracteres wide (UTF-8) por 5 segundos..."
-          cat << 'EOF' | ./build/neonx_native -d 5 -m 7 -o 0 -F 60 -f 0.18 -s 0.15
+          cat << 'EOF' | ./build/neonx -d 5 -m 7 -o 0 -F 60 -f 0.18 -s 0.15
           ╔══════════════════════════════════════════════════════════════════╗
           ║                                                                  ║
           ║  ██╗███╗░░██╗██████╗░██████╗░██╗░░░██╗░█████╗░███████╗███████╗   ║
