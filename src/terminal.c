@@ -51,6 +51,8 @@ void print_version(void) {
     printf(MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
     if (g_integrity_status == 0) {
         printf("%s", MSG(MSG_VERSION_STATUS_OFFICIAL));
+    } else if (g_integrity_status == 2) {
+        printf("%s", MSG(MSG_VERSION_STATUS_ERROR));
     } else {
         printf("%s", MSG(MSG_VERSION_STATUS_MODIFIED));
     }
@@ -85,6 +87,6 @@ void show_help(void) {
 
 void handle_sigint(int sig) {
     write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16);
-    free_content(&content);
-    exit(0);
+    free_content(&content); 
+    exit(130); 
 }

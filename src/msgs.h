@@ -9,6 +9,7 @@ enum Mensagem {
     MSG_VERSION_COMPILED_BY,
     MSG_VERSION_STATUS_OFFICIAL,
     MSG_VERSION_STATUS_MODIFIED,
+    MSG_VERSION_STATUS_ERROR,
 
     // Licença
     MSG_LICENSE_TEXT,
@@ -40,15 +41,15 @@ enum Mensagem {
     MSG_ERR_INVALID_NUMBER,
     MSG_ERR_MODE_LIMIT,
     MSG_ERR_INVALID_OPTION,
+    MSG_ERR_SEM_DADOS,
     MSG_ERR_LEN_LIMIT,
+    MSG_ERR_VERIFY_RESTRICTED,
 
     MSG_TOTAL
 };
 
-extern const char *mensagens[4][MSG_TOTAL];
-extern int idioma_atual;
-
-#define MSG(id) mensagens[idioma_atual][id]
+const char* get_msg(enum Mensagem id);
+#define MSG(id) get_msg(id)
 
 void msgs_init(void);
 

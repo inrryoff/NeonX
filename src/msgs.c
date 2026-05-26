@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-int idioma_atual = 0;
-
-// Agora a matriz suporta 4 idiomas (0: PT, 1: EN, 2: ES, 3: ZH)
-const char *mensagens[4][MSG_TOTAL] = {
+static int idioma_atual = 0;
+static const char *mensagens[4][MSG_TOTAL] = {
     // ---------------- PORTUGUÊS (0) ----------------
     {
         "Erro ao abrir arquivo",
@@ -13,8 +11,9 @@ const char *mensagens[4][MSG_TOTAL] = {
         // Versão
         "Criador Original: %s\n",
         "Compilado por: %s\n",
-        "Status: OFICIAL_BY_INRRYOFF\n",
-        "Status: MODIFICADO\n",
+        "Status: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Status: \033[1;31mMODIFICADO\033[0m\n",
+        "Status: \033[1;33mVERIFY_ERROR\033[0m\n",
 
         // Licença
         "LICENÇA DE USO - NEONX (C - VERSION)\n"
@@ -65,24 +64,27 @@ const char *mensagens[4][MSG_TOTAL] = {
         "-h,--help      Exibe esta ajuda\n",
 
         // Erros
-        "[NeonX Erro]: A opcao '%s' exige um valor numerico apos ela.\n",
-        "[NeonX Erro]: A opcao '%s' exige um valor numerico, recebido: '%s'\n",
-        "[NeonX Erro]: O modo de animacao (-m) deve ser entre 0 e 11.\n",
-        "[NeonX Erro]: Opção inválida ou argumento solto '%s'\n",
-        "\n\033[1;31m[NeonX Erro]: Ei! Você por acaso não leu as instruções de uso ou tá querendo quebrar o binário de propósito? 😤\033[0m\n"
-        "\033[1;33m[NeonX Info]: Arquivos de log ou com mais de 1024 linhas DEVEM usar a flag -L.\033[0m\n"
-        "\033[1;36m[NeonX Salvação]: Forçando modo Stream (-L) na marra para não crashar... Hum.\033[0m\n\n"
+        "\033[1;31m[NeonX Erro 400]: A opcao '%s' exige um valor numerico apos ela.\033[0m\n",
+        "\033[1;31m[NeonX Erro 400]: A opcao '%s' exige um valor numerico, recebido: '%s'\033[0m\n",
+        "\033[1;33m[NeonX Info 416]: O modo de animacao (-m) deve ser entre 0 e 11.\033[0m\n",
+        "\033[1;31m[NeonX Erro 400]: Opção inválida ou argumento solto '%s'\033[0m\n",
+        "\n\033[1;31m[NeonX Erro 404]: Nenhum dado foi passado para o binário! \033[0m\n",
+        "\n\033[1;31m[NeonX Erro 413]: Arquivo muito grande. Use -L para modo streaming.\033[0m\n"
+        "\033[1;33m[NeonX Info 413]: Arquivos de log ou com mais de 1024 linhas DEVEM usar a flag -L.\033[0m\n"
+        "\033[1;36m[NeonX Salvação 206]: Forçando modo Stream (-L) na marra para não crashar... Hum.\033[0m\n\n",
+        "\033[1;33m[NeonX Info 403]: Não foi possível checar a integridade, sistema restrito\033[0m\n"
     },
 
     // ---------------- ENGLISH (1) ----------------
     {
-        "Error opening file",
+        "\033[1;31mError opening file\033[0m",
         
         // Versão
         "Original Creator: %s\n",
         "Compiled by: %s\n",
-        "Status: OFFICIAL_BY_INRRYOFF\n",
-        "Status: MODIFIED\n",
+        "Status: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Status: \033[1;31mMODIFIED\033[0m\n",
+        "Status: \033[1;33mVERIFY_ERROR\033[0m\n",
 
         // Licença
         "USAGE LICENSE - NEONX (C - VERSION)\n"
@@ -133,41 +135,44 @@ const char *mensagens[4][MSG_TOTAL] = {
         "-h,--help      Display this help\n",
 
        // Erros
-        "[NeonX Error]: Option '%s' requires a numeric value after it.\n",
-        "[NeonX Error]: Option '%s' requires a numeric value, received: '%s'\n",
-        "[NeonX Error]: Animation mode (-m) must be between 0 and 11.\n",
-        "[NeonX Error]: Invalid option or loose argument '%s'\n",
-        "\n\033[1;31m[NeonX Error]: Hey! Did you not read the usage instructions or are you trying to break the binary on purpose? 😤\033[0m\n"
-        "\033[1;33m[NeonX Info]: Log files or files with more than 1024 lines MUST use the -L flag.\033[0m\n"
-        "\033[1;36m[NeonX Salvation]: Forcing Stream mode (-L) right now to prevent crash... Huh.\033[0m\n\n"
+        "\033[1;31m[NeonX Error 400]: Option '%s' requires a numeric value after it.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: Option '%s' requires a numeric value, received: '%s'\033[0m\n",
+        "\033[1;33m[NeonX Info 416]: Animation mode (-m) must be between 0 and 11.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: Invalid option or loose argument '%s'\033[0m\n",
+        "\033[1;31m[NeonX Error 404]: No data was passed to the binary! \033[0m\n",
+        "\n\033[1;31m[NeonX Error 413]: File too large. Use -L for streaming mode.\033[0m\n"
+        "\033[1;33m[NeonX Info 413]: Log files or files with more than 1024 lines MUST use the -L flag.\033[0m\n"
+        "\033[1;36m[NeonX Salvation 206]: Forcing Stream mode (-L) right now to prevent crash... Huh.\033[0m\n\n",
+        "\033[1;33m[NeonX Info 403]: Could not check integrity due to restricted system\033[0m\n"
     },
 
     // ---------------- ESPANHOL (2) ----------------
     {
-        "Error al abrir el archivo",
+        "\033[1;31mError al abrir el archivo\033[0m",
         
         // Versão
         "Creador Original: %s\n",
         "Compilado por: %s\n",
-        "Estado: OFICIAL_BY_INRRYOFF\n",
-        "Estado: MODIFICADO\n",
+        "Estado: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Estado: \033[1;31mMODIFICADO\033[0m\n",
+        "Estado: \033[1;33mVERIFY_ERROR\033[0m\n",
 
         // Licença
-        "LICENCIA DE USO - NEONX (VERSIÓN C)\n"
+        "LICENCIA DE USO - NEONX (C - VERSION)\n"
         "-----------------------------------------------------------------\n"
         "Copyright (c) 2026 @inrryoff - Licenciado bajo condiciones especiales NeonX LICENSE\n\n"
         "Por la presente se concede permiso a cualquier persona que obtenga una copia\n"
-        "de este software para usarlo de forma gratuita, sujeto a las siguientes condiciones:\n\n"
+        "de este software para utilizarlo de forma gratuita, sujeto a las siguientes condiciones:\n\n"
         "1. ATRIBUCIÓN (CRÉDITOS):\n"
         "   El nombre del autor original (@inrryoff) y los avisos de derechos de autor deben\n"
-        "   mantenerse en todos los archivos de código fuente, cabeceras y en la salida de\n"
+        "   mantenerse en todos los archivos de código fuente, encabezados y en la salida de\n"
         "   versión del binario compilado (ej: neonx --version).\n\n"
         "2. PROHIBICIÓN DE COMERCIALIZACIÓN:\n"
         "   Queda TERMINANTEMENTE PROHIBIDA la venta, alquiler o cualquier forma de\n"
         "   comercialización de este software, ya sea del código fuente o del binario\n"
         "   compilado, de forma aislada o integrada en paquetes de pago.\n\n"
         "3. DERIVACIONES Y MODIFICACIONES:\n"
-        "   Se permiten alteraciones en el código para mejoras o uso personal, siempre que:\n"
+        "   Se permiten modificaciones del código para mejoras o uso personal, siempre que:\n"
         "   a) El trabajo derivado NO se venda.\n"
         "   b) La versión modificada se mantenga en un repositorio público (Open Source).\n"
         "   c) Los créditos al autor original se mantengan de forma clara.\n\n"
@@ -176,9 +181,9 @@ const char *mensagens[4][MSG_TOTAL] = {
         "   siempre que el módulo se distribuya de forma gratuita.\n\n"
         "EL SOFTWARE SE PROPORCIONA 'TAL CUAL', SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O\n"
         "IMPLÍCITA. EN NINGÚN CASO EL AUTOR SERÁ RESPONSABLE DE NINGUNA RECLAMACIÓN,\n"
-        "DAÑOS U OTRA RESPONSABILIDAD QUE JURIDIQUE DEL USO DE ESTE SOFTWARE.\n",
+        "DAÑOS U OTRA RESPONSABILIDAD QUE SURJA DEL USO DE ESTE SOFTWARE.\n",
 
-        // Ajuda
+         // Ajuda
         "NeonX v%s | Core por: %s | Build por: %s\n\n",
         "Uso: cat archivo | neonx [opciones]\n\n",
         "-m [0-11]      Modos de animación\n",
@@ -186,7 +191,7 @@ const char *mensagens[4][MSG_TOTAL] = {
         "-f [valor]     Frecuencia (0.3 por defecto)\n",
         "-d [valor]     Duración (0: infinito)\n",
         "-A [angulo]    Ángulo del gradiente (0-360 grados)\n",
-        "-p [valor]     Semillas fijas (Seeds)\n",
+        "-p [valor]     Seeds fijas\n",
         "-S             Modo estático\n",
         "-c [ancho]     Ancho fijo del gradiente\n",
         "-o [0-1]       Opacidad de los bordes\n",
@@ -200,77 +205,82 @@ const char *mensagens[4][MSG_TOTAL] = {
         "-v,--version   Versión del binario\n",
         "-h,--help      Muestra esta ayuda\n",
 
-       // Erros
-        "[NeonX Error]: La opción '%s' requiere un valor numérico después de ella.\n",
-        "[NeonX Error]: La opción '%s' requiere un valor numérico, recibido: '%s'\n",
-        "[NeonX Error]: El modo de animación (-m) debe estar entre 0 y 11.\n",
-        "[NeonX Error]: Opción inválida o argumento suelto '%s'\n",
-        "\n\033[1;31m[NeonX Error]: ¡Oye! ¿Acaso no leíste las instrucciones de uso o quieres romper el binario a propósito? 😤\033[0m\n"
-        "\033[1;33m[NeonX Info]: Archivos de log o con más de 1024 líneas DEBEN usar la bandera -L.\033[0m\n"
-        "\033[1;36m[NeonX Salvación]: Forzando modo Stream (-L) ahora mismo para evitar crash... Ajá.\033[0m\n\n"
+        // Erros
+        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico después de ella.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico, recibido: '%s'\033[0m\n",
+        "\033[1;33m[NeonX Info 416]: El modo de animación (-m) debe estar entre 0 y 11.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: Opción inválida o argumento suelto '%s'\033[0m\n",
+        "\033[1;31m[NeonX Error 404]: ¡No se pasaron datos al binario! \033[0m\n",
+        "\n\033[1;31m[NeonX Error 413]: Archivo demasiado grande. Use -L para el modo streaming.\033[0m\n"
+        "\033[1;33m[NeonX Info 413]: Los archivos de log o con más de 1024 líneas DEBEN usar la bandera -L.\033[0m\n"
+        "\033[1;36m[NeonX Salvación 206]: Forzando el modo Stream (-L) a la fuerza para evitar fallos... Hum.\033[0m\n\n",
+        "\033[1;33m[NeonX Info 403]: No fue posible comprobar la integridad por sistema restringido\033[0m\n"
     },
 
     // ---------------- CHINÊS (3) ----------------
     {
-        "无法打开文件",
+        "\033[1;31m打开文件失败\033[0m",
         
         // Versão
         "原作者: %s\n",
         "编译者: %s\n",
-        "状态: 官方正版_BY_INRRYOFF\n",
-        "状态: 已修改\n",
+        "状态: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "状态: \033[1;31mMODIFIED\033[0m\n",
+        "状态: \033[1;33mVERIFY_ERROR\033[0m\n",
 
         // Licença
-        "使用许可 - NEONX (C语言版本)\n"
+        "使用许可 - NEONX (C - VERSION)\n"
         "-----------------------------------------------------------------\n"
-        "Copyright (c) 2026 @inrryoff - 在 NeonX LICENSE 特殊条件下授权\n\n"
-        "特此授权任何获得本软件副本的人员免费使用，但须符合以下条件:\n\n"
-        "1. 署名 (积分/限额):\n"
-        "   原作者姓名 (@inrryoff) 和版权声明必须保留在所有源码文件、\n"
-        "   头文件以及编译后的二进制版本输出中 (例如: neonx --version)。\n\n"
-        "2. 禁止商业化:\n"
-        "   严禁以任何形式销售、出租或商业化本软件 (无论是源码还是编译后的二进制文件)，\n"
-        "   无论是独立销售还是集成到收费包中。\n\n"
-        "3. 衍生与修改:\n"
-        "   允许为了改进或个人使用而修改代码，前提是:\n"
+        "Copyright (c) 2026 @inrryoff - 根据 NeonX LICENSE 特别条件授权\n\n"
+        "特此授权任何获得本软件副本的人员免费使用本软件，但须满足以下条件：\n\n"
+        "1. 署名（鸣谢）：\n"
+        "   原作者姓名（@inrryoff）和版权声明必须保留在所有源代码文件、\n"
+        "   头文件以及编译后的二进制版本输出中（例如：neonx --version）。\n\n"
+        "2. 禁止商业化：\n"
+        "   严禁以任何形式销售、出租 or 商业化本软件（无论是源代码还是编译后的二进制文件），\n"
+        "   无论其是独立运行还是集成在付费包中。\n\n"
+        "3. 衍生与修改：\n"
+        "   允许出于改进或个人用途修改代码，前提是：\n"
         "   a) 衍生作品不得销售。\n"
-        "   b) 修改后的版本必须保存在公开仓库中 (开源)。\n"
-        "   c) 必须清晰保留对原作者的致谢。\n\n"
-        "4. 模块分发 (MAGISK/KERNELSU):\n"
+        "   b) 修改后的版本必须保存在公共仓库中（开源）。\n"
+        "   c) 必须清晰保留对原作者的署名。\n\n"
+        "4. 模块分发 (MAGISK/KERNELSU)：\n"
         "   允许并鼓励在优化模块中使用此二进制文件，前提是该模块免费分发。\n\n"
-        "本软件按“原样”提供，不提供任何形式 of 明示或暗示保证。在任何情况下，\n"
-        "作者均不对因使用本软件而引起的任何索赔、损害或其他责任负责。\n",
+        "本软件按“原样”提供，不提供任何形式的明示或暗示保证。在任何情况下，\n"
+        "作者均不对因使用本软件而产生的任何索赔、损害或其他责任负责。\n",
 
         // Ajuda
-        "NeonX v%s | 核心设计: %s | 编译版本: %s\n\n",
+        "NeonX v%s | 核心: %s | 构建: %s\n\n",
         "用法: cat 文件 | neonx [选项]\n\n",
         "-m [0-11]      动画模式\n",
-        "-s [数值]      速度 (默认 0.2)\n",
-        "-f [数值]      频率 (默认 0.3)\n",
-        "-d [数值]      持续时间 (0: 无限)\n",
-        "-A [角度]      渐变角度 (0-360 度)\n",
-        "-p [数值]      固定随机种子\n",
+        "-s [数值]      速度（默认 0.2）\n",
+        "-f [数值]      频率（默认 0.3）\n",
+        "-d [数值]      时长（0: 无限）\n",
+        "-A [角度]      渐变角度（0-360 度）\n",
+        "-p [数值]      固定种子\n",
         "-S             静态模式\n",
         "-c [宽度]      固定渐变宽度\n",
-        "-o [0-1]       边缘透明度 (边框不透明度)\n",
-        "-F [数值]      帧率 FPS (例如: 60, 90)\n",
-        "-L             逐行模式 (流模式 - stream)\n",
-        "--preset [名]  加载预设 (cyberpunk, retro, matrix, sunset)\n",
+        "-o [0-1]       边缘透明度\n",
+        "-F [数值]      FPS（例如：60, 90)\n",
+        "-L             逐行模式 (stream)\n",
+        "--preset [名称] 加载预设 (cyberpunk, retro, matrix, sunset)\n",
         "--quantized    量化模式会降低视觉质量\n",
-        "--spin         为外部脚本输出纯 ANSI 颜色代码\n",
+        "--spin         为外部脚本生成纯 ANSI 颜色代码\n",
         "--lang [语言]  选择语言 (pt, en, es, zh)\n",
         "--license      软件许可证\n",
-        "-v,--version   二进制版本信息\n",
+        "-v,--version   二进制版本\n",
         "-h,--help      显示此帮助信息\n",
 
-       // Erros
-        "[NeonX 错误]: 选项 '%s' 后面需要跟一个数值。\n",
-        "[NeonX 错误]: 选项 '%s' 需要数值，却收到: '%s'\n",
-        "[NeonX 错误]: 动画模式 (-m) 必须在 0 到 11 之间。\n",
-        "[NeonX 错误]: 无效选项或孤立参数 '%s'\n",
-        "\n\033[1;31m[NeonX 错误]: 喂！你是不是没看使用说明，还是故意想把二进制搞崩溃？ 😤\033[0m\n"
-        "\033[1;33m[NeonX 提示]: 日志文件或超过 1024 行的文件必须使用 -L 参数。\033[0m\n"
-        "\033[1;36m[NeonX 自动拯救]: 正在强制启用流模式 (-L) 以防崩溃... 哼。\033[0m\n\n"
+        // Erros
+        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 后面需要一个数值。\033[0m\n",
+        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个数值，但收到: '%s'\033[0m\n", 
+        "\033[1;33m[NeonX 提示 416]: 动画模式 (-m) 必须在 0 到 11 之间。\033[0m\n",
+        "\033[1;31m[NeonX 错误 400]: 无效选项或孤立参数 '%s'\033[0m\n",
+        "\033[1;31m[NeonX 错误 404]: 没有数据传递给二进制文件！ \033[0m\n",
+        "\n\033[1;31m[NeonX 错误 413]: 文件过大。请使用 -L 启用流媒体模式。\033[0m\n"
+        "\033[1;33m[NeonX 提示 413]: 日志文件或超过 1024 行的文件必须使用 -L 参数。\033[0m\n"
+        "\033[1;36m[NeonX 自动拯救 206]: 正在强制启用流模式 (-L) 以防崩溃... 嗯。\033[0m\n\n",
+        "\033[1;33m[NeonX 提示 406]: 由于系统限制，无法检查完整性\033[0m\n"
     }
 };
 
@@ -278,15 +288,19 @@ void msgs_init(void) {
     char *lang = getenv("LANG");
     if (lang != NULL) {
         if (strncmp(lang, "pt", 2) == 0) {
-            idioma_atual = 0; // Português
+            idioma_atual = 0;
         } else if (strncmp(lang, "es", 2) == 0) {
-            idioma_atual = 2; // Español
+            idioma_atual = 2;
         } else if (strncmp(lang, "zh", 2) == 0) {
-            idioma_atual = 3; // Chinese (Mandarin)
+            idioma_atual = 3;
         } else {
-            idioma_atual = 1; // English (Fallback para o resto)
+            idioma_atual = 1;
         }
     } else {
         idioma_atual = 0;
     }
+}
+
+const char* get_msg(enum Mensagem id) {
+    return mensagens[idioma_atual][id];
 }

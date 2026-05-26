@@ -1,6 +1,7 @@
 #include "shaders.h"
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 int32_t freq_fixed = FLOAT_TO_FIXED(0.3f);
 int32_t opacity_fixed = 0;
@@ -8,8 +9,8 @@ int32_t gradient_angle_fixed = FLOAT_TO_FIXED(-1.0f);
 bool use_quantization = false;
 
 int32_t sin_lut_fixed[LUT_SIZE];
-int32_t grad_cos_fixed = 0;
-int32_t grad_sin_fixed = 0;
+static int32_t grad_cos_fixed = 0;
+static int32_t grad_sin_fixed = 0;
 
 #define RAD_TO_INDEX_FIXED 42722831L
 
@@ -149,7 +150,7 @@ void get_color_fast(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int3
             if(intensity < FLOAT_TO_FIXED(0.3f)) intensity = FLOAT_TO_FIXED(0.3f); 
             break;
         }  
-        case 9: p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.1f)); intensity = ((x >> FIXED_SHIFT) % 2 == 0) ? FIXED_ONE : FLOAT_TO_FIXED(0.2f); break;
+        case 9: p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.1f)); intensity = ((x >> FIXED_SHIFT) % 2 == 0) ? FIXED_ONE : FLOAT_TO_FIXED(0.6f); break;
         case 10: p = shader_matrix_fixed(x, y, phase, &intensity); break;  
         case 11: p = shader_pulse_fixed(x, y, cx, cy, phase, &intensity); break;
         default: 
@@ -186,4 +187,51 @@ void get_color_fast(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int3
     if (mode != 0) {
         apply_border_opacity_fixed(x, y, cx, cy, max_dist, opacity_fixed, r, g, b);
     }
+}
+
+void shaders_set_preset(const char *preset, int *anim_mode, int32_t *speed_fixed) {
+    if (!strcmp(preset,"cyberpunk")) { 
+        *anim_mode = 0; *speed_fixed = FLOAT_TO_FIXED(0.3); freq_fixed = FLOAT_TO_FIXED(0.5); gradient_angle_fixed = FLOAT_TO_FIXED(45.0);
+    } else if (!strcmp(preset,"retro")) { 
+        *anim_mode = 4; *speed_fixed = FLOAT_TO_FIXED(0.2); freq_fixed = FLOAT_TO_FIXED(0.8); gradient_angle_fixed = FLOAT_TO_FIXED(0.0);
+    } else if (!strcmp(preset,"matrix")) { 
+        *anim_mode = 10; *speed_fixed = FLOAT_TO_FIXED(0.5); freq_fixed = FLOAT_TO_FIXED(1.2); gradient_angle_fixed = FLOAT_TO_FIXED(90.0);
+    } else if (!strcmp(preset,"sunset")) { 
+        *anim_mode = 1; *speed_fixed = FLOAT_TO_FIXED(0.15); freq_fixed = FLOAT_TO_FIXED(0.3); gradient_angle_fixed = FLOAT_TO_FIXED(30.0);
+    }
+}
+
+void shaders_set_frequency(int32_t freq) {
+    freq_fixed = freq;
+}
+
+void shaders_set_gradient_angle(int32_t angle) {
+    gradient_angle_fixed = angle;
+}
+
+void shaders_set_opacity_from_string(const char *o_val) {
+    int32_t int_part = 0, frac_part = 0;
+    int frac_len = 0;
+    if (*o_val == '-') o_val++;
+    while (*o_val >= '0' && *o_val <= '9') {
+        int_part = int_part * 10 + (*o_val - '0');
+        o_val++;
+    }
+    if (*o_val == '.') {
+        o_val++;
+        while (*o_val >= '0' && *o_val <= '9' && frac_len < 3) {
+            frac_part = frac_part * 10 + (*o_val - '0');
+            frac_len++;
+            o_val++;
+        }
+    }
+    while (frac_len < 3) { frac_part *= 10; frac_len++; }
+
+    opacity_fixed = (int_part * 1000) + frac_part;
+    if (opacity_fixed < 0) opacity_fixed = 0;
+    if (opacity_fixed > 1000) opacity_fixed = 1000;
+}
+
+void shaders_finalize_setup(void) {
+    precalc_gradient_angle();
 }

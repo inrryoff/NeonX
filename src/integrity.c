@@ -33,7 +33,9 @@ int check_integrity(void) {
         if (_NSGetExecutablePath(path, &size) != 0) return 2;
     #else
         ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
-        if (len == -1) return 2;
+        if (len <= 0) {
+            return 2;
+        }
         path[len] = '\0';
     #endif
 
@@ -42,22 +44,34 @@ int check_integrity(void) {
 
     fseek(f, 0, SEEK_END);
     long total_size = ftell(f);
-    if (total_size <= 128) { fclose(f); return 2; }
+    if (total_size <= 128) { 
+        fclose(f); 
+        return 1;
+    }
 
     fseek(f, total_size - 128, SEEK_SET);
     char sig_hex[129] = {0};
-    if (fread(sig_hex, 1, 128, f) != 128) { fclose(f); return 2; }
+    if (fread(sig_hex, 1, 128, f) != 128) { 
+        fclose(f); 
+        return 2;
+    }
 
     unsigned char signature[64];
     for (int i = 0; i < 64; i++) {
         unsigned int byte;
-        if (sscanf(sig_hex + i*2, "%2x", &byte) != 1) { fclose(f); return 2; }
+        if (sscanf(sig_hex + i*2, "%2x", &byte) != 1) { 
+            fclose(f); 
+            return 1;
+        }
         signature[i] = (unsigned char)byte;
     }
 
     size_t data_len = total_size - 128;
     unsigned char *data = malloc(data_len);
-    if (!data) { fclose(f); return 2; }
+    if (!data) { 
+        fclose(f); 
+        return 2;
+    }
     
     fseek(f, 0, SEEK_SET);
     size_t bytes_read = fread(data, 1, data_len, f);
@@ -70,5 +84,5 @@ int check_integrity(void) {
 
     int result = crypto_eddsa_check(signature, PUBLIC_KEY, data, data_len);
     free(data);
-    return (result == 0) ? 0 : 2;
+    return (result == 0) ? 0 : 1; 
 }
