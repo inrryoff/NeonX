@@ -143,7 +143,7 @@ A forma mais rápida de instalar o NeonX é baixando e extraindo a release diret
  
 ```bash
 # 1. Baixe o pacote
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.0.3-STABLE/neonx_linux-x64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.0.5/neonx_linux-x64.zip
 
 # 2. Extraia o binário
 unzip neonx_linux-x64.zip
@@ -160,7 +160,7 @@ sudo chmod +x /usr/local/bin/neonx
 
 ```bash
 # 1. Baixe o pacote ARM64
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.0.3-STABLE/neonx_linux-arm64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.0.5/neonx_linux-arm64.zip
 
 # 2. Extraia o binário
 unzip neonx_linux-arm64.zip
@@ -177,7 +177,7 @@ chmod +x $PREFIX/bin/neonx
  
 ```bash
 # 1. Baixe o pacote (x64 ou arm64)
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.0.4-STABLE/neonx_macos-arm64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.0.5/neonx_macos-arm64.zip
 
 # 2. Extraia o binário
 unzip neonx_macos-arm64.zip
@@ -196,7 +196,7 @@ sudo xattr -d com.apple.quarantine /usr/local/bin/neonx
 
 ```powershell
 # 1. Baixe o pacote
-curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.0.3-STABLE/neonx_windows-x64.zip
+curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.0.5/neonx_windows-x64.zip
 
 # 2. Extraia o executável
 Expand-Archive neonx_windows-x64.zip -DestinationPath . -Force
