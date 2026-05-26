@@ -40,11 +40,12 @@ enum Mensagem {
     MSG_ERR_INVALID_NUMBER,
     MSG_ERR_MODE_LIMIT,
     MSG_ERR_INVALID_OPTION,
+    MSG_ERR_LEN_LIMIT,
 
     MSG_TOTAL
 };
 
-extern const char *mensagens[2][MSG_TOTAL];
+extern const char *mensagens[4][MSG_TOTAL];
 extern int idioma_atual;
 
 #define MSG(id) mensagens[idioma_atual][id]

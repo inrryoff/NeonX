@@ -30,7 +30,7 @@ void precalc_gradient_angle(void) {
 uint32_t isqrt64(uint64_t n) {
     uint32_t root = 0;
     uint64_t bit = 1ULL << 62;
-    while (bit > n) bit >>= 2;
+    while (bit > n) bit >>= 2;    
     while (bit != 0) {
         if (n >= root + bit) {
             n -= root + bit;
@@ -42,10 +42,11 @@ uint32_t isqrt64(uint64_t n) {
     }
     return root;
 }
-
 int32_t fast_dist_fixed(int32_t dx, int32_t dy) {
-    uint64_t sq = (uint64_t)dx * dx + (uint64_t)dy * dy;
-    return (int32_t)isqrt64(sq);
+    int64_t dx_normal = dx >> FIXED_SHIFT;
+    int64_t dy_normal = dy >> FIXED_SHIFT;
+    uint64_t sq = (dx_normal * dx_normal) + (dy_normal * dy_normal);
+    return (int32_t)(isqrt64(sq) << FIXED_SHIFT);
 }
 
 int32_t fast_sin_fixed(int32_t x_fixed) {
@@ -101,18 +102,24 @@ int32_t shader_pulse_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, int32_t
 
 void apply_border_opacity_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, int32_t max_dist, int32_t op, int *r, int *g, int *b) {
     if (op <= 0) return;
+    if (max_dist == 0) return;
     int32_t dx = x - cx;
     int32_t dy = y - cy;
     int32_t dist = fast_dist_fixed(dx, dy);
-    int32_t dist_ratio = (max_dist == 0) ? 0 : (int32_t)(((int64_t)dist << FIXED_SHIFT) / max_dist);
-    int32_t factor = FIXED_ONE - FIXED_MUL(dist_ratio, op);
-    *r = (int)(((int64_t)*r * factor) >> FIXED_SHIFT);
-    *g = (int)(((int64_t)*g * factor) >> FIXED_SHIFT);
-    *b = (int)(((int64_t)*b * factor) >> FIXED_SHIFT);
-
-    if(*r < 0) *r = 0; else if(*r > 255) *r = 255;
-    if(*g < 0) *g = 0; else if(*g > 255) *g = 255;
-    if(*b < 0) *b = 0; else if(*b > 255) *b = 255;
+    int32_t max_d_normal = max_dist >> FIXED_SHIFT;
+    int32_t dist_normal = dist >> FIXED_SHIFT;
+    if (max_d_normal == 0) return;
+    int32_t dist_ratio = (dist_normal * 1000) / max_d_normal;
+    int32_t decay = (dist_ratio * op) / 1000;
+    int32_t factor = 1000 - decay;
+    if (factor < 0) factor = 0;
+    if (factor > 1000) factor = 1000;
+    *r = (int)(((int64_t)*r * factor) / 1000);
+    *g = (int)(((int64_t)*g * factor) / 1000);
+    *b = (int)(((int64_t)*b * factor) / 1000);
+    if (*r < 0) *r = 0; else if (*r > 255) *r = 255;
+    if (*g < 0) *g = 0; else if (*g > 255) *g = 255;
+    if (*b < 0) *b = 0; else if (*b > 255) *b = 255;
 }
 
 void get_color_fast(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t max_dist, int32_t phase, int *r, int *g, int *b) {
@@ -150,28 +157,33 @@ void get_color_fast(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int3
             if (gradient_angle_fixed >= 0) {
                 p += FIXED_MUL(grad_cos_fixed, x) + FIXED_MUL(grad_sin_fixed, y); 
             } 
+            intensity = FIXED_ONE;
             break;
     }
     int32_t base_phase = FIXED_MUL(freq_fixed, p);
     int32_t sin_r = fast_sin_fixed(base_phase);
     int32_t sin_g = fast_sin_fixed(base_phase + FLOAT_TO_FIXED(2.094f));
     int32_t sin_b = fast_sin_fixed(base_phase + FLOAT_TO_FIXED(4.188f));
-
     int raw_r = ((sin_r * 127) >> FIXED_SHIFT) + 128;
     int raw_g = ((sin_g * 127) >> FIXED_SHIFT) + 128;
     int raw_b = ((sin_b * 127) >> FIXED_SHIFT) + 128;
-
-    *r = (raw_r * intensity) >> FIXED_SHIFT;
-    *g = (raw_g * intensity) >> FIXED_SHIFT;
-    *b = (raw_b * intensity) >> FIXED_SHIFT;
+    if (mode == 0) {
+        *r = raw_r;
+        *g = raw_g;
+        *b = raw_b;
+    } else {
+        *r = (raw_r * intensity) >> FIXED_SHIFT;
+        *g = (raw_g * intensity) >> FIXED_SHIFT;
+        *b = (raw_b * intensity) >> FIXED_SHIFT;
+    }
 
     if (use_quantization) {
         *r &= 0xF8; *g &= 0xF8; *b &= 0xF8;
     }
-
     if (*r < 0) *r = 0; if (*r > 255) *r = 255;
     if (*g < 0) *g = 0; if (*g > 255) *g = 255;
     if (*b < 0) *b = 0; if (*b > 255) *b = 255;
-    
-    apply_border_opacity_fixed(x, y, cx, cy, max_dist, opacity_fixed, r, g, b);
+    if (mode != 0) {
+        apply_border_opacity_fixed(x, y, cx, cy, max_dist, opacity_fixed, r, g, b);
+    }
 }

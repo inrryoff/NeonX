@@ -105,14 +105,20 @@ int main(int argc, char *argv[]) {
         }
     }
 #endif
+
     init_lut();
     msgs_init();
-    setlocale(LC_ALL, "");
+    gradient_angle_fixed = FLOAT_TO_FIXED(-1.0f); 
+    grad_cos_fixed = FIXED_ONE;
+    grad_sin_fixed = 0;
+
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--lang") && i+1 < argc) {
             if (argv[i+1][0] != '-') {
                 i++;
                 if (strncmp(argv[i], "pt", 2) == 0) idioma_atual = 0;
+                else if (strncmp(argv[i], "es", 2) == 0) idioma_atual = 2;
+                else if (strncmp(argv[i], "zh", 2) == 0) idioma_atual = 3;
                 else idioma_atual = 1;
             }
         }
@@ -203,6 +209,7 @@ int main(int argc, char *argv[]) {
                 gradient_angle_fixed = FLOAT_TO_FIXED(30.0);
             }
             freq_fixed = freq_fixed_local;
+            precalc_gradient_angle();
             continue;
         }
         
@@ -238,7 +245,30 @@ int main(int argc, char *argv[]) {
                 gradient_angle_fixed = num_fixed;
                 precalc_gradient_angle();
             } else if (!strcmp(arg,"-o")) { 
-                opacity_fixed = num_fixed;
+                char *o_val = argv[i+1];
+                int32_t int_part = 0;
+                int32_t frac_part = 0;
+                int frac_len = 0;
+                if (*o_val == '-') o_val++;
+                while (*o_val >= '0' && *o_val <= '9') {
+                    int_part = int_part * 10 + (*o_val - '0');
+                    o_val++;
+                }
+                if (*o_val == '.') {
+                    o_val++;
+                    while (*o_val >= '0' && *o_val <= '9' && frac_len < 3) {
+                        frac_part = frac_part * 10 + (*o_val - '0');
+                        frac_len++;
+                        o_val++;
+                    }
+                }
+                while (frac_len < 3) {
+                    frac_part *= 10;
+                    frac_len++;
+                }
+                opacity_fixed = (int_part * 1000) + frac_part;
+                if (opacity_fixed < 0) opacity_fixed = 0;
+                if (opacity_fixed > 1000) opacity_fixed = 1000;
             } else if (!strcmp(arg,"-p")) { 
                 start_phase_fixed = num_fixed;
             } else if (!strcmp(arg,"-F")) { 
@@ -255,7 +285,8 @@ int main(int argc, char *argv[]) {
         show_help();
         return 1;
     }
-
+    
+    precalc_gradient_angle();
     if (start_phase_fixed >= 0) {
         phase_fixed = start_phase_fixed;
     } else {
@@ -263,26 +294,77 @@ int main(int argc, char *argv[]) {
         phase_fixed = (int32_t)(((uint64_t)rand() * TWO_PI_FIXED) / RAND_MAX);
     }
     
+    wchar_t buf[MAX_LINE_LEN];
+    content.count = 0;
+    int max_w = 0;
+    size_t buf_size = 0;
+    char *frame_buf = NULL;
+
     if (stream_mode) {
-        wchar_t buffer[MAX_LINE_LEN];
-        int line_count = 0;
+        goto SKIP_BUFFER_LOADING;
+    }
+
+    while (fgetws(buf, MAX_LINE_LEN, stdin)) {
+        if (content.count >= (MAX_LINES - 1)) {
+            fprintf(stderr, "%s", MSG(MSG_ERR_LEN_LIMIT));
+            sleep_us(2000000); 
+            
+            stream_mode = true;
+            break; 
+        }
+
+        size_t len = wcslen(buf);
+        if (len > 0 && buf[len-1] == L'\n') buf[len-1] = L'\0';
+        for (size_t k = 0; k < len; k++) { if (buf[k] == 0x1B) buf[k] = L'?'; }
+        
+        content.lines[content.count++] = wcsdup(buf);
+    }
+
+SKIP_BUFFER_LOADING:
+
+    if (stream_mode) {
+        int line_count = content.count;
         write(STDOUT_FILENO, "\033[?7l\033[?25l", 11);
         int exit_status = 0;
         precalc_gradient_angle();
         int32_t phase = phase_fixed;
-        while (fgetws(buffer, MAX_LINE_LEN, stdin)) {
-            size_t len = wcslen(buffer);
-            if (len > 0 && buffer[len-1] == L'\n') buffer[len-1] = L'\0';
-            for (size_t k = 0; k < len; k++) { if (buffer[k] == 0x1B) buffer[k] = L'?'; }
+
+        for (int i = 0; i < line_count; i++) {
+            wchar_t *line_buf = content.lines[i];
+            size_t len = wcslen(line_buf);
+            int32_t y_fixed = FLOAT_TO_FIXED(i);
+            int32_t cy_fixed = FLOAT_TO_FIXED(0.5f);
+            int32_t cx_fixed = FLOAT_TO_FIXED(len / 2.0f);
+            int32_t max_dist_fixed = fast_dist_fixed(cx_fixed, cy_fixed);
+            
+            for (size_t x = 0; x < len; x++) {
+                int r, g, b;
+                int32_t x_fixed = FLOAT_TO_FIXED(x);
+                get_color_fast(x_fixed, y_fixed, anim_mode, cx_fixed, cy_fixed, max_dist_fixed, phase, &r, &g, &b);
+                printf("\033[38;2;%d;%d;%dm%lc", r, g, b, line_buf[x]);
+            }
+            printf("\033[0m\n");
+            fflush(stdout);
+            phase += speed_fixed;
+            free(content.lines[i]); 
+        }
+        content.count = 0;
+
+        while (fgetws(buf, MAX_LINE_LEN, stdin)) {
+            size_t len = wcslen(buf);
+            if (len > 0 && buf[len-1] == L'\n') buf[len-1] = L'\0';
+            for (size_t k = 0; k < len; k++) { if (buf[k] == 0x1B) buf[k] = L'?'; }
+            
             int32_t y_fixed = FLOAT_TO_FIXED(line_count);
             int32_t cy_fixed = FLOAT_TO_FIXED(0.5f);
             int32_t cx_fixed = FLOAT_TO_FIXED(len / 2.0f);
             int32_t max_dist_fixed = fast_dist_fixed(cx_fixed, cy_fixed);
+            
             for (size_t x = 0; x < len; x++) {
-                int r,g,b;
+                int r, g, b;
                 int32_t x_fixed = FLOAT_TO_FIXED(x);
                 get_color_fast(x_fixed, y_fixed, anim_mode, cx_fixed, cy_fixed, max_dist_fixed, phase, &r, &g, &b);
-                printf("\033[38;2;%d;%d;%dm%lc", r, g, b, buffer[x]);
+                printf("\033[38;2;%d;%d;%dm%lc", r, g, b, buf[x]);
             }
             printf("\033[0m\n");
             fflush(stdout);
@@ -296,23 +378,16 @@ int main(int argc, char *argv[]) {
         write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16);
         return exit_status;
     }
-    wchar_t buf[MAX_LINE_LEN];
-    content.count = 0;
-    while (fgetws(buf, MAX_LINE_LEN, stdin) && content.count < MAX_LINES) {
-        size_t len = wcslen(buf);
-        if (len > 0 && buf[len-1] == L'\n') buf[len-1] = L'\0';
-        for (size_t k = 0; k < len; k++) { if (buf[k] == 0x1B) buf[k] = L'?'; }
-        content.lines[content.count++] = wcsdup(buf);
-    }
+
     if (content.count == 0) return 0;
-    int max_w = 0;
     for(int i=0; i<content.count; i++) { 
         int l = wcslen(content.lines[i]); 
         if(l>max_w) max_w=l;
     }
     if (fixed_width > 0) max_w = fixed_width;
-    size_t buf_size = content.count * (max_w * 32 + 100);
-    char *frame_buf = malloc(buf_size);
+    
+    buf_size = content.count * (max_w * 32 + 100);
+    frame_buf = malloc(buf_size);
     if (!frame_buf) {
         free_content(&content);
         return 1;
@@ -325,7 +400,6 @@ int main(int argc, char *argv[]) {
     } while(0)
     
     int32_t phase = phase_fixed;
-    time_t start_time = time(NULL);
     write(STDOUT_FILENO, "\033[?25l\033[?7l", 11);
     bool first_frame = true;
     precalc_gradient_angle();
@@ -349,14 +423,16 @@ int main(int argc, char *argv[]) {
             int32_t y_fixed = FLOAT_TO_FIXED(y);
             SAFE_APPEND("\r");
             int last_r = -1, last_g = -1, last_b = -1;
+            
             for (int x = 0; x < line_len; x++) {
+                int r, g, b;
+                int32_t x_fixed = FLOAT_TO_FIXED(x);
+                get_color_fast(x_fixed, y_fixed, anim_mode, cx_fixed, cy_fixed, max_dist_fixed, phase, &r, &g, &b);
+                
                 if (line[x] == L' ') {
                     SAFE_APPEND(" ");
+                    last_r = r; last_g = g; last_b = b;
                 } else {
-                    int r, g, b;
-                    int32_t x_fixed = FLOAT_TO_FIXED(x);
-                    get_color_fast(x_fixed, y_fixed, anim_mode, cx_fixed, cy_fixed, max_dist_fixed, phase,
-                                   &r, &g, &b);
                     if (r != last_r || g != last_g || b != last_b) {
                         SAFE_APPEND("\033[38;2;%d;%d;%dm", r, g, b);
                         last_r = r;

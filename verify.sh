@@ -103,11 +103,13 @@ set -e
 
 echo -e "${YELLOW}🔍 Checando assinatura EdDSA (Monocypher/C)...${NC}"
 chmod +x "$binary_file"
+
 set +e
 "$binary_file" --verify-sig > /dev/null 2>&1
 internal_exit_code=$?
 set -e
 
+COMPATIBILITY_WARNING=""
 if [ $internal_exit_code -eq 0 ]; then
     SIG_CHECK_MSG="${GREEN}Matematicamente Autenticada (Self-Check C)${NC}"
     INTERNAL_SIG=$(tail -c 128 "$binary_file")
@@ -116,9 +118,18 @@ if [ $internal_exit_code -eq 0 ]; then
     else
         SIG_PREVIEW="${YELLOW}Preview indisponível${NC}"
     fi
+elif [ $internal_exit_code -eq 126 ]; then
+    SIG_CHECK_MSG="${YELLOW}Pendente (Arquitetura Incompatível com o Host)${NC}"
+    INTERNAL_SIG=$(tail -c 128 "$binary_file")
+    if [[ "$INTERNAL_SIG" =~ ^[0-9a-fA-F]{128}$ ]]; then
+        SIG_PREVIEW="${INTERNAL_SIG:0:16}...${INTERNAL_SIG: -16}"
+    else
+        SIG_PREVIEW="${YELLOW}Preview indisponível${NC}"
+    fi    
+    COMPATIBILITY_WARNING="\n${YELLOW}   ⚠ AVISO: O Hash e o Minisign confirmam que o binário é\n   100% OFICIAL, mas ele não pôde ser executado nesta máquina\n   para testar a assinatura interna. Teste-o no sistema de destino.${NC}"
 else
     echo -e "${RED}❌ ALERTA: A assinatura EdDSA interna falhou na validação matemática!${NC}"
-    echo -e "${RED}   O arquivo foi adulterado.${NC}"
+    echo -e "${RED}   O arquivo foi adulterado ou corrompido.${NC}"
     exit 1
 fi
 
@@ -131,6 +142,7 @@ if [ $exit_code -eq 0 ]; then
     echo -e "${CYAN}   Ass. Externa:     $expected_sig_name (Minisign)${NC}"
     echo -e "${CYAN}   Ass. Interna:     $SIG_CHECK_MSG${NC}"
     echo -e "${CYAN}   Hex Preview:      $SIG_PREVIEW${NC}"
+    echo -e "$COMPATIBILITY_WARNING"
     echo ""
     echo -e "${GREEN}   Origem confirmada: @inrryoff${NC}"
     echo -e "${GREEN}   Este é um binário OFICIAL e íntegro.${NC}"

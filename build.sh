@@ -109,34 +109,35 @@ compile_tool() {
     local label="$3"
     local is_native="$4"
     mkdir -p "$OUTPUT_DIR" "$ZIP_DIR"
-
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build genérica: $label"
-
     local final_bin="$OUTPUT_DIR/${bin_out}_${label}"
     if [ "$label" == "native" ]; then
         final_bin="$OUTPUT_DIR/${bin_out}"
     fi
 
     local is_windows="false"
+    local active_perf_flags="$PERF_FLAGS"
+
     if [[ "$label" == *"windows"* ]]; then
         is_windows="true"
+        active_perf_flags="${active_perf_flags//-flto/}"
     fi
 
     if [ "$is_native" == "true" ]; then
         clang "$SRC_DIR"/*.c -o "$final_bin" \
-            $TUNE_FLAGS $PERF_FLAGS \
+            $TUNE_FLAGS $active_perf_flags $DEV_KEY_MACRO \
             -DVERSION="\"$VERSION\"" \
             -DBUILD_STATUS="\"$BUILD_STATUS\"" \
             -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-            -lm
+            $DEV_FLAG -lm
     else
         zig cc "$SRC_DIR"/*.c -o "$final_bin" -target "$target" \
-            $PERF_FLAGS \
+            $active_perf_flags $DEV_KEY_MACRO \
             -DVERSION="\"$VERSION\"" \
             -DBUILD_STATUS="\"$BUILD_STATUS\"" \
             -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-            -lm
+            $DEV_FLAG -lm
     fi
 
     if [ $? -ne 0 ]; then
