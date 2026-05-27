@@ -65,7 +65,7 @@ create_zip() {
     print_info "Criando pacote ZIP para a build: $label..."
     local internal_bin_name="$PROJECT_NAME"
 
-    if [ "$is_windows" == "true" ]; then
+    if [[ "$is_windows" == "true" ]]; then
         internal_bin_name="${PROJECT_NAME}.exe"
     fi
 
@@ -87,9 +87,9 @@ building_tools() {
     print_info "Verificando ferramentas internas em $TOOLS_DIR/..."
     mkdir -p "$TOOLS_DIR"
     for tool_src in "$TOOLS_DIR"/*.c; do
-        [ -e "$tool_src" ] || continue
+        [[ -e "$tool_src" ]] || continue
         local tool_bin="${tool_src%.c}"
-        if [ ! -x "$tool_bin" ] || [ "$tool_src" -nt "$tool_bin" ]; then
+        if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
             print_info "Compilando ferramenta host: $(basename "$tool_src")..."
             if clang "$tool_src" -o "$tool_bin" -O2 2>/dev/null; then
                 print_success "Ferramenta $(basename "$tool_bin") pronta!"
@@ -112,7 +112,7 @@ compile_tool() {
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build genérica: $label"
     local final_bin="$OUTPUT_DIR/${bin_out}_${label}"
-    if [ "$label" == "native" ]; then
+    if [[ "$label" == "native" ]]; then
         final_bin="$OUTPUT_DIR/${bin_out}"
     fi
 
@@ -124,7 +124,7 @@ compile_tool() {
         active_perf_flags="${active_perf_flags//-flto/}"
     fi
 
-    if [ "$is_native" == "true" ]; then
+    if [[ "$is_native" == "true" ]]; then
         clang "$SRC_DIR"/*.c -o "$final_bin" \
             $TUNE_FLAGS $active_perf_flags $DEV_KEY_MACRO \
             -DVERSION="\"$VERSION\"" \
@@ -140,12 +140,12 @@ compile_tool() {
             $DEV_FLAG -lm
     fi
 
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
         print_error "Falha na compilação: $label"
         return 1
     fi
 
-    if [ "$is_windows" == "true" ]; then
+    if [[ "$is_windows" == "true" ]]; then
         rm -f "$OUTPUT_DIR"/*.pdb 2>/dev/null || true
     fi
 
@@ -191,9 +191,9 @@ if [[ $# -gt 0 ]]; then
         esac
     done
 
-    if [ "$IS_NATIVE" == "true" ]; then
+    if [[ "$IS_NATIVE" == "true" ]]; then
         compile_tool "native" "$OUTPUT_BIN" "$LABEL" "true"
-    elif [ -n "$TARGET" ] && [ -n "$LABEL" ]; then
+    elif [[ -n "$TARGET" && -n "$LABEL" ]]; then
         compile_tool "$TARGET" "$OUTPUT_BIN" "$LABEL" "false"
     else
         print_error "Nenhum alvo especificado. O CI precisa passar --native ou --target."

@@ -23,6 +23,10 @@ static const unsigned char PUBLIC_KEY[32] = {
     0x83, 0x2F, 0xB1, 0xE0, 0x89, 0x66, 0x7D, 0x8C
 };
 
+/**
+ * Checa a integridade do proprio arquivo executavel anexado da assinatura final
+ * Retorna: 0 (Sucesso), 1 (Falha de Assinatura), 2 (Erro do Sistema/Arquivo)
+ */
 int check_integrity(void) {
     char path[1024];
     

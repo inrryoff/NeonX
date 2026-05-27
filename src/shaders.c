@@ -43,6 +43,7 @@ uint32_t isqrt64(uint64_t n) {
     }
     return root;
 }
+
 int32_t fast_dist_fixed(int32_t dx, int32_t dy) {
     int64_t dx_normal = dx >> FIXED_SHIFT;
     int64_t dy_normal = dy >> FIXED_SHIFT;
@@ -54,6 +55,9 @@ int32_t fast_sin_fixed(int32_t x_fixed) {
     int32_t scaled = FIXED_MUL(x_fixed, RAD_TO_INDEX_FIXED);
     int idx = ((uint32_t)scaled >> FIXED_SHIFT) & (LUT_SIZE - 1);
     int next = (idx + 1) & (LUT_SIZE - 1);
+    if (idx < 0 || idx >= LUT_SIZE) idx = 0;
+    if (next < 0 || next >= LUT_SIZE) next = 0;
+
     int32_t frac = scaled & (FIXED_ONE - 1);
     int32_t val1 = sin_lut_fixed[idx];
     int32_t val2 = sin_lut_fixed[next];

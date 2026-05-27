@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "msgs.h"
 #include <stdlib.h>
 #include <string.h>
@@ -65,14 +67,12 @@ static const char *mensagens[4][MSG_TOTAL] = {
 
         // Erros
         "\033[1;31m[NeonX Erro 400]: A opcao '%s' exige um valor numerico apos ela.\033[0m\n",
-        "\033[1;31m[NeonX Erro 400]: A opcao '%s' exige um valor numerico, recebido: '%s'\033[0m\n",
+        "\033[1;31m[NeonX Erro 400]: A opcao '%s' exige um valor numerico valido, recebido: '%s'\033[0m\n",
         "\033[1;33m[NeonX Info 416]: O modo de animacao (-m) deve ser entre 0 e 11.\033[0m\n",
         "\033[1;31m[NeonX Erro 400]: Opção inválida ou argumento solto '%s'\033[0m\n",
         "\n\033[1;31m[NeonX Erro 404]: Nenhum dado foi passado para o binário! \033[0m\n",
-        "\n\033[1;31m[NeonX Erro 413]: Arquivo muito grande. Use -L para modo streaming.\033[0m\n"
-        "\033[1;33m[NeonX Info 413]: Arquivos de log ou com mais de 1024 linhas DEVEM usar a flag -L.\033[0m\n"
-        "\033[1;36m[NeonX Salvação 206]: Forçando modo Stream (-L) na marra para não crashar... Hum.\033[0m\n\n",
-        "\033[1;33m[NeonX Info 403]: Não foi possível checar a integridade, sistema restrito\033[0m\n"
+        "\n\033[1;31m[NeonX Erro 413]: Arquivo muito grande. Use -L para modo streaming.\033[0m\n",
+        "\033[1;33m[NeonX Info 403]: Não foi possível checar a integridade, sistema restrito ou binário adulterado.\033[0m\n"
     },
 
     // ---------------- ENGLISH (1) ----------------
@@ -136,14 +136,12 @@ static const char *mensagens[4][MSG_TOTAL] = {
 
        // Erros
         "\033[1;31m[NeonX Error 400]: Option '%s' requires a numeric value after it.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: Option '%s' requires a numeric value, received: '%s'\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: Option '%s' requires a valid numeric value, received: '%s'\033[0m\n",
         "\033[1;33m[NeonX Info 416]: Animation mode (-m) must be between 0 and 11.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: Invalid option or loose argument '%s'\033[0m\n",
         "\033[1;31m[NeonX Error 404]: No data was passed to the binary! \033[0m\n",
-        "\n\033[1;31m[NeonX Error 413]: File too large. Use -L for streaming mode.\033[0m\n"
-        "\033[1;33m[NeonX Info 413]: Log files or files with more than 1024 lines MUST use the -L flag.\033[0m\n"
-        "\033[1;36m[NeonX Salvation 206]: Forcing Stream mode (-L) right now to prevent crash... Huh.\033[0m\n\n",
-        "\033[1;33m[NeonX Info 403]: Could not check integrity due to restricted system\033[0m\n"
+        "\n\033[1;31m[NeonX Error 413]: File too large. Use -L for streaming mode.\033[0m\n",
+        "\033[1;33m[NeonX Info 403]: Could not check integrity due to restricted system or binary is modified\033[0m\n"
     },
 
     // ---------------- ESPANHOL (2) ----------------
@@ -207,14 +205,12 @@ static const char *mensagens[4][MSG_TOTAL] = {
 
         // Erros
         "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico después de ella.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico, recibido: '%s'\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico válido, recibido: '%s'\033[0m\n",
         "\033[1;33m[NeonX Info 416]: El modo de animación (-m) debe estar entre 0 y 11.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: Opción inválida o argumento suelto '%s'\033[0m\n",
         "\033[1;31m[NeonX Error 404]: ¡No se pasaron datos al binario! \033[0m\n",
-        "\n\033[1;31m[NeonX Error 413]: Archivo demasiado grande. Use -L para el modo streaming.\033[0m\n"
-        "\033[1;33m[NeonX Info 413]: Los archivos de log o con más de 1024 líneas DEBEN usar la bandera -L.\033[0m\n"
-        "\033[1;36m[NeonX Salvación 206]: Forzando el modo Stream (-L) a la fuerza para evitar fallos... Hum.\033[0m\n\n",
-        "\033[1;33m[NeonX Info 403]: No fue posible comprobar la integridad por sistema restringido\033[0m\n"
+        "\n\033[1;31m[NeonX Error 413]: Archivo demasiado grande. Use -L para el modo streaming.\033[0m\n",
+        "\033[1;33m[NeonX Info 403]: No fue posible comprobar la integridad o binario modificado\033[0m\n"
     },
 
     // ---------------- CHINÊS (3) ----------------
@@ -273,19 +269,17 @@ static const char *mensagens[4][MSG_TOTAL] = {
 
         // Erros
         "\033[1;31m[NeonX 错误 400]: 选项 '%s' 后面需要一个数值。\033[0m\n",
-        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个数值，但收到: '%s'\033[0m\n", 
+        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个有效数值，收到: '%s'\033[0m\n", 
         "\033[1;33m[NeonX 提示 416]: 动画模式 (-m) 必须在 0 到 11 之间。\033[0m\n",
         "\033[1;31m[NeonX 错误 400]: 无效选项或孤立参数 '%s'\033[0m\n",
         "\033[1;31m[NeonX 错误 404]: 没有数据传递给二进制文件！ \033[0m\n",
-        "\n\033[1;31m[NeonX 错误 413]: 文件过大。请使用 -L 启用流媒体模式。\033[0m\n"
-        "\033[1;33m[NeonX 提示 413]: 日志文件或超过 1024 行的文件必须使用 -L 参数。\033[0m\n"
-        "\033[1;36m[NeonX 自动拯救 206]: 正在强制启用流模式 (-L) 以防崩溃... 嗯。\033[0m\n\n",
-        "\033[1;33m[NeonX 提示 406]: 由于系统限制，无法检查完整性\033[0m\n"
+        "\n\033[1;31m[NeonX 错误 413]: 文件过大。请使用 -L 启用流媒体模式。\033[0m\n",
+        "\033[1;33m[NeonX 提示 406]: 由于系统限制，无法检查完整性或篡改\033[0m\n"
     }
 };
 
 void msgs_init(void) {
-    char *lang = getenv("LANG");
+    const char *lang = getenv("LANG");
     if (lang != NULL) {
         if (strncmp(lang, "pt", 2) == 0) {
             idioma_atual = 0;

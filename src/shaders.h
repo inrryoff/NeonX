@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define MAX_ANIM_MODE 11
+
 #define FIXED_SHIFT 16
 #define FIXED_ONE (1 << FIXED_SHIFT)
 #define FLOAT_TO_FIXED(x) ((int32_t)((x) * FIXED_ONE))
