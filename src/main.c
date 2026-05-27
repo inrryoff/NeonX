@@ -8,8 +8,10 @@
 #include <time.h>
 #include <locale.h>
 #include <signal.h>
-#include <unistd.h>
 #include <limits.h>
+#ifndef _WIN32
+    #include <unistd.h>
+#endif
 
 #include "integrity.h"
 #include "shaders.h"

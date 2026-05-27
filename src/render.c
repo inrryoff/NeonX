@@ -11,11 +11,14 @@
 #include <string.h>
 #include <time.h>
 #include <wchar.h>
-#include <unistd.h>
 #include <stdarg.h>
+#ifndef _WIN32
+    #include <unistd.h>
+#endif
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <io.h>
     #ifndef STDOUT_FILENO
         #define STDOUT_FILENO 1
     #endif

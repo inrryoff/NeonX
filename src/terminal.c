@@ -3,8 +3,10 @@
 #include "msgs.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <wchar.h>
+#ifndef _WIN32
+    #include <unistd.h>
+#endif
 
 #ifdef _WIN32
     #include <windows.h>
