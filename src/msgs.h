@@ -1,6 +1,17 @@
+// ==================== msgs.h ====================
 #ifndef MSGS_H
 #define MSGS_H
 
+/**
+ * Enum: Mensagem
+ * O que faz: Cria um "catálogo" de identificadores únicos para cada texto do programa.
+ * Como funciona: No C, um 'enum' atribui números inteiros automaticamente (0, 1, 2...)
+ * para cada item da lista. Em vez de decorar que o erro de arquivo é a mensagem número 0,
+ * o programador apenas escreve MSG_ERRO_ABRIR.
+ * Observações: O último item, MSG_TOTAL, é um truque clássico da linguagem C.
+ * Como ele é o último da lista, o número dele representará exatamente a quantidade
+ * total de mensagens cadastradas, o que é útil para criar o tamanho da matriz (array).
+ */
 enum Mensagem {
     MSG_ERRO_ABRIR,
     
@@ -45,12 +56,31 @@ enum Mensagem {
     MSG_ERR_LEN_LIMIT,
     MSG_ERR_VERIFY_RESTRICTED,
 
-    MSG_TOTAL
+    MSG_TOTAL // Guarda automaticamente o número total de itens desta lista!
 };
 
+/**
+ * Nome da função: get_msg
+ * O que faz: Busca o texto exato na memória correspondente ao ID da mensagem e ao idioma atual.
+ * Parâmetros:
+ * - id: O identificador da mensagem definido no 'enum Mensagem' acima.
+ * Retorno: Um ponteiro de texto constante (const char*) contendo a frase traduzida.
+ */
 const char* get_msg(enum Mensagem id);
+
+/**
+ * Macro: MSG
+ * O que faz: Cria um atalho prático para os desenvolvedores.
+ * Como funciona: Sempre que o programador escrever `MSG(id)` no código, o compilador 
+ * substitui automaticamente por `get_msg(id)` antes de compilar. 
+ * Por que foi feito: Reduz a digitação, deixando o código fonte (como os printfs) mais limpo e legível.
+ */
 #define MSG(id) get_msg(id)
 
+/**
+ * Nome da função: msgs_init
+ * O que faz: Descobre qual é a língua atual do Sistema Operacional do usuário para setar o idioma do NeonX.
+ */
 void msgs_init(void);
 
 #endif

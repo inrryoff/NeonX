@@ -1,10 +1,20 @@
+// ==================== msgs.c ====================
+// Desativa avisos chatos e irrelevantes de segurança em compiladores da Microsoft (Visual Studio)
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "msgs.h"
 #include <stdlib.h>
 #include <string.h>
 
+// Variável estática (static significa que este valor é invisível para os outros arquivos .c,
+// ele existe exclusivamente dentro da memória do msgs.c).
+// Guarda o índice do idioma ativo. Começa em 0 (Português).
 static int idioma_atual = 0;
+
+// 'mensagens' é uma Matriz Bidimensional (um Array de Arrays).
+// Pense nela como uma planilha do Excel:
+// - As LINHAS (primeiro colchete [4]) representam os 4 idiomas disponíveis.
+// - As COLUNAS (segundo colchete [MSG_TOTAL]) representam a frase que queremos pegar.
 static const char *mensagens[4][MSG_TOTAL] = {
     // ---------------- PORTUGUÊS (0) ----------------
     {
@@ -13,11 +23,13 @@ static const char *mensagens[4][MSG_TOTAL] = {
         // Versão
         "Criador Original: %s\n",
         "Compilado por: %s\n",
+        // Textos envolvidos por sequências ANSI como \033[1;32m geram cores no terminal.
+        // O \033[0m no final "limpa" a cor, para não vazar para a próxima linha do usuário.
         "Status: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
         "Status: \033[1;31mMODIFICADO\033[0m\n",
         "Status: \033[1;33mVERIFY_ERROR\033[0m\n",
 
-        // Licença
+        // Licença (Omitiremos explicações longas de texto corrido, são apenas impressões puras)
         "LICENÇA DE USO - NEONX (C - VERSION)\n"
         "-----------------------------------------------------------------\n"
         "Copyright (c) 2026 @inrryoff - Licenciado sob condições especiais NeonX LICENSE\n\n"
@@ -278,23 +290,52 @@ static const char *mensagens[4][MSG_TOTAL] = {
     }
 };
 
+/**
+ * Nome da função: msgs_init
+ * O que faz: Configura a linguagem das mensagens baseando-se nas configurações de localidade do sistema.
+ * Como funciona:
+ * 1. Usa a função padrão C 'getenv("LANG")' para perguntar ao Sistema Operacional qual é o idioma atual.
+ * (O SO geralmente retorna strings como "pt_BR.UTF-8", "en_US.UTF-8", etc.)
+ * 2. Verifica se a resposta não foi nula (ou seja, se a variável LANG existe na máquina).
+ * 3. Usa 'strncmp' (String Compare para os primeiros 'N' caracteres) para ler só as duas primeiras letras.
+ * 4. Atribui o número equivalente ao idioma detectado na matriz 'mensagens'.
+ * Parâmetros: Nenhum.
+ * Retorno: Nenhum (void). Apenas altera a variável global 'idioma_atual'.
+ * Onde é usada: Chamada apenas uma vez na inicialização, logo no começo do main().
+ * Observações: Se não identificar o idioma ou a variável de ambiente não existir, 
+ * o sistema força '0' (Português) ou '1' (Inglês) como fallback de segurança, 
+ * garantindo que o programa nunca tente acessar uma linha inexistente na matriz.
+ */
 void msgs_init(void) {
-    const char *lang = getenv("LANG");
+    const char *lang = getenv("LANG"); // Consulta o Sistema Operacional
+    
     if (lang != NULL) {
+        // strncmp retorna 0 quando as duas strings são iguais!
         if (strncmp(lang, "pt", 2) == 0) {
-            idioma_atual = 0;
+            idioma_atual = 0; // Português
         } else if (strncmp(lang, "es", 2) == 0) {
-            idioma_atual = 2;
+            idioma_atual = 2; // Espanhol
         } else if (strncmp(lang, "zh", 2) == 0) {
-            idioma_atual = 3;
+            idioma_atual = 3; // Chinês
         } else {
-            idioma_atual = 1;
+            idioma_atual = 1; // Fallback: se for francês, alemão, ou até inglês, usa Inglês.
         }
     } else {
-        idioma_atual = 0;
+        idioma_atual = 0; // Fallback extremo se 'LANG' nem existir. Fica em PT.
     }
 }
 
+/**
+ * Nome da função: get_msg
+ * O que faz: Entrega a string de texto final pronta para ser exibida, já no idioma correto.
+ * Como funciona: Acessa diretamente a memória da matriz 'mensagens'. 
+ * Acessamos [idioma_atual] para escolher a linha certa, e [id] para pegar a coluna (frase) certa.
+ * Parâmetros:
+ * - id: O identificador numérico da mensagem (vindo do 'enum Mensagem').
+ * Retorno: Ponteiro de caractere constante (const char*) para a frase requisitada.
+ * Onde é usada: Constantemente, quase sempre encapsulada sob a macro 'MSG()', em cada 'printf' ou 'fprintf'.
+ * Observações: Este método garante um acesso O(1) ultra-rápido às frases, sem processamentos adicionais.
+ */
 const char* get_msg(enum Mensagem id) {
     return mensagens[idioma_atual][id];
 }
