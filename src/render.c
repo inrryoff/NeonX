@@ -22,6 +22,10 @@
     #define write _write 
 #endif
 
+#ifdef _WIN32
+    #define wcsdup _wcsdup
+#endif
+
 /**
  * Nome da função: get_time_us
  * O que faz: Devolve um número absoluto de tempo que o computador está vivo desde o boot, em precisão microssegundo.
@@ -92,8 +96,8 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr) {
         
         // Copia seguramente o buffer (que vai sobrescrever) para um espaço novo alocado p/ a struct com wcsdup.
         wchar_t *dup_buf = wcsdup(buf);
-        if (!dup_buf) { // Previne segmentation faults 
-            fprintf(stderr, "\033[1;31m[NeonX Erro Interno]: Falha de alocacao de memoria (wcsdup).\033[0m\n");
+        if (!dup_buf) {
+            fprintf(stderr, "%s", MSG(MSG_ERR_MEMORY_ALLOC));
             exit(6);
         }
         
@@ -116,19 +120,20 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr) {
 static size_t safe_append(char *ptr, size_t rem, const char *fmt, ...) {
     if (rem == 0) return 0;
     
-    // Configura a leitura dos argumentos vararg (`...`)
     va_list args;
     va_start(args, fmt);
-    int n = vsnprintf(ptr, rem, fmt, args); // Executa o write sem dar print de fato
+    int n = vsnprintf(ptr, rem, fmt, args);
     va_end(args);
     
-    // Se o escrito está nos padrões numéricos saudáveis e sem truncamento...
-    if (n >= 0 && (size_t)n < rem) {
-        return (size_t)n;
-    } else {
-        fprintf(stderr, "[NeonX Internal Error]: Buffer overflow prevented in safe_append.\n");
-        return 0; // Se deu erro, trava avisando 0 avanço de fila!
+    if (n < 0) return 0;   // Erro na formatação
+    
+    if ((size_t)n >= rem) {
+        // Truncamento: escreve o máximo possível e garante terminador nulo
+        // A última posição já é '\0' pelo vsnprintf quando n >= rem
+        return rem - 1;     // Quantos bytes foram escritos (excluindo o \0 final)
     }
+    
+    return (size_t)n;
 }
 
 /**

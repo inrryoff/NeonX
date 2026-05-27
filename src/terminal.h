@@ -26,6 +26,7 @@ extern Content content;
 // Funções expostas de ajuda relativas ao ambiente (Sistema/Console/Terminal).
 void set_integrity_status(int status);
 void sleep_us(uint32_t microseconds);
+void set_content_initialized(void);
 void free_content(Content *c);
 void print_version(void);
 void print_license(void);

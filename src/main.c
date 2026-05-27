@@ -32,123 +32,180 @@ int auth_status;
  * Parâmetros: arg_name (nome que o usário pediu) e s (o valor cru text).
  * Retorno: Inteiro formatado via bitshift. Emite error e sai caso texto seja bizarro ou muito grande.
  * Onde é usada: Em `parse_arguments` para interpretar as config. do usuário.
- */
+*/
+// ==================== Funções auxiliares para validação ====================
+
+// Verifica se um valor em ponto-fixo é exatamente um inteiro (sem parte fracionária)
+static bool is_integer_fixed(int32_t value) {
+    return (value % FIXED_ONE) == 0;
+}
+
+// Extrai a parte inteira de um fixed-point, verificando se é inteiro.
+// Emite erro e sai se não for inteiro.
+static int32_t extract_int_fixed(int32_t value, const char *arg_name) {
+    if (!is_integer_fixed(value)) {
+        fprintf(stderr, MSG(MSG_ERR_MUST_BE_INTEGER), arg_name);
+        exit(3);
+    }
+    return value / FIXED_ONE;
+}
+
+// Verifica se o valor fixed-point é estritamente positivo.
+// Emite erro e sai se <=0.
+static void require_positive_fixed(int32_t value, const char *arg_name) {
+    if (value <= 0) {
+        fprintf(stderr, MSG(MSG_ERR_MUST_BE_POSITIVE), arg_name);
+        exit(3);
+    }
+}
+
+// Converte string para fixed-point com validação geral.
+// (Essa função já existe, mas mantivemos com o nome str_to_fixed)
 static int32_t str_to_fixed(const char *arg_name, const char *s) {
     char *endptr;
-    // Tenta entender o "s". Joga em endptr tudo que for baboseira que sobrar (ex: "123texto" vira "texto" no ptr)
     double val = strtod(s, &endptr);
-    
-    // Se o valor sobrado apontado for sujo, barra a execução!
     if (*endptr != '\0' || s == endptr) {
         fprintf(stderr, MSG(MSG_ERR_INVALID_NUMBER), arg_name, s);
-        exit(3); // Erro de CLI 3
+        exit(3);
     }
-
-    // Calcula de forma inteligente o tamanho colossal de restrições do hardware rodando o código
     double max_val = (double)(INT32_MAX) / FIXED_ONE;
     double min_val = (double)(INT32_MIN) / FIXED_ONE;
-    
     if (val > max_val || val < min_val) {
         fprintf(stderr, MSG(MSG_ERR_INVALID_NUMBER), arg_name, s);
         exit(3);
     }
-
-    return (int32_t)(val * FIXED_ONE); // Retorna a variável escalada (* 65536 interna).
+    return (int32_t)(val * FIXED_ONE);
 }
 
-/**
- * Nome da função: parse_arguments
- * O que faz: Rotina de inicialização que interpreta tudo que o desenvolvedor digitou no terminal. (Ex `neonx -m 3 -d 5`)
- * Como funciona: Varre argv[i] inteiro através do argc checando string a string. Seta booleano na var opts.
- * Parâmetros: os normais main C `argc`, `argv` e a struct mestra das opções do nosso render `opts`.
- * Retorno: Inteiro do erro correspondente, 0 em caso liso.
- * Onde é usada: Na função principal de entrypoint main().
- */
 static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
     for (int i = 1; i < argc; i++) {
         char *arg = argv[i];
         
-        // Ativadores rápidos de informações simples.
-        if (!strcmp(arg, "-h") || !strcmp(arg, "--help")) { opts->show_help_flag = true; continue; }
-        if (!strcmp(arg, "-v") || !strcmp(arg, "--version")) { opts->show_version_flag = true; continue; }
-        if (!strcmp(arg, "--license")) { opts->show_license_flag = true; continue; }
-        if (!strcmp(arg, "--verify-sig")) { opts->verify_sig_flag = true; continue; }
-        if (!strcmp(arg, "--spin")) { opts->spin_flag = true; continue; } // Modo externo de debug
-        if (!strcmp(arg, "-S")) { opts->static_mode = true; continue; } // Só foto, não vídeo
-        if (!strcmp(arg, "-L")) { opts->stream_mode = true; continue; } // Lê e ejeta por cano sem loop
-        if (!strcmp(arg, "--quantized")) { shaders_set_quantization(true); continue; } // Ativa o 8-bits visual
-        if (!strcmp(arg, "--lang")) { 
-            // Já tratado por fora, aqui a gente apenas salta pra ignorar para o sistema varredor não dar erro (Unknown).
-            if (i+1 < argc && argv[i+1][0] != '-') i++; 
-            continue; 
+        // Flags booleanas
+        if (!strcmp(arg, "-h") || !strcmp(arg, "--help"))      { opts->show_help_flag = true; continue; }
+        if (!strcmp(arg, "-v") || !strcmp(arg, "--version"))   { opts->show_version_flag = true; continue; }
+        if (!strcmp(arg, "--license"))                         { opts->show_license_flag = true; continue; }
+        if (!strcmp(arg, "--verify-sig"))                      { opts->verify_sig_flag = true; continue; }
+        if (!strcmp(arg, "--spin"))                            { opts->spin_flag = true; continue; }
+        if (!strcmp(arg, "-S"))                                { opts->static_mode = true; continue; }
+        if (!strcmp(arg, "-L"))                                { opts->stream_mode = true; continue; }
+        if (!strcmp(arg, "--quantized"))                       { shaders_set_quantization(true); continue; }
+
+        // --lang
+        if (!strcmp(arg, "--lang")) {
+            if (i+1 < argc && argv[i+1][0] != '-') {
+                i++;
+                msgs_set_language(argv[i]);
+            }
+            continue;
         }
 
-        // Caso for um pacote de regras pronto, invoca e avança pulando o argumento atrelado 
+        // --preset
         if (!strcmp(arg, "--preset") && i+1 < argc) {
             i++;
             shaders_set_preset(argv[i], &opts->anim_mode, &opts->speed_fixed);
             continue;
         }
-        
-        // Define quais caracteres necessitam compulsoriamente de números seguidos a ele.
-        bool is_numeric_flag = (!strcmp(arg, "-d") || !strcmp(arg, "-s") || !strcmp(arg, "-f") || 
-                                !strcmp(arg, "-m") || !strcmp(arg, "-A") || !strcmp(arg, "-c") || 
-                                !strcmp(arg, "-o") || !strcmp(arg, "-p") || !strcmp(arg, "-F"));
 
-        if (is_numeric_flag) {
-            // Regra básica: Se acabou o texto (argc limit) ou o próximo já tem um hífen, ele falhou nas ordens lógicas
+        // Verifica se é uma opção que precisa de valor numérico
+        int is_numeric = (!strcmp(arg, "-d") || !strcmp(arg, "-s") || !strcmp(arg, "-f") ||
+                          !strcmp(arg, "-m") || !strcmp(arg, "-A") || !strcmp(arg, "-c") ||
+                          !strcmp(arg, "-o") || !strcmp(arg, "-p") || !strcmp(arg, "-F"));
+
+        if (is_numeric) {
             if (i + 1 >= argc || argv[i+1][0] == '-') {
                 fprintf(stderr, MSG(MSG_ERR_MISSING_VALUE), arg);
                 return 3;
             }
             char *val = argv[i+1];
-            
-            // Especialidades de validação
+            int32_t num_fixed = str_to_fixed(arg, val); // converte string para fixed-point
+            i++; // consome o valor
+
+            // -o (opacidade) tem validação própria
             if (!strcmp(arg, "-o")) {
-                shaders_set_opacity_from_string(val); // Ele faz tudo e crasha/valida dentro do wrapper dele em shades.c
-                i++;
+                shaders_set_opacity_from_string(val);
                 continue;
             }
 
-            // Invocação mestre (todos que precisam ser Decimal Point Fixed System vêm pra cá)
-            int32_t num_fixed = str_to_fixed(arg, val);
-            
-            if (!strcmp(arg, "-d")) { 
-                opts->duration_fixed = num_fixed; // Duração e fim do programa cronometrado (-d)
-                opts->duration_us = ((uint64_t)opts->duration_fixed * 1000000) / FIXED_ONE; // Transforma base de segs em milis
-            } else if (!strcmp(arg, "-s")) {
-                opts->speed_fixed = num_fixed; // -s Velocity
-            } else if (!strcmp(arg, "-f")) { 
-                shaders_set_frequency(num_fixed); // -f freq de fase
-            } else if (!strcmp(arg, "-m")) { 
-                int tmp = num_fixed / FIXED_ONE; // Resgata de volta na força bruta pra inteiro bruto 0/11
-                if (tmp >= 0 && tmp <= MAX_ANIM_MODE) { // Barreiras
-                    opts->anim_mode = tmp; 
-                } else { 
-                    fprintf(stderr, "%s", MSG(MSG_ERR_MODE_LIMIT)); 
-                    return 4; 
+            // -F (FPS) – deve ser inteiro positivo
+            if (!strcmp(arg, "-F")) {
+                if (num_fixed % FIXED_ONE != 0) {
+                    fprintf(stderr, MSG(MSG_ERR_MUST_BE_INTEGER), "-F");
+                    return 3;
                 }
-            } else if (!strcmp(arg, "-c")) { 
-                opts->fixed_width = num_fixed / FIXED_ONE;
-            } else if (!strcmp(arg, "-A")) { 
-                shaders_set_gradient_angle(num_fixed);
-            } else if (!strcmp(arg, "-p")) { 
-                opts->start_phase_fixed = num_fixed; // Semente -p inicial
-            } else if (!strcmp(arg, "-F")) { 
-                if (num_fixed > 0) {
-                    int32_t fps_fixed = num_fixed; // Limitador de quadros -F
-                    opts->frame_time_us = (uint32_t)((1000000LL * FIXED_ONE) / fps_fixed); // Descola de ms
+                if (num_fixed <= 0) {
+                    fprintf(stderr, MSG(MSG_ERR_MUST_BE_POSITIVE), "-F");
+                    return 3;
                 }
+                int32_t fps = num_fixed / FIXED_ONE;
+                opts->frame_time_us = (uint32_t)(1000000LL / fps);
+                continue;
             }
-            i++; // Se não pulasse aqui, no próximo giro o for() acusaria erro no numero solto atrelado a letra flag (-d [numero])
+
+            // -m (modo) – deve ser inteiro entre 0 e MAX_ANIM_MODE
+            if (!strcmp(arg, "-m")) {
+                if (num_fixed % FIXED_ONE != 0) {
+                    fprintf(stderr, MSG(MSG_ERR_MUST_BE_INTEGER), "-m");
+                    return 4;
+                }
+                int32_t mode = num_fixed / FIXED_ONE;
+                if (mode < 0 || mode > MAX_ANIM_MODE) {
+                    fprintf(stderr, "%s", MSG(MSG_ERR_MODE_LIMIT));
+                    return 4;
+                }
+                opts->anim_mode = (int)mode;
+                continue;
+            }
+
+            // -c (largura fixa) – deve ser inteiro positivo
+            if (!strcmp(arg, "-c")) {
+                if (num_fixed % FIXED_ONE != 0) {
+                    fprintf(stderr, MSG(MSG_ERR_MUST_BE_INTEGER), "-c");
+                    return 3;
+                }
+                int32_t width = num_fixed / FIXED_ONE;
+                if (width <= 0) {
+                    fprintf(stderr, MSG(MSG_ERR_MUST_BE_POSITIVE), "-c");
+                    return 3;
+                }
+                opts->fixed_width = width;
+                continue;
+            }
+
+            // -d (duração) – pode ser fracionário, mas não negativo
+            if (!strcmp(arg, "-d")) {
+                opts->duration_fixed = num_fixed;
+                opts->duration_us = ((uint64_t)opts->duration_fixed * 1000000) / FIXED_ONE;
+                if (opts->duration_fixed < 0) {
+                    fprintf(stderr, "%s", MSG(MSG_ERR_DURATION_NEGATIVE));
+                    return 3;
+                }
+                continue;
+            }
+
+            // -s, -f, -A, -p (aceitam fracionários)
+            if (!strcmp(arg, "-s")) {
+                opts->speed_fixed = num_fixed;
+            } else if (!strcmp(arg, "-f")) {
+                shaders_set_frequency(num_fixed);
+            } else if (!strcmp(arg, "-A")) {
+                shaders_set_gradient_angle(num_fixed);
+            } else if (!strcmp(arg, "-p")) {
+                opts->start_phase_fixed = num_fixed;
+            } else {
+                // não deveria ocorrer
+                fprintf(stderr, MSG(MSG_ERR_INVALID_OPTION), arg);
+                return 3;
+            }
             continue;
         }
 
+        // Se chegou aqui, argumento não reconhecido
         fprintf(stderr, MSG(MSG_ERR_INVALID_OPTION), arg);
         show_help();
         return 3;
     }
-    return 0; // Acabou, tudo lindo.
+    return 0;
 }
 
 /**
@@ -267,7 +324,7 @@ int main(int argc, char *argv[]) {
 
     // Preenche nossa struct Content alocando a memória com os textos recebidos no Pipe ("texto_qualquer | neonx")
     load_input_data(&opts, &content);
-
+    set_content_initialized();
     int exit_status = 0;
     
     // Roteador mestre das engrenagens do vídeo vs Log

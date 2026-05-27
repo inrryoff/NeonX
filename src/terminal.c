@@ -90,16 +90,43 @@ void print_version(void) {
 }
 
 /**
- * Nome da função: print_license / show_help
- * O que faz: Funções bobas (Mocks) que invocam o dicionário para imprimir longos textos.
+ * Nome da função: print_license
+ * O que faz: Invoca o dicionário para imprimir o longo texto de licença de código aberto.
  */
 void print_license(void) {
     printf("%s", MSG(MSG_LICENSE_TEXT));
 }
 
+/**
+ * Nome da função: show_help
+ * O que faz: Exibe o menu de ajuda completo para o usuário, no idioma detectado ou forçado.
+ * Como funciona: Invoca a macro MSG sequencialmente pegando cada linha do menu formatada do arquivo msgs.c.
+ * Parâmetros: Nenhum.
+ * Retorno: Nenhum.
+ * Onde é usada: No arquivo main.c, acionada pelas flags -h, --help ou em casos de erro de sintaxe.
+ */
+// ==================== terminal.c ====================
 void show_help(void) {
-    // Para fins de concisão neste exemplo, o método imprime o topo e sequências informativas.
-    // ... invocações do printf(MSG(...))
+    printf(MSG(MSG_HELP_HEADER), VERSION, ORIGINAL_CREATOR, BUILD_MAINTAINER);
+    printf("%s", MSG(MSG_HELP_USAGE));
+    printf("%s", MSG(MSG_HELP_M));
+    printf("%s", MSG(MSG_HELP_S));
+    printf("%s", MSG(MSG_HELP_F));
+    printf("%s", MSG(MSG_HELP_D));
+    printf("%s", MSG(MSG_HELP_A));
+    printf("%s", MSG(MSG_HELP_P));
+    printf("%s", MSG(MSG_HELP_S_UPPER));
+    printf("%s", MSG(MSG_HELP_C));
+    printf("%s", MSG(MSG_HELP_O));
+    printf("%s", MSG(MSG_HELP_F_UPPER));
+    printf("%s", MSG(MSG_HELP_L));
+    printf("%s", MSG(MSG_HELP_PRESET));
+    printf("%s", MSG(MSG_HELP_QUANTIZED));
+    printf("%s", MSG(MSG_HELP_SPIN));
+    printf("%s", MSG(MSG_HELP_LANG));
+    printf("%s", MSG(MSG_HELP_LICENSE));
+    printf("%s", MSG(MSG_HELP_VERSION));
+    printf("%s", MSG(MSG_HELP_HELP));
 }
 
 /**
@@ -111,8 +138,15 @@ void show_help(void) {
  * Onde é usada: No arquivo main() tem a linha `signal(SIGINT, handle_sigint)`.
  * Observações: A escrita "\033[?7h\033[?25h\033[0m\n" reativa o cursor invisível na tela e reseta as cores do cmd.
  */
+static bool content_initialized = false;
+void set_content_initialized(void) {
+    content_initialized = true;
+}
+
 void handle_sigint(int sig) {
     write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16);
-    free_content(&content); 
-    exit(130); 
+    if (content_initialized) {
+        free_content(&content);
+    }
+    exit(130);
 }

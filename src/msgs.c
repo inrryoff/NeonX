@@ -23,13 +23,11 @@ static const char *mensagens[4][MSG_TOTAL] = {
         // Versão
         "Criador Original: %s\n",
         "Compilado por: %s\n",
-        // Textos envolvidos por sequências ANSI como \033[1;32m geram cores no terminal.
-        // O \033[0m no final "limpa" a cor, para não vazar para a próxima linha do usuário.
         "Status: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
         "Status: \033[1;31mMODIFICADO\033[0m\n",
         "Status: \033[1;33mVERIFY_ERROR\033[0m\n",
 
-        // Licença (Omitiremos explicações longas de texto corrido, são apenas impressões puras)
+        // Licença
         "LICENÇA DE USO - NEONX (C - VERSION)\n"
         "-----------------------------------------------------------------\n"
         "Copyright (c) 2026 @inrryoff - Licenciado sob condições especiais NeonX LICENSE\n\n"
@@ -72,19 +70,29 @@ static const char *mensagens[4][MSG_TOTAL] = {
         "--preset [nome] Carregar preset (cyberpunk, retro, matrix, sunset)\n",
         "--quantized    Modo quantizado perde qualidade visual\n",
         "--spin         Gera códigos de cores ANSI puros para scripts externos\n",
-        "--lang [idioma] Selecione o idioma (pt, en, es, zh)\n",
+        "--lang [idioma] Selecione Português ou Inglês\n",
         "--license      Licença de software\n",
         "-v,--version   Versão do binário\n",
         "-h,--help      Exibe esta ajuda\n",
 
-        // Erros
-        "\033[1;31m[NeonX Erro 400]: A opcao '%s' exige um valor numerico apos ela.\033[0m\n",
-        "\033[1;31m[NeonX Erro 400]: A opcao '%s' exige um valor numerico valido, recebido: '%s'\033[0m\n",
-        "\033[1;33m[NeonX Info 416]: O modo de animacao (-m) deve ser entre 0 e 11.\033[0m\n",
+        //Erros
+        "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um valor numérico após ela.\033[0m\n",
+        "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um valor numérico, recebido: '%s'\033[0m\n",
+        "\033[1;31m[NeonX Erro 400]: O modo de animação (-m) deve ser um número inteiro.\033[0m\n",
+        "\033[1;33m[NeonX Info 416]: O modo de animação (-m) deve estar entre 0 e 11.\033[0m\n",
         "\033[1;31m[NeonX Erro 400]: Opção inválida ou argumento solto '%s'\033[0m\n",
         "\n\033[1;31m[NeonX Erro 404]: Nenhum dado foi passado para o binário! \033[0m\n",
-        "\n\033[1;31m[NeonX Erro 413]: Arquivo muito grande. Use -L para modo streaming.\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: Não foi possível checar a integridade, sistema restrito ou binário adulterado.\033[0m\n"
+        "\n\033[1;31m[NeonX Erro 413]: Arquivo muito grande. Use -L para o modo de streaming.\033[0m\n",
+        "\033[1;33m[NeonX Info 403]: Não foi possível verificar a integridade, sistema restrito ou binário adulterado.\033[0m\n",
+        "\033[1;31m[NeonX Erro 403]: Falha ao abrir o próprio executável para verificação de integridade.\033[0m\n",
+        "\033[1;31m[NeonX Erro 403]: Erro de leitura do arquivo durante a verificação de integridade.\033[0m\n",
+        "\033[1;31m[NeonX Erro 403]: Memória insuficiente para verificar a integridade.\033[0m\n",
+        "\033[1;31m[NeonX Erro 403]: Assinatura inválida ou formato hexadecimal incorreto.\033[0m\n",
+        "\033[1;31m[NeonX Erro 403]: O arquivo é muito pequeno para conter a assinatura de integridade.\033[0m\n",
+        "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um número inteiro.\033[0m\n",
+        "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um valor positivo.\033[0m\n",
+        "\033[1;31m[NeonX Erro 400]: A duração não pode ser negativa.\033[0m\n",
+        "\033[1;31m[NeonX Erro 206]: Não foi possível alocar memória (wcsdup).\033[0m\n"
     },
 
     // ---------------- ENGLISH (1) ----------------
@@ -147,13 +155,23 @@ static const char *mensagens[4][MSG_TOTAL] = {
         "-h,--help      Display this help\n",
 
        // Erros
-        "\033[1;31m[NeonX Error 400]: Option '%s' requires a numeric value after it.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: Option '%s' requires a valid numeric value, received: '%s'\033[0m\n",
-        "\033[1;33m[NeonX Info 416]: Animation mode (-m) must be between 0 and 11.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: The option '%s' requires a numeric value after it.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: The option '%s' requires a numeric value, received: '%s'\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: The animation mode (-m) must be an integer.\033[0m\n",
+        "\033[1;33m[NeonX Info 416]: The animation mode (-m) must be between 0 and 11.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: Invalid option or loose argument '%s'\033[0m\n",
-        "\033[1;31m[NeonX Error 404]: No data was passed to the binary! \033[0m\n",
+        "\n\033[1;31m[NeonX Error 404]: No data was passed to the binary! \033[0m\n",
         "\n\033[1;31m[NeonX Error 413]: File too large. Use -L for streaming mode.\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: Could not check integrity due to restricted system or binary is modified\033[0m\n"
+        "\033[1;33m[NeonX Info 403]: Could not check integrity, restricted system or tampered binary.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: Failed to open own executable for integrity check.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: File read error during integrity check.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: Insufficient memory to verify integrity.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: Invalid signature or incorrect hexadecimal format.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: The file is too small to contain the integrity signature.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: The option '%s' requires an integer.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: The option '%s' requires a positive value.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: Duration cannot be negative.\033[0m\n",
+        "\033[1;31m[NeonX Error 206]: Could not allocate memory (wcsdup).\033[0m\n"
     },
 
     // ---------------- ESPANHOL (2) ----------------
@@ -217,12 +235,22 @@ static const char *mensagens[4][MSG_TOTAL] = {
 
         // Erros
         "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico después de ella.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico válido, recibido: '%s'\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico, recibido: '%s'\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: El modo de animación (-m) debe ser un número entero.\033[0m\n",
         "\033[1;33m[NeonX Info 416]: El modo de animación (-m) debe estar entre 0 y 11.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: Opción inválida o argumento suelto '%s'\033[0m\n",
-        "\033[1;31m[NeonX Error 404]: ¡No se pasaron datos al binario! \033[0m\n",
-        "\n\033[1;31m[NeonX Error 413]: Archivo demasiado grande. Use -L para el modo streaming.\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: No fue posible comprobar la integridad o binario modificado\033[0m\n"
+        "\n\033[1;31m[NeonX Error 404]: ¡No se pasaron datos al binario! \033[0m\n",
+        "\n\033[1;31m[NeonX Error 413]: Archivo demasiado grande. Use -L para modo streaming.\033[0m\n",
+        "\033[1;33m[NeonX Info 403]: No se pudo verificar la integridad, sistema restringido o binario alterado.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: Error al abrir el propio ejecutable para la verificación de integridad.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: Error en la lectura del archivo durante la verificación de integridad.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: Memoria insuficiente para verificar la integridad.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: Firma inválida o formato hexadecimal incorrecto.\033[0m\n",
+        "\033[1;31m[NeonX Error 403]: El archivo es demasiado pequeño para contener la firma de integridad.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un número entero.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor positivo.\033[0m\n",
+        "\033[1;31m[NeonX Error 400]: La duración no puede ser negativa.\033[0m\n",
+        "\033[1;31m[NeonX Error 206]: No se pudo asignar memoria (wcsdup).\033[0m\n"
     },
 
     // ---------------- CHINÊS (3) ----------------
@@ -281,12 +309,22 @@ static const char *mensagens[4][MSG_TOTAL] = {
 
         // Erros
         "\033[1;31m[NeonX 错误 400]: 选项 '%s' 后面需要一个数值。\033[0m\n",
-        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个有效数值，收到: '%s'\033[0m\n", 
-        "\033[1;33m[NeonX 提示 416]: 动画模式 (-m) 必须在 0 到 11 之间。\033[0m\n",
+        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个数值，收到: '%s'\033[0m\n",
+        "\033[1;31m[NeonX 错误 400]: 动画模式 (-m) 必须是整数。\033[0m\n",
+        "\033[1;33m[NeonX 信息 416]: 动画模式 (-m) 必须在 0 到 11 之间。\033[0m\n",
         "\033[1;31m[NeonX 错误 400]: 无效选项或孤立参数 '%s'\033[0m\n",
-        "\033[1;31m[NeonX 错误 404]: 没有数据传递给二进制文件！ \033[0m\n",
-        "\n\033[1;31m[NeonX 错误 413]: 文件过大。请使用 -L 启用流媒体模式。\033[0m\n",
-        "\033[1;33m[NeonX 提示 406]: 由于系统限制，无法检查完整性或篡改\033[0m\n"
+        "\n\033[1;31m[NeonX 错误 404]: 没有数据传递给二进制文件！\033[0m\n",
+        "\n\033[1;31m[NeonX 错误 413]: 文件太大。请使用 -L 进入流媒体模式。\033[0m\n",
+        "\033[1;33m[NeonX 信息 403]: 无法检查完整性，系统受限或二进制文件已被篡改。\033[0m\n",
+        "\033[1;31m[NeonX 错误 403]: 无法打开 exec 文件以进行完整性检查。\033[0m\n",
+        "\033[1;31m[NeonX 错误 403]: 完整性检查期间读取文件错误。\033[0m\n",
+        "\033[1;31m[NeonX 错误 403]: 内存不足，无法验证完整性。\033[0m\n",
+        "\033[1;31m[NeonX 错误 403]: 签名无效或十六进制格式不正确。\033[0m\n",
+        "\033[1;31m[NeonX 错误 403]: 文件太小，无法包含完整性签名。\033[0m\n",
+        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个整数。\033[0m\n",
+        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个正值。\033[0m\n",
+        "\033[1;31m[NeonX 错误 400]: 持续时间不能为负数。\033[0m\n",
+        "\033[1;31m[NeonX 错误 206]: 无法分配内存 (wcsdup)。\033[0m\n"
     }
 };
 
@@ -325,6 +363,20 @@ void msgs_init(void) {
     }
 }
 
+void msgs_set_language(const char *lang_code) {
+    if (!lang_code) return;
+    if (strncmp(lang_code, "pt", 2) == 0) {
+        idioma_atual = 0;
+    } else if (strncmp(lang_code, "en", 2) == 0) {
+        idioma_atual = 1;
+    } else if (strncmp(lang_code, "es", 2) == 0) {
+        idioma_atual = 2;
+    } else if (strncmp(lang_code, "zh", 2) == 0) {
+        idioma_atual = 3;
+    } else {
+        idioma_atual = 1;
+    }
+}
 /**
  * Nome da função: get_msg
  * O que faz: Entrega a string de texto final pronta para ser exibida, já no idioma correto.

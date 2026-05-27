@@ -12,6 +12,7 @@
  * Como ele é o último da lista, o número dele representará exatamente a quantidade
  * total de mensagens cadastradas, o que é útil para criar o tamanho da matriz (array).
  */
+
 enum Mensagem {
     MSG_ERRO_ABRIR,
     
@@ -50,15 +51,24 @@ enum Mensagem {
     // Erros
     MSG_ERR_MISSING_VALUE,
     MSG_ERR_INVALID_NUMBER,
+    MSG_ERR_MODE,
     MSG_ERR_MODE_LIMIT,
     MSG_ERR_INVALID_OPTION,
     MSG_ERR_SEM_DADOS,
     MSG_ERR_LEN_LIMIT,
     MSG_ERR_VERIFY_RESTRICTED,
+    MSG_ERR_INTEGRITY_OPEN,
+    MSG_ERR_INTEGRITY_READ,
+    MSG_ERR_INTEGRITY_MEMORY,
+    MSG_ERR_INTEGRITY_SIGNATURE,
+    MSG_ERR_INTEGRITY_SIZE,
+    MSG_ERR_MUST_BE_INTEGER,
+    MSG_ERR_MUST_BE_POSITIVE,
+    MSG_ERR_DURATION_NEGATIVE,
+    MSG_ERR_MEMORY_ALLOC,
 
-    MSG_TOTAL // Guarda automaticamente o número total de itens desta lista!
+    MSG_TOTAL 
 };
-
 /**
  * Nome da função: get_msg
  * O que faz: Busca o texto exato na memória correspondente ao ID da mensagem e ao idioma atual.
@@ -82,5 +92,5 @@ const char* get_msg(enum Mensagem id);
  * O que faz: Descobre qual é a língua atual do Sistema Operacional do usuário para setar o idioma do NeonX.
  */
 void msgs_init(void);
-
+void msgs_set_language(const char *lang_code);
 #endif

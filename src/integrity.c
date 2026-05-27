@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include "msgs.h"
 #include "integrity.h"
 #include "monocypher.h" // Biblioteca de criptografia externa
 
@@ -66,8 +67,10 @@ int check_integrity(void) {
 
     // Abre o arquivo do próprio executável no modo 'rb' (read binary)
     FILE *f = fopen(path, "rb");
-    if (!f) return 2; // Se não conseguiu abrir, retorna erro do sistema
-
+    if (!f) { 
+        fprintf(stderr, "%s", MSG(MSG_ERR_INTEGRITY_OPEN));
+        return 2; 
+    }
     // Move o ponteiro de leitura para o final do arquivo
     fseek(f, 0, SEEK_END);
     long total_size = ftell(f); // Onde o ponteiro está = tamanho total do arquivo
@@ -75,6 +78,7 @@ int check_integrity(void) {
     // Se o arquivo for menor que a assinatura (128 bytes), é impossível ser válido
     if (total_size <= 128) { 
         fclose(f); 
+        fprintf(stderr, "%s", MSG(MSG_ERR_INTEGRITY_SIZE));
         return 1;
     }
 
@@ -105,7 +109,8 @@ int check_integrity(void) {
     unsigned char *data = malloc(data_len);
     if (!data) { 
         fclose(f); 
-        return 2; // Falta de memória RAM
+        fprintf(stderr, "%s", MSG(MSG_ERR_INTEGRITY_MEMORY));
+        return 2; 
     }
     
     // Volta o ponteiro do arquivo para o início e lê o programa inteiro para a RAM
