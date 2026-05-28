@@ -5,18 +5,18 @@
 #include <stdlib.h>
 #include <wchar.h>
 #ifndef _WIN32
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 
 #ifdef _WIN32
-    #include <windows.h>
-    #include <io.h>
-    #ifndef STDOUT_FILENO
-        #define STDOUT_FILENO 1
-    #endif
-    #define write _write // Unificação de compatibilidade POSIX p/ compiladores no Windows
+#include <windows.h>
+#include <io.h>
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
+#define write _write // Unificação de compatibilidade POSIX p/ compiladores no Windows
 #else
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 
 // Instância global que contém o documento textual lido.
@@ -30,10 +30,10 @@ const char* ORIGINAL_CREATOR = "@inrryoff";
 
 // Macros que costumam ser introduzidas de fora via compilação (Make/CMake)
 #ifndef BUILD_MAINTAINER
-    #define BUILD_MAINTAINER "Unspecified"
+#define BUILD_MAINTAINER "Unspecified"
 #endif
 #ifndef VERSION
-    #define VERSION "Unspecified"
+#define VERSION "Unspecified"
 #endif
 
 /**
@@ -41,7 +41,8 @@ const char* ORIGINAL_CREATOR = "@inrryoff";
  * O que faz: Atualiza o status atual para permitir que `--version` avise o usuário da quebra.
  * Como funciona: Apenas sobrescreve o inteiro.
  */
-void set_integrity_status(int status) {
+void set_integrity_status(int status)
+{
     g_integrity_status = status;
 }
 
@@ -53,7 +54,8 @@ void set_integrity_status(int status) {
  * Retorno: Nenhum.
  * Onde é usada: Na função run_buffered_mode do Render.c entre cada impressão de quadro.
  */
-void sleep_us(uint32_t microseconds) {
+void sleep_us(uint32_t microseconds)
+{
 #ifdef _WIN32
     Sleep(microseconds / 1000); // Windows só aceita milisegundos nativamente no Sleep()
 #else
@@ -69,7 +71,8 @@ void sleep_us(uint32_t microseconds) {
  * Retorno: Nenhum.
  * Onde é usada: Chamada ao desligar o programa.
  */
-void free_content(Content *c) {
+void free_content(Content *c)
+{
     for(int i=0; i<c->count; i++) if(c->lines[i]) free(c->lines[i]);
     c->count = 0;
 }
@@ -78,7 +81,8 @@ void free_content(Content *c) {
  * Nome da função: print_version
  * O que faz: Exibe o nome do desenvolvedor e se esse programa não sofreu ataques maliciosos ou injetores.
  */
-void print_version(void) {
+void print_version(void)
+{
     printf("NeonX v%s\n", VERSION);
     printf(MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR);
     printf(MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
@@ -95,7 +99,8 @@ void print_version(void) {
  * Nome da função: print_license
  * O que faz: Invoca o dicionário para imprimir o longo texto de licença de código aberto.
  */
-void print_license(void) {
+void print_license(void)
+{
     printf("%s", MSG(MSG_LICENSE_TEXT));
 }
 
@@ -108,7 +113,8 @@ void print_license(void) {
  * Onde é usada: No arquivo main.c, acionada pelas flags -h, --help ou em casos de erro de sintaxe.
  */
 // ==================== terminal.c ====================
-void show_help(void) {
+void show_help(void)
+{
     printf(MSG(MSG_HELP_HEADER), VERSION, ORIGINAL_CREATOR, BUILD_MAINTAINER);
     printf("%s", MSG(MSG_HELP_USAGE));
     printf("%s", MSG(MSG_HELP_M));
@@ -141,11 +147,13 @@ void show_help(void) {
  * Observações: A escrita "\033[?7h\033[?25h\033[0m\n" reativa o cursor invisível na tela e reseta as cores do cmd.
  */
 static bool content_initialized = false;
-void set_content_initialized(void) {
+void set_content_initialized(void)
+{
     content_initialized = true;
 }
 
-void handle_sigint(int sig) {
+void handle_sigint(int sig)
+{
     write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16);
     if (content_initialized) {
         free_content(&content);

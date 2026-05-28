@@ -5,6 +5,15 @@ set -e
 # NeonX Builder – CI & Generic Developer Edition
 # =====================================================
 
+# --------------------------------------------------
+# Portabilidade de Dispositivo Nulo (Estilo #ifndef _WIN32)
+# --------------------------------------------------
+if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* ]]; then
+    NULL_DEV="NUL"
+else
+    NULL_DEV="/dev/null"
+fi
+
 # Cores
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -29,8 +38,13 @@ PROJECT_NAME="neonx"
 # --------------------------------------------------
 # Flags de Compilação & Performance
 # --------------------------------------------------
-TUNE_FLAGS="-march=native"
-PERF_FLAGS="-O3 -ffast-math -flto -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
+if [[ "$PORTABLE" == "1" ]]; then
+    TUNE_FLAGS="-march=x86-64"
+    PERF_FLAGS="-O3 -fno-math-errno -flto -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
+else
+    TUNE_FLAGS="-march=native"
+    PERF_FLAGS="-O3 -ffast-math -flto -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
+fi
 
 # --------------------------------------------------
 # Funções Auxiliares
@@ -43,7 +57,7 @@ print_error()   { echo -e "${RED}✗ $1${NC}"; }
 check_deps() {
     local deps=("clang" "zig" "zip")
     for tool in "${deps[@]}"; do
-        if ! command -v "$tool" &> /dev/null; then
+        if ! command -v "$tool" &> "$NULL_DEV"; then
             print_warn "Ferramenta '$tool' não encontrada. O build pode falhar dependendo da opção escolhida."
         fi
     done
@@ -57,7 +71,7 @@ create_zip() {
     local label="$2"
     local is_windows="$3"
 
-    if ! command -v zip &> /dev/null; then
+    if ! command -v zip &> "$NULL_DEV"; then
         print_error "Comando 'zip' não instalado. Não foi possível gerar o pacote comprimido."
         return 1
     fi
@@ -81,6 +95,52 @@ create_zip() {
 }
 
 # --------------------------------------------------
+# Compilação WebAssembly (Integrada)
+# --------------------------------------------------
+compile_wasm() {
+    local label="wasm"
+    echo -e "${YELLOW}--------------------------------------------------${NC}"
+    print_info "Iniciando build genérica: WebAssembly ($label)"
+    mkdir -p "$OUTPUT_DIR" "$ZIP_DIR"
+
+    if ! command -v emcc &> "$NULL_DEV"; then
+        export PATH="$PATH:/data/data/com.termux/files/usr/opt/emscripten"
+    fi
+
+    if ! command -v emcc &> "$NULL_DEV"; then
+        print_error "Emscripten (emcc) não encontrado no PATH."
+        print_info "Instale via: pkg install emscripten"
+        return 1
+    fi
+
+    local out_js="$OUTPUT_DIR/${PROJECT_NAME}.js"
+    local out_wasm="$OUTPUT_DIR/${PROJECT_NAME}.wasm"
+
+    emcc -O3 -s WASM=1 \
+        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_wasm_render_canvas", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_gradient_angle", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_malloc", "_free"]' \
+        -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
+        -s ALLOW_MEMORY_GROWTH=1 \
+        -I./src src/neonx_core.c src/neonx_wasm.c -o "$out_js"
+
+    if [[ $? -ne 0 || ! -f "$out_js" ]]; then
+        print_error "Falha na compilação: $label"
+        return 1
+    fi
+
+    print_info "Criando pacote ZIP para a build: $label..."
+    local zip_name="${PROJECT_NAME}_${label}.zip"
+    local tmp_dir
+    tmp_dir=$(mktemp -d)
+    
+    cp "$out_js" "$out_wasm" "$tmp_dir/"
+    (cd "$tmp_dir" && zip -q "$zip_name" "${PROJECT_NAME}.js" "${PROJECT_NAME}.wasm")
+    mv "$tmp_dir/$zip_name" "$ZIP_DIR/"
+    rm -rf "$tmp_dir"
+    
+    print_success "Build $label concluída!"
+}
+
+# --------------------------------------------------
 # Compilação de Ferramentas Auxiliares
 # --------------------------------------------------
 building_tools() {
@@ -91,7 +151,7 @@ building_tools() {
         local tool_bin="${tool_src%.c}"
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
             print_info "Compilando ferramenta host: $(basename "$tool_src")..."
-            if clang "$tool_src" -o "$tool_bin" -O2 2>/dev/null; then
+            if clang "$tool_src" -o "$tool_bin" -O2 2> "$NULL_DEV"; then
                 print_success "Ferramenta $(basename "$tool_bin") pronta!"
             else
                 print_warn "Falha ou falta de clang ao compilar $(basename "$tool_src") (não afeta o build genérico)."
@@ -112,6 +172,7 @@ compile_tool() {
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build genérica: $label"
     local final_bin="$OUTPUT_DIR/${bin_out}_${label}"
+    
     if [[ "$label" == "native" ]]; then
         final_bin="$OUTPUT_DIR/${bin_out}"
     fi
@@ -125,14 +186,24 @@ compile_tool() {
     fi
 
     if [[ "$is_native" == "true" ]]; then
-        clang "$SRC_DIR"/*.c -o "$final_bin" \
+        clang -c "$SRC_DIR/neonx_core.c" -o "$OUTPUT_DIR/neonx_core.o" $TUNE_FLAGS $active_perf_flags
+        ar rcs "$OUTPUT_DIR/libneonx_core.a" "$OUTPUT_DIR/neonx_core.o"
+
+        clang "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
+            -o "$final_bin" \
+            -L"$OUTPUT_DIR" -lneonx_core \
             $TUNE_FLAGS $active_perf_flags $DEV_KEY_MACRO \
             -DVERSION="\"$VERSION\"" \
             -DBUILD_STATUS="\"$BUILD_STATUS\"" \
             -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
             $DEV_FLAG -lm
     else
-        zig cc "$SRC_DIR"/*.c -o "$final_bin" -target "$target" \
+        zig cc -c "$SRC_DIR/neonx_core.c" -o "$OUTPUT_DIR/neonx_core.o" -target "$target" $active_perf_flags
+        ar rcs "$OUTPUT_DIR/libneonx_core.a" "$OUTPUT_DIR/neonx_core.o"
+
+        zig cc "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
+            -o "$final_bin" -target "$target" \
+            -L"$OUTPUT_DIR" -lneonx_core \
             $active_perf_flags $DEV_KEY_MACRO \
             -DVERSION="\"$VERSION\"" \
             -DBUILD_STATUS="\"$BUILD_STATUS\"" \
@@ -146,7 +217,7 @@ compile_tool() {
     fi
 
     if [[ "$is_windows" == "true" ]]; then
-        rm -f "$OUTPUT_DIR"/*.pdb 2>/dev/null || true
+        rm -f "$OUTPUT_DIR"/*.pdb 2> "$NULL_DEV" || true
     fi
 
     print_success "Build $label concluída!"
@@ -166,6 +237,13 @@ if [[ $# -gt 0 ]]; then
 
     while [[ $# -gt 0 ]]; do
         case $1 in
+            --test)
+                print_info "Iniciando testes unitários..."
+                mkdir -p "$OUTPUT_DIR/tests"
+                clang tests/unit/test_math.c src/shaders.c src/neonx_core.c src/msgs.c -o "$OUTPUT_DIR/tests/test_math" -Isrc -lm
+                "$OUTPUT_DIR/tests/test_math"
+                exit 0
+                ;;
             --native)
                 IS_NATIVE="true"
                 LABEL="native"
@@ -193,6 +271,8 @@ if [[ $# -gt 0 ]]; then
 
     if [[ "$IS_NATIVE" == "true" ]]; then
         compile_tool "native" "$OUTPUT_BIN" "$LABEL" "true"
+    elif [[ "$TARGET" == "wasm" ]]; then
+        compile_wasm
     elif [[ -n "$TARGET" && -n "$LABEL" ]]; then
         compile_tool "$TARGET" "$OUTPUT_BIN" "$LABEL" "false"
     else
@@ -208,15 +288,16 @@ else
         echo -e "${CYAN}║${NC} ${YELLOW}NeonX Dev Builder (Clang Native & Zig Cross)       ${NC}${CYAN}║${NC}"
         echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
         echo -e "${CYAN}║${NC} 1. Build Nativa (Local via Clang)                  ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 2. Linux x64 (Musl) via Zig                        ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 3. Linux x86 (Musl) via Zig                        ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 4. ARM64 (Android/Linux) via Zig                   ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 5. ARM32 (Android/Legacy) via Zig                  ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 6. Windows x64 via Zig                             ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 7. Windows x86 via Zig                             ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 8. MacOs arm64 via Zig                             ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 9. MacOs x64 via Zig                               ${CYAN}║${NC}"
-        echo -e "${CYAN}║${NC} 10. Compilar Todas as Plataformas                  ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 2. WebAssembly (NeonX wasm)                        ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 3. Linux x64 (Musl) via Zig                        ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 4. Linux x86 (Musl) via Zig                        ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 5. ARM64 (Android/Linux) via Zig                   ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 6. ARM32 (Android/Legacy) via Zig                  ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 7. Windows x64 via Zig                             ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 8. Windows x86 via Zig                             ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 9. MacOs arm64 via Zig                             ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 10. MacOs x64 via Zig                              ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC} 11. Compilar Todas as Plataformas                  ${CYAN}║${NC}"
         echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
         echo -e "${CYAN}║${NC} 0. Sair                                            ${CYAN}║${NC}"
         echo -e "${CYAN}╚════════════════════════════════════════════════════╝${NC}"
@@ -232,12 +313,16 @@ else
             1)
                 compile_tool "native" "$PROJECT_NAME" "native" "true"
                 break ;;
-            [2-9])
-                idx=$((opt-2))
+            2)
+                compile_wasm
+                break ;;
+            [3-9]|10)
+                idx=$((opt-3))
                 compile_tool "${targets[$idx]}" "$PROJECT_NAME" "${labels[$idx]}" "false"
                 break ;;
-            10)
+            11)
                 compile_tool "native" "$PROJECT_NAME" "native" "true"
+                compile_wasm
                 for i in "${!targets[@]}"; do
                     compile_tool "${targets[$i]}" "$PROJECT_NAME" "${labels[$i]}" "false"
                 done

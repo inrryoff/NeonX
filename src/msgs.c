@@ -19,7 +19,7 @@ static const char *mensagens[4][MSG_TOTAL] = {
     // ---------------- PORTUGUÊS (0) ----------------
     {
         "Erro ao abrir arquivo",
-        
+
         // Versão
         "Criador Original: %s\n",
         "Compilado por: %s\n",
@@ -92,13 +92,16 @@ static const char *mensagens[4][MSG_TOTAL] = {
         "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um número inteiro.\033[0m\n",
         "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um valor positivo.\033[0m\n",
         "\033[1;31m[NeonX Erro 400]: A duração não pode ser negativa.\033[0m\n",
-        "\033[1;31m[NeonX Erro 206]: Não foi possível alocar memória (wcsdup).\033[0m\n"
+        "\033[1;31m[NeonX Erro 206]: Não foi possível alocar memória (wcsdup).\033[0m\n",
+        "OK\n",
+        "FAIL\n",
+        "\033[1;33m[NeonX Aviso]: Falha ao carregar chave customizada, usando chave embutida.\033[0m\n"
     },
 
     // ---------------- ENGLISH (1) ----------------
     {
         "\033[1;31mError opening file\033[0m",
-        
+
         // Versão
         "Original Creator: %s\n",
         "Compiled by: %s\n",
@@ -154,7 +157,7 @@ static const char *mensagens[4][MSG_TOTAL] = {
         "-v,--version   Binary version\n",
         "-h,--help      Display this help\n",
 
-       // Erros
+        // Erros
         "\033[1;31m[NeonX Error 400]: The option '%s' requires a numeric value after it.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: The option '%s' requires a numeric value, received: '%s'\033[0m\n",
         "\033[1;31m[NeonX Error 400]: The animation mode (-m) must be an integer.\033[0m\n",
@@ -171,13 +174,16 @@ static const char *mensagens[4][MSG_TOTAL] = {
         "\033[1;31m[NeonX Error 400]: The option '%s' requires an integer.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: The option '%s' requires a positive value.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: Duration cannot be negative.\033[0m\n",
-        "\033[1;31m[NeonX Error 206]: Could not allocate memory (wcsdup).\033[0m\n"
+        "\033[1;31m[NeonX Error 206]: Could not allocate memory (wcsdup).\033[0m\n",
+        "OK\n",
+        "FAIL\n",
+        "\033[1;33m[NeonX Warning]: Failed to load custom key, using built-in fallback.\033[0m\n"
     },
 
     // ---------------- ESPANHOL (2) ----------------
     {
         "\033[1;31mError al abrir el archivo\033[0m",
-        
+
         // Versão
         "Creador Original: %s\n",
         "Compilado por: %s\n",
@@ -211,7 +217,7 @@ static const char *mensagens[4][MSG_TOTAL] = {
         "IMPLÍCITA. EN NINGÚN CASO EL AUTOR SERÁ RESPONSABLE DE NINGUNA RECLAMACIÓN,\n"
         "DAÑOS U OTRA RESPONSABILIDAD QUE SURJA DEL USO DE ESTE SOFTWARE.\n",
 
-         // Ajuda
+        // Ajuda
         "NeonX v%s | Core por: %s | Build por: %s\n\n",
         "Uso: cat archivo | neonx [opciones]\n\n",
         "-m [0-11]      Modos de animación\n",
@@ -250,13 +256,16 @@ static const char *mensagens[4][MSG_TOTAL] = {
         "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un número entero.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor positivo.\033[0m\n",
         "\033[1;31m[NeonX Error 400]: La duración no puede ser negativa.\033[0m\n",
-        "\033[1;31m[NeonX Error 206]: No se pudo asignar memoria (wcsdup).\033[0m\n"
+        "\033[1;31m[NeonX Error 206]: No se pudo asignar memoria (wcsdup).\033[0m\n",
+        "OK\n",
+        "FAIL\n",
+        "\033[1;33m[NeonX Aviso]: Error ao cargar la clave personalizada, usando fallback.\033[0m\n"
     },
 
     // ---------------- CHINÊS (3) ----------------
     {
         "\033[1;31m打开文件失败\033[0m",
-        
+
         // Versão
         "原作者: %s\n",
         "编译者: %s\n",
@@ -324,7 +333,10 @@ static const char *mensagens[4][MSG_TOTAL] = {
         "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个整数。\033[0m\n",
         "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个正值。\033[0m\n",
         "\033[1;31m[NeonX 错误 400]: 持续时间不能为负数。\033[0m\n",
-        "\033[1;31m[NeonX 错误 206]: 无法分配内存 (wcsdup)。\033[0m\n"
+        "\033[1;31m[NeonX 错误 206]: 无法分配内存 (wcsdup)。\033[0m\n",
+        "OK\n",
+        "FAIL\n",
+        "\033[1;33m[NeonX 警告]: 无法加载自定义密钥，正在使用内置备用密钥。\033[0m\n"
     }
 };
 
@@ -340,13 +352,14 @@ static const char *mensagens[4][MSG_TOTAL] = {
  * Parâmetros: Nenhum.
  * Retorno: Nenhum (void). Apenas altera a variável global 'idioma_atual'.
  * Onde é usada: Chamada apenas uma vez na inicialização, logo no começo do main().
- * Observações: Se não identificar o idioma ou a variável de ambiente não existir, 
- * o sistema força '0' (Português) ou '1' (Inglês) como fallback de segurança, 
+ * Observações: Se não identificar o idioma ou a variável de ambiente não existir,
+ * o sistema força '0' (Português) ou '1' (Inglês) como fallback de segurança,
  * garantindo que o programa nunca tente acessar uma linha inexistente na matriz.
  */
-void msgs_init(void) {
+void msgs_init(void)
+{
     const char *lang = getenv("LANG"); // Consulta o Sistema Operacional
-    
+
     if (lang != NULL) {
         // strncmp retorna 0 quando as duas strings são iguais!
         if (strncmp(lang, "pt", 2) == 0) {
@@ -363,7 +376,8 @@ void msgs_init(void) {
     }
 }
 
-void msgs_set_language(const char *lang_code) {
+void msgs_set_language(const char *lang_code)
+{
     if (!lang_code) return;
     if (strncmp(lang_code, "pt", 2) == 0) {
         idioma_atual = 0;
@@ -380,7 +394,7 @@ void msgs_set_language(const char *lang_code) {
 /**
  * Nome da função: get_msg
  * O que faz: Entrega a string de texto final pronta para ser exibida, já no idioma correto.
- * Como funciona: Acessa diretamente a memória da matriz 'mensagens'. 
+ * Como funciona: Acessa diretamente a memória da matriz 'mensagens'.
  * Acessamos [idioma_atual] para escolher a linha certa, e [id] para pegar a coluna (frase) certa.
  * Parâmetros:
  * - id: O identificador numérico da mensagem (vindo do 'enum Mensagem').
@@ -388,6 +402,7 @@ void msgs_set_language(const char *lang_code) {
  * Onde é usada: Constantemente, quase sempre encapsulada sob a macro 'MSG()', em cada 'printf' ou 'fprintf'.
  * Observações: Este método garante um acesso O(1) ultra-rápido às frases, sem processamentos adicionais.
  */
-const char* get_msg(enum Mensagem id) {
+const char* get_msg(enum Mensagem id)
+{
     return mensagens[idioma_atual][id];
 }

@@ -15,7 +15,7 @@
 
 enum Mensagem {
     MSG_ERRO_ABRIR,
-    
+
     // Versão
     MSG_VERSION_ORIGINAL_CREATOR,
     MSG_VERSION_COMPILED_BY,
@@ -67,7 +67,12 @@ enum Mensagem {
     MSG_ERR_DURATION_NEGATIVE,
     MSG_ERR_MEMORY_ALLOC,
 
-    MSG_TOTAL 
+    // Novas mensagens de integridade e avisos
+    MSG_VERIFY_OK,
+    MSG_VERIFY_FAIL,
+    MSG_WARN_KEY_LOAD_FAIL,
+
+    MSG_TOTAL
 };
 /**
  * Nome da função: get_msg
@@ -81,8 +86,8 @@ const char* get_msg(enum Mensagem id);
 /**
  * Macro: MSG
  * O que faz: Cria um atalho prático para os desenvolvedores.
- * Como funciona: Sempre que o programador escrever `MSG(id)` no código, o compilador 
- * substitui automaticamente por `get_msg(id)` antes de compilar. 
+ * Como funciona: Sempre que o programador escrever `MSG(id)` no código, o compilador
+ * substitui automaticamente por `get_msg(id)` antes de compilar.
  * Por que foi feito: Reduz a digitação, deixando o código fonte (como os printfs) mais limpo e legível.
  */
 #define MSG(id) get_msg(id)

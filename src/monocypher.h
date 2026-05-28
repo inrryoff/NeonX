@@ -58,7 +58,8 @@
 #include <stdint.h>
 
 #ifdef MONOCYPHER_CPP_NAMESPACE
-namespace MONOCYPHER_CPP_NAMESPACE {
+namespace MONOCYPHER_CPP_NAMESPACE
+{
 #elif defined(__cplusplus)
 extern "C" {
 #endif
@@ -95,9 +96,9 @@ int crypto_aead_unlock(uint8_t       *plain_text,
 // Authenticated stream
 // --------------------
 typedef struct {
-	uint64_t counter;
-	uint8_t  key[32];
-	uint8_t  nonce[8];
+    uint64_t counter;
+    uint8_t  key[32];
+    uint8_t  nonce[8];
 } crypto_aead_ctx;
 
 void crypto_aead_init_x(crypto_aead_ctx *ctx,
@@ -110,12 +111,12 @@ void crypto_aead_init_ietf(crypto_aead_ctx *ctx,
 void crypto_aead_write(crypto_aead_ctx *ctx,
                        uint8_t         *cipher_text,
                        uint8_t          mac[16],
-                       const uint8_t   *ad        , size_t ad_size,
+                       const uint8_t   *ad, size_t ad_size,
                        const uint8_t   *plain_text, size_t text_size);
 int crypto_aead_read(crypto_aead_ctx *ctx,
                      uint8_t         *plain_text,
                      const uint8_t    mac[16],
-                     const uint8_t   *ad        , size_t ad_size,
+                     const uint8_t   *ad, size_t ad_size,
                      const uint8_t   *cipher_text, size_t text_size);
 
 
@@ -132,13 +133,13 @@ void crypto_blake2b_keyed(uint8_t *hash,          size_t hash_size,
 
 // Incremental interface
 typedef struct {
-	// Do not rely on the size or contents of this type,
-	// for they may change without notice.
-	uint64_t hash[8];
-	uint64_t input_offset[2];
-	uint64_t input[16];
-	size_t   input_idx;
-	size_t   hash_size;
+    // Do not rely on the size or contents of this type,
+    // for they may change without notice.
+    uint64_t hash[8];
+    uint64_t input_offset[2];
+    uint64_t input[16];
+    size_t   input_idx;
+    size_t   hash_size;
 } crypto_blake2b_ctx;
 
 void crypto_blake2b_init(crypto_blake2b_ctx *ctx, size_t hash_size);
@@ -156,24 +157,24 @@ void crypto_blake2b_final(crypto_blake2b_ctx *ctx, uint8_t *hash);
 #define CRYPTO_ARGON2_ID 2
 
 typedef struct {
-	uint32_t algorithm;  // Argon2d, Argon2i, Argon2id
-	uint32_t nb_blocks;  // memory hardness, >= 8 * nb_lanes
-	uint32_t nb_passes;  // CPU hardness, >= 1 (>= 3 recommended for Argon2i)
-	uint32_t nb_lanes;   // parallelism level (single threaded anyway)
+    uint32_t algorithm;  // Argon2d, Argon2i, Argon2id
+    uint32_t nb_blocks;  // memory hardness, >= 8 * nb_lanes
+    uint32_t nb_passes;  // CPU hardness, >= 1 (>= 3 recommended for Argon2i)
+    uint32_t nb_lanes;   // parallelism level (single threaded anyway)
 } crypto_argon2_config;
 
 typedef struct {
-	const uint8_t *pass;
-	const uint8_t *salt;
-	uint32_t pass_size;
-	uint32_t salt_size;  // 16 bytes recommended
+    const uint8_t *pass;
+    const uint8_t *salt;
+    uint32_t pass_size;
+    uint32_t salt_size;  // 16 bytes recommended
 } crypto_argon2_inputs;
 
 typedef struct {
-	const uint8_t *key; // may be NULL if no key
-	const uint8_t *ad;  // may be NULL if no additional data
-	uint32_t key_size;  // 0 if no key (32 bytes recommended otherwise)
-	uint32_t ad_size;   // 0 if no additional data
+    const uint8_t *key; // may be NULL if no key
+    const uint8_t *ad;  // may be NULL if no additional data
+    uint32_t key_size;  // 0 if no key (32 bytes recommended otherwise)
+    uint32_t ad_size;   // 0 if no additional data
 } crypto_argon2_extras;
 
 extern const crypto_argon2_extras crypto_argon2_no_extras;
@@ -287,13 +288,13 @@ void crypto_poly1305(uint8_t        mac[16],
 
 // Incremental interface
 typedef struct {
-	// Do not rely on the size or contents of this type,
-	// for they may change without notice.
-	uint8_t  c[16];  // chunk of the message
-	size_t   c_idx;  // How many bytes are there in the chunk.
-	uint32_t r  [4]; // constant multiplier (from the secret key)
-	uint32_t pad[4]; // random number added at the end (from the secret key)
-	uint32_t h  [5]; // accumulated hash
+    // Do not rely on the size or contents of this type,
+    // for they may change without notice.
+    uint8_t  c[16];  // chunk of the message
+    size_t   c_idx;  // How many bytes are there in the chunk.
+    uint32_t r  [4]; // constant multiplier (from the secret key)
+    uint32_t pad[4]; // random number added at the end (from the secret key)
+    uint32_t h  [5]; // accumulated hash
 } crypto_poly1305_ctx;
 
 void crypto_poly1305_init  (crypto_poly1305_ctx *ctx, const uint8_t key[32]);

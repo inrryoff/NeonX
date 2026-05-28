@@ -114,8 +114,7 @@ O NeonX adota um sistema de segurança extremo, criando um "beco sem saída" par
  2. **Verificação Minisign (Externa):** As *releases* oficiais possuem um hash registrado na nuvem e uma assinatura externa (.minisig).
 > **Verifique a autenticidade do binário baixado:**
 > ```bash
-> # 1. Baixe o verificador oficial (apenas uma vez)
-> curl -O https://raw.githubusercontent.com/inrryoff/NeonX/main/verify.sh
+> # 1. Garanta que o verificador local tenha permissão de execução
 > chmod +x verify.sh
 > 
 > # 2. Verifique o arquivo (Ele valida Hash + Minisign + Self-Check C)

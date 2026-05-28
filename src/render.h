@@ -13,13 +13,13 @@ struct neonx_options {
     bool stream_mode;          // Modo Log contínuo sem limites (-L)
     int anim_mode;             // Número do Modo visual (0 a 11)
     int32_t speed_fixed;       // Velocidade de alteração com o tempo
-    int32_t duration_fixed;    
+    int32_t duration_fixed;
     uint64_t duration_us;      // Se definido, mata o programa automaticamente após X milissegundos rodando (-d)
     int32_t start_phase_fixed; // Seed congelada (-p) de cor se quisermos gerar saídas repetíveis
     int32_t phase_fixed;       // Variável viva da fase de pulso do tempo atual
     int fixed_width;           // Engana a matemática fingindo que a tela é de tal tamanho (-c)
     uint32_t frame_time_us;    // Pausa do sleep pra controlar os quadros (-F, ex FPS 60 = 16000ms)
-    
+
     // Flags de utilidades simples da inicialização
     bool show_help_flag;
     bool show_version_flag;

@@ -68,6 +68,71 @@ Elas fazem a inclusão direta do arquivo .c da biblioteca (#include "../src/mono
 ### Matemática de Ponto Fixo (Q16.16)
 O motor de renderização (shaders.c) foi purgado do uso de pontos flutuantes (float / double) no loop de desenho principal. Toda a trigonometria utiliza tabelas de busca pré-calculadas (*Look-Up Tables*) e aritmética de inteiros (32-bits em formato Q16.16), o que garante desempenho esmagador mesmo em SoCs mobile mais antigos ou ambientes sem FPU.
 
+## 📦 Usando a biblioteca NeonX (Core) em projetos externos
+
+O NeonX agora expõe seu núcleo de processamento de cores e matemática de ponto fixo como uma biblioteca C independente (`neonx_core`).
+
+### Compilação da Biblioteca
+Para gerar a biblioteca estática manualmente:
+```bash
+clang -O3 -c src/neonx_core.c -o build/neonx_core.o
+ar rcs build/libneonx_core.a build/neonx_core.o
+```
+
+### Exemplo de Uso em C
+```c
+#include "neonx_core.h"
+#include <stdio.h>
+
+int main() {
+    neonx_init_lut(); // Obrigatório inicializar a LUT
+    int r, g, b;
+    // Pega a cor para a coordenada (10, 10) no modo 1 (Sunset)
+    neonx_get_color(10 << 16, 10 << 16, 1, 0, 0, 0, 12345, &r, &g, &b);
+    printf("Cor: R:%d G:%d B:%d\n", r, g, b);
+    return 0;
+}
+```
+
+---
+
+## 🌐 WebAssembly (Uso na Web)
+
+Você pode rodar o motor de cores do NeonX diretamente no navegador usando o módulo WASM.
+
+### Compilação para Web
+Certifique-se de ter o [Emscripten](https://emscripten.org/) instalado e rode:
+```bash
+bash build_wasm.sh
+```
+Isso gerará os arquivos `neonx.js` e `neonx.wasm`.
+
+### Exemplo de integração em JavaScript
+```javascript
+// O Emscripten carrega o módulo assincronamente
+Module.onRuntimeInitialized = () => {
+    Module._neonx_wasm_init();
+    
+    // Aloca ponteiros para as cores
+    const rPtr = Module._malloc(4);
+    const gPtr = Module._malloc(4);
+    const bPtr = Module._malloc(4);
+
+    // Chama a função de cor
+    Module._neonx_wasm_get_color(x << 16, y << 16, mode, cx, cy, maxDist, phase, rPtr, gPtr, bPtr);
+
+    // Lê os valores da heap do WASM
+    const r = Module.HEAP32[rPtr >> 2];
+    const g = Module.HEAP32[gPtr >> 2];
+    const b = Module.HEAP32[bPtr >> 2];
+    
+    console.log(`RGB: ${r}, ${g}, ${b}`);
+};
+```
+Um exemplo completo e funcional de renderização em `<canvas>` pode ser encontrado no arquivo `index.html` na raiz do projeto.
+
+---
+
 ## 📝 Testando suas Alterações
 Após qualquer alteração nos arquivos .c, valide o sistema localmente:
  1. **Teste de Metadados e Integridade:**

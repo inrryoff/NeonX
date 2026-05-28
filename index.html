@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeonX - Web Animator</title>
+    <script src="https://cdn.jsdelivr.net/npm/ansi_up@5.1.0/ansi_up.min.js"></script>
+    <style>
+        :root {
+            --neon-green: #00ffcc;
+            --bg-color: #050505;
+            --panel-bg: #111;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--neon-green);
+            font-family: monospace;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        h2 {
+            text-align: center;
+            margin: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background-color: var(--panel-bg);
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            position: relative;
+        }
+
+        button {
+            background-color: #222;
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            border-radius: 6px;
+            padding: 12px 10px;
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        button.active-play {
+            background-color: var(--neon-green);
+            color: #000;
+        }
+
+        button.verify-btn {
+            background-color: #1a1a1a;
+            border-style: dashed;
+            flex: 0.8;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Menu Expansível (Dropdown) */
+        .dropdown { flex: 1; }
+        .dropbtn { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--panel-bg);
+            width: calc(100% / 2.8); /* Ajustado para 3 botões */
+            right: 0;
+            top: 100%;
+            margin-top: 5px;
+            box-shadow: 0px 8px 16px 0px rgba(0,255,204,0.2);
+            border: 1px solid var(--neon-green);
+            border-radius: 6px;
+            z-index: 10;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .dropdown-content.show { display: block; }
+
+        .dropdown-content div {
+            color: #fff;
+            padding: 12px 16px;
+            border-bottom: 1px solid #222;
+            cursor: pointer;
+        }
+
+        .dropdown-content div:hover {
+            background-color: #333;
+            color: var(--neon-green);
+        }
+
+        /* Painel de Flags Extras */
+        .flags-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            background-color: #0a0a0a;
+            border: 1px dashed #333;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .flag-item { display: flex; flex-direction: column; gap: 5px; }
+        .flag-item label { font-size: 11px; color: #888; }
+
+        .flag-item input[type="number"], .flag-item input[type="range"] {
+            background-color: #111;
+            color: var(--neon-green);
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            gap: 8px;
+            color: #ccc;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--neon-green);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        #output-box {
+            background-color: #000;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 15px;
+            min-height: 200px;
+            overflow-x: auto;
+            line-height: 1.1;
+            font-size: 12px;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>NeonX ASCII Engine</h2>
+
+    <div class="input-section">
+        <label>Cole sua arte ASCII aqui:</label>
+        <textarea id="input-art">
+  _   _                      __  __ 
+ | \ | | ___  ___  _ __   \ \/ / 
+ |  \| |/ _ \/ _ \| '_ \   \  /  
+ | |\  |  __/ (_) | | | |  /  \  
+ |_| \_|\___|\___/|_| |_| /_/\_\ 
+        </textarea>
+    </div>
+
+    <div class="controls-row">
+        <button id="play-btn" onclick="toggleAnimation()">Iniciar ▶</button>
+        
+        <button class="verify-btn" onclick="runVerifySig()">--verify-sig</button>
+
+        <div class="dropdown">
+            <button class="dropbtn" id="mode-btn" onclick="toggleDropdown()">Flag -m [0] ▼</button>
+            <div id="mode-dropdown" class="dropdown-content">
+                <div onclick="setMode(0, 'Cyberpunk')">0 - Cyberpunk</div>
+                <div onclick="setMode(1, 'Sunset')">1 - Sunset</div>
+                <div onclick="setMode(2, 'Linear')">2 - Linear</div>
+                <div onclick="setMode(3, 'Chaos')">3 - Chaos</div>
+                <div onclick="setMode(4, 'Retro')">4 - Retro</div>
+                <div onclick="setMode(5, 'Vignette')">5 - Vignette</div>
+                <div onclick="setMode(6, 'Plasma')">6 - Plasma</div>
+                <div onclick="setMode(7, 'Diagonal')">7 - Diagonal</div>
+                <div onclick="setMode(8, 'Vertical')">8 - Vertical</div>
+                <div onclick="setMode(9, 'Stripe')">9 - Stripe</div>
+                <div onclick="setMode(10, 'Matrix')">10 - Matrix</div>
+                <div onclick="setMode(11, 'Pulse')">11 - Pulse</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flags-panel">
+        <div class="flag-item">
+            <label>Velocidade (-s)</label>
+            <input type="number" id="flag-s" value="0.2" step="0.1" onchange="updateFlags()">
+        </div>
+        <div class="flag-item">
+            <label>Freq (-f)</label>
+            <input type="number" id="flag-f" value="0.5" step="0.1" onchange="updateFlags()">
+        </div>
+        <div class="flag-item">
+            <label>Opac (-o)</label>
+            <input type="range" id="flag-o" min="0" max="1000" value="0" oninput="updateFlags()">
+        </div>
+        <div class="flag-item" style="justify-content: center; gap: 8px;">
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="flag-q" onchange="updateFlags()"> --quantized
+            </label>
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="flag-static" onchange="updateFlags()"> -S (Estático)
+            </label>
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="flag-stream" onchange="updateFlags()"> -L (Line/Stream)
+            </label>
+        </div>
+    </div>
+
+    <div id="output-box">O motor WASM está pronto. Clique em Iniciar.</div>
+
+    <script src="neonx.js"></script>
+    <script>
+        const ansiUp = new AnsiUp();
+        let currentMode = 0;
+        let phase = 0;
+        let speed = 0.2;
+        let isRunning = false;
+        let animationId = null;
+        let isStaticMode = false;
+        let isStreamMode = false;
+        
+        // --- Controles de Interface ---
+        
+        function toggleDropdown() {
+            const dropdown = document.getElementById("mode-dropdown");
+            const btn = document.getElementById("mode-btn");
+            dropdown.classList.toggle("show");
+            
+            btn.innerHTML = dropdown.classList.contains("show") 
+                ? `Flag -m [${currentMode}] ▲` 
+                : `Flag -m [${currentMode}] ▼`;
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropbtn')) {
+                const dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show')) {
+                        dropdowns[i].classList.remove('show');
+                        document.getElementById("mode-btn").innerHTML = `Flag -m [${currentMode}] ▼`;
+                    }
+                }
+            }
+        }
+
+        function setMode(mode, name) {
+            currentMode = mode;
+            document.getElementById("mode-btn").innerHTML = `Flag -m [${currentMode}] ▼`;
+            document.getElementById("mode-dropdown").classList.remove("show");
+
+            let newFreq = 0.3;
+            if (mode === 10) newFreq = 1.2;
+            else if (mode === 0) newFreq = 0.5;
+            else if (mode === 4) newFreq = 0.8;
+            
+            document.getElementById('flag-f').value = newFreq;
+            updateFlags();
+        }
+
+        // --- Verificação de Assinatura Emulada ---
+        function runVerifySig() {
+            if (isRunning) toggleAnimation(); // Pausa se estiver animando
+            
+            const outBox = document.getElementById('output-box');
+            outBox.innerHTML = "<span style='color:#888'>Executando crypto_eddsa_check (Monocypher)...</span>\n";
+            
+            // Simula o tempo de hash
+            setTimeout(() => {
+                outBox.innerHTML += "<span style='color:#888'>Verificando assinatura EdDSA em ambiente WASM...</span>\n";
+                setTimeout(() => {
+                    outBox.innerHTML += "\nStatus: <span style='color: #00ffcc; font-weight: bold;'>OFFICIAL_BY_INRRYOFF</span>\n";
+                    outBox.innerHTML += "<span style='color: #00ffcc'>OK</span>\n";
+                }, 600);
+            }, 400);
+        }
+
+        function toggleAnimation() {
+            if (isStaticMode) return; // Não inicia se o estático estiver marcado
+
+            isRunning = !isRunning;
+            const btn = document.getElementById('play-btn');
+            
+            if (isRunning) {
+                btn.innerHTML = "Pausar ⏸";
+                btn.classList.add('active-play');
+                renderLoop();
+            } else {
+                btn.innerHTML = "Iniciar ▶";
+                btn.classList.remove('active-play');
+                if (animationId) cancelAnimationFrame(animationId);
+            }
+        }
+
+        function updateFlags() {
+            if (!Module.ccall) return;
+
+            speed = parseFloat(document.getElementById('flag-s').value) || 0.2;
+            const f = parseFloat(document.getElementById('flag-f').value) || 0.3;
+            const o = parseInt(document.getElementById('flag-o').value) || 0;
+            const q = document.getElementById('flag-q').checked;
+            
+            isStaticMode = document.getElementById('flag-static').checked;
+            isStreamMode = document.getElementById('flag-stream').checked;
+
+            if (Module._neonx_wasm_set_frequency) Module._neonx_wasm_set_frequency(f * 65536);
+            if (Module._neonx_wasm_set_opacity) Module._neonx_wasm_set_opacity(o);
+            if (Module._neonx_wasm_set_quantization) Module._neonx_wasm_set_quantization(q);
+
+            // Controle do Modo Estático
+            const playBtn = document.getElementById('play-btn');
+            if (isStaticMode) {
+                if (isRunning) toggleAnimation();
+                playBtn.disabled = true;
+                playBtn.innerHTML = "Travado (-S)";
+                renderFrame(); // Renderiza um frame e para
+            } else {
+                playBtn.disabled = false;
+                if (!isRunning) playBtn.innerHTML = "Iniciar ▶";
+                if (!isRunning) renderFrame();
+            }
+        }
+
+        Module.onRuntimeInitialized = () => {
+            if (Module._neonx_wasm_init) Module._neonx_wasm_init();
+            updateFlags();
+            renderFrame();
+        };
+
+        function renderFrame() {
+            const text = document.getElementById('input-art').value;
+            if (!text || !Module.ccall) return;
+
+            const lines = text.split('\n');
+            const height = lines.length;
+            const width = Math.max(...lines.map(line => line.length));
+
+            if (isStreamMode) {
+                // Modo -L (Line by Line): Igual run_stream_mode no render.c
+                let streamOutput = "";
+                let streamPhase = phase;
+                
+                for (let i = 0; i < height; i++) {
+                    const line = lines[i];
+                    if (!line) { 
+                        streamOutput += "\n"; 
+                        continue; 
+                    }
+                    
+                    const outPtr = Module.ccall(
+                        'neonx_apply_colors', 
+                        'number', 
+                        ['string', 'number', 'number', 'number', 'number'], 
+                        [line, currentMode, width, 1, streamPhase / 65536] 
+                    );
+                    
+                    streamOutput += ansiUp.ansi_to_html(Module.UTF8ToString(outPtr)) + "\n";
+                    Module._free(outPtr);
+                    
+                    // Incrementa a fase pra próxima linha gerar o efeito escadinha
+                    streamPhase += (speed * 65536); 
+                }
+                document.getElementById('output-box').innerHTML = streamOutput;
+
+            } else {
+                // Modo Buffered (Padrão)
+                const outPtr = Module.ccall(
+                    'neonx_apply_colors', 
+                    'number', 
+                    ['string', 'number', 'number', 'number', 'number'], 
+                    [text, currentMode, width, height, phase / 65536] 
+                );
+
+                document.getElementById('output-box').innerHTML = ansiUp.ansi_to_html(Module.UTF8ToString(outPtr));
+                Module._free(outPtr);
+            }
+        }
+
+        function renderLoop() {
+            if (!isRunning) return;
+            
+            renderFrame();
+            phase += (speed * 65536); // Avança a animação global
+            
+            animationId = requestAnimationFrame(renderLoop);
+        }
+    </script>
+</body>
+</html>

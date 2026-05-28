@@ -12,12 +12,14 @@
 #define MAX_LINES 1024
 // Limite máximo de caracteres de largura em uma única linha lida do terminal
 #define MAX_LINE_LEN 2048
+// Limite máximo de memória total para o buffer de renderização (128MB)
+#define MAX_RENDER_BUFFER (128 * 1024 * 1024)
 
 // Estrutura do documento que fica na memória.
 // linhas apontam para o local onde a string do caractere está, e count é o nr atual de linhas lidas.
-typedef struct { 
-    wchar_t *lines[MAX_LINES]; 
-    int count; 
+typedef struct {
+    wchar_t *lines[MAX_LINES];
+    int count;
 } Content;
 
 // Declarada extern para ser manipulada globalmente pelo renderizador e sinalizador

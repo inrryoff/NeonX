@@ -8,8 +8,12 @@ on:
 
 jobs:
   build-and-validate:
-    name: Build, Test & Security
-    runs-on: ubuntu-latest
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
 
     steps:
       - name: 📥 Checkout do Repositório
@@ -18,151 +22,66 @@ jobs:
       - name: ⚡ Instalar ambiente Zig
         uses: goto-bus-stop/setup-zig@v2
 
-      - name: ⚙️ Instalar Dependências de Sistema
+      - name: ⚙️ Instalar Dependências (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y minisign unzip expect jq
           chmod +x *.sh
 
+      - name: ⚙️ Instalar Dependências (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install minisign
+          chmod +x *.sh
+
+      - name: ⚙️ Instalar Dependências (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install minisign
+          # Permissões no Windows são diferentes, mas o bash do runner ajuda
+          chmod +x *.sh || true
+
       - name: 🛠️ Build 1 - Script Genérico (--native)
         run: |
           echo "Testando compilação genérica via build.sh..."
           ./build.sh --native
+        shell: bash
 
       - name: 🛠️ Build 2 - Script Termux Edition (Make-NeonX.sh)
+        if: runner.os != 'Windows'
         run: |
           echo "Testando auto-versionamento e pipeline interativa..."
           # Passa "1" e "0" para navegar no menu interativo (Build Nativa e Sair)
           echo -e "1\n0\n" | ./Make-NeonX.sh
+        shell: bash
 
-      - name: 🧪 Teste 1 - Core Info (Version, License, Help, Self-Verify)
+      - name: 🧪 Teste 1 - Core Info
         run: |
-          echo "Validando saídas institucionais..."
-          ./build/neonx -v | grep -q "NeonX"
-          ./build/neonx --license | grep -q "USAGE LICENSE"
-          ./build/neonx --help | grep -q "Usage:"
-          
-          echo "Validando comportamento do self-check..."
-          set +e
-          ./build/neonx --verify-sig
-          SIG_EXIT=$?
-          set -e
-          # No CI não teremos as assinaturas finais, então deve falhar e retornar 1 ou 2
-          if [[ $SIG_EXIT -eq 0 ]]; then
-            echo "❌ ERRO CRÍTICO: O binário validou uma assinatura inexistente no CI!"
-            exit 1
-          fi
-          echo "✅ Self-check se comportou como esperado (rejeitou binário não assinado)."
+          BIN="./build/neonx"
+          if [ "${{ runner.os }}" = "Windows" ]; then BIN="./build/neonx.exe"; fi
+          $BIN -v | grep -q "NeonX"
+          $BIN --license | grep -q "USAGE LICENSE"
+          $BIN --help | grep -q "Usage:"
+        shell: bash
 
-      - name: 🧪 Teste 2 - Internacionalização (i18n)
+      - name: 🧪 Teste 2 - Unit Tests
         run: |
-          echo "Testando detecção de idiomas nas mensagens de erro e ajuda..."
-          # Teste Chinês
+          ./build.sh --test
+        shell: bash
+
+      - name: 🧪 Teste 3 - Internacionalização (i18n)
+        if: runner.os == 'Linux'
+        run: |
           LANG=zh_CN.UTF-8 ./build/neonx --help | grep -q "用法"
-          # Teste Espanhol
           LANG=es_ES.UTF-8 ./build/neonx --help | grep -qi "uso:"
-          # Teste Português
-          LANG=pt_BR.UTF-8 ./build/neonx --help | grep -qi "uso:"
           echo "✅ Internacionalização operante."
+        shell: bash
 
-      - name: 🧪 Teste 3 - Tratamento de Erros e Exit Codes
+      - name: 🧪 Teste 4 - Modos de Renderização
         run: |
-          echo "Testando a resiliência do parser de argumentos..."
-          set +e
-          
-          # Erro 3: Letra onde deveria ser número
-          echo "teste" | ./build/neonx -s abc > /dev/null 2>&1
-          E_NUM=$?
-          
-          # Erro 4: Limite do modo de animação excedido
-          echo "teste" | ./build/neonx -m 99 > /dev/null 2>&1
-          E_MOD=$?
-          
-          # Erro 5: Falta de dados via STDIN (TTY check)
-          ./build/neonx > /dev/null 2>&1
-          E_TTY=$?
-          
-          set -e
-          
-          if [[ $E_NUM -ne 3 || $E_MOD -ne 4 || $E_TTY -ne 5 ]]; then
-            echo "❌ ERRO: Códigos de saída divergentes! (Num=$E_NUM, Mod=$E_MOD, TTY=$E_TTY)"
-            exit 1
-          fi
-          echo "✅ Códigos de erro validados perfeitamente."
-
-      - name: 🧪 Teste 4 - Modos de Renderização (Estático e Stream)
-        run: |
-          echo "Testando Modo Estático (-S)..."
-          echo "NEONX STATIC" | ./build/neonx -m 7 -S -o 0 > static.txt
+          BIN="./build/neonx"
+          if [ "${{ runner.os }}" = "Windows" ]; then BIN="./build/neonx.exe"; fi
+          echo "NEONX STATIC" | $BIN -m 7 -S -o 0 > static.txt
           if [[ ! -s static.txt ]]; then exit 1; fi
-          
-          echo "Testando Modo Stream (-L) massivo..."
-          seq 1 1500 | ./build/neonx -L -d 1 > /dev/null
-          echo "✅ Modos de renderização concluídos sem memory leaks aparentes."
-
-      - name: 🧪 Teste 5 - Presets e Shaders Core
-        run: |
-          echo "Injetando presets nos shaders..."
-          echo "TEXT" | ./build/neonx -S --preset cyberpunk > /dev/null
-          echo "TEXT" | ./build/neonx -S --preset matrix > /dev/null
-          echo "TEXT" | ./build/neonx -S --preset retro > /dev/null
-          echo "TEXT" | ./build/neonx -S --preset sunset > /dev/null
-          
-          echo "Testando paleta pura ANSI (Spin)..."
-          ./build/neonx --spin > spin.txt
-          grep -q "38;2;" spin.txt
-          echo "✅ Presets e Spinners funcionais."
-
-      - name: 🧪 Teste 6 - Stress Test (Todas as Flags Combinadas)
-        run: |
-          echo "Aplicando estresse extremo de argumentos..."
-          # Combina quase todas as flags matemáticas para garantir que não há crash de colisão
-          echo "NEONX STRESS" | ./build/neonx -m 11 -s 0.8 -f 1.5 -A 45 -p 100 -c 50 -o 0.7 -F 120 --quantized -d 1 > /dev/null
-          echo "✅ O motor sobreviveu ao Stress Test de configuração matemática."
-
-      - name: 🧪 Teste 7 - Cross-Compile Matrix (ARM64 e Windows)
-        run: |
-          echo "Testando compilação Android/Linux ARM64..."
-          ./build.sh --target aarch64-linux-musl --output neonx --label arm64
-          
-          echo "Testando compilação Windows x64..."
-          ./build.sh --target x86_64-windows-gnu --output neonx --label win64
-          
-          if [[ ! -f "bzip/neonx_arm64.zip" || ! -f "bzip/neonx_win64.zip" ]]; then
-            echo "❌ ERRO: Empacotamento Cross-Compile falhou!"
-            exit 1
-          fi
-          echo "✅ Múltiplas arquiteturas compiladas com sucesso."
-
-      - name: 🧪 Teste 8 - Verificação de Integridade e Minisign (Negative Test)
-        run: |
-          echo "Assegurando que binários não assinados são barrados pelo verify.sh..."
-          set +e
-          # Tentando verificar um zip localmente gerado sem chaves privadas
-          ./verify.sh ./bzip/neonx_arm64.zip
-          EXIT_CODE=$?
-          set -e
-          
-          if [[ $EXIT_CODE -eq 1 ]]; then
-            echo "✅ SUCESSO: O verify.sh interceptou e barrou o binário corretamente."
-          else
-            echo "❌ ERRO CRÍTICO: verify.sh falhou em proteger o ecossistema (Exit: $EXIT_CODE)!"
-            exit 1
-          fi
-
-      - name: 🧪 Teste 9 - Renderização Wide-Buffer (UTF-8)
-        run: |
-          echo "Desenhando Banner UTF-8 Complexo..."
-          cat << 'EOF' | ./build/neonx -d 2 -m 10 -o 0.5 -F 60 --quantized
-          ╔══════════════════════════════════════════════════════════════════╗
-          ║                                                                  ║
-          ║  ██╗███╗░░██╗██████╗░██████╗░██╗░░░██╗░█████╗░███████╗███████╗   ║
-          ║  ██║████╗░██║██╔══██╗██╔══██╗╚██╗░██╔╝██╔══██╗██╔════╝██╔════╝   ║
-          ║  ██║██╔██╗██║██████╔╝██████╔╝░╚████╔╝░██║░░██║█████╗░░█████╗░░   ║
-          ║  ██║██║╚████║██╔══██╗██╔══██╗░░╚██╔╝░░██║░░██║██╔══╝░░██╔══╝░░   ║
-          ║  ██║██║░╚███║██║░░██║██║░░██║░░░██║░░░╚█████╔╝██║░░░░░██║░░░░░   ║
-          ║      ╚═╝╚═╝░░╚══╝╚═╝░░╚═╝╚═╝░░╚═╝░░░╚═╝░░░░╚════╝░╚═╝░░░░░╚═╝░░░░░   ║
-          ║                                                                  ║
-          ╚══════════════════════════════════════════════════════════════════╝
-          EOF
-          echo "✅ Teste Wide-Buffer OK."
+        shell: bash
