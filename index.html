@@ -184,7 +184,7 @@
     <div class="input-section">
         <label>Cole sua arte ASCII aqui:</label>
         <textarea id="input-art">
-  _   _                      __  __ 
+  _   _                   __  __ 
  | \ | | ___  ___  _ __   \ \/ / 
  |  \| |/ _ \/ _ \| '_ \   \  /  
  | |\  |  __/ (_) | | | |  /  \  
@@ -219,7 +219,7 @@
     <div class="flags-panel">
         <div class="flag-item">
             <label>Velocidade (-s)</label>
-            <input type="number" id="flag-s" value="0.2" step="0.1" onchange="updateFlags()">
+            <input type="number" id="flag-s" value="0.1" step="0.1" onchange="updateFlags()">
         </div>
         <div class="flag-item">
             <label>Freq (-f)</label>
@@ -242,9 +242,37 @@
         </div>
     </div>
 
-    <div id="output-box">O motor WASM está pronto. Clique em Iniciar.</div>
+    <div id="output-box">Carregando motor WASM... aguarde.</div>
+
+    <script>
+        var Module = {
+            // Se o código em C tentar acessar memória inválida ou falhar, aparece aqui
+            printErr: function(text) {
+                const out = document.getElementById('output-box');
+                if(out) out.innerHTML += '\n<span style="color:#ff3333; font-weight:bold;">[ERRO WASM] ' + text + '</span>';
+            },
+            onAbort: function(what) {
+                const out = document.getElementById('output-box');
+                if(out) out.innerHTML += '\n<span style="color:#ff3333; font-weight:bold;">[CRASH FATAL] ' + what + '</span>';
+            },
+            onRuntimeInitialized: () => {
+                try {
+                    // Inicializa o backend em C
+                    if (Module._neonx_wasm_init) Module._neonx_wasm_init();
+                    
+                    // Atualiza as flags e força o primeiro frame
+                    updateFlags();
+                    renderFrame();
+                } catch (e) {
+                    document.getElementById('output-box').innerHTML += '\n<span style="color:#ff3333; font-weight:bold;">[ERRO JS/C] ' + e.message + '</span>';
+                }
+            }
+        };
+    </script>
 
     <script src="neonx.js"></script>
+
+    <!-- 3. E por fim coloque a lógica da sua interface -->
     <script>
         const ansiUp = new AnsiUp();
         let currentMode = 0;
@@ -256,7 +284,6 @@
         let isStreamMode = false;
         
         // --- Controles de Interface ---
-        
         function toggleDropdown() {
             const dropdown = document.getElementById("mode-dropdown");
             const btn = document.getElementById("mode-btn");
@@ -356,12 +383,6 @@
             }
         }
 
-        Module.onRuntimeInitialized = () => {
-            if (Module._neonx_wasm_init) Module._neonx_wasm_init();
-            updateFlags();
-            renderFrame();
-        };
-
         function renderFrame() {
             const text = document.getElementById('input-art').value;
             if (!text || !Module.ccall) return;
@@ -371,7 +392,6 @@
             const width = Math.max(...lines.map(line => line.length));
 
             if (isStreamMode) {
-                // Modo -L (Line by Line): Igual run_stream_mode no render.c
                 let streamOutput = "";
                 let streamPhase = phase;
                 
@@ -392,13 +412,11 @@
                     streamOutput += ansiUp.ansi_to_html(Module.UTF8ToString(outPtr)) + "\n";
                     Module._free(outPtr);
                     
-                    // Incrementa a fase pra próxima linha gerar o efeito escadinha
                     streamPhase += (speed * 65536); 
                 }
                 document.getElementById('output-box').innerHTML = streamOutput;
 
             } else {
-                // Modo Buffered (Padrão)
                 const outPtr = Module.ccall(
                     'neonx_apply_colors', 
                     'number', 
@@ -415,10 +433,9 @@
             if (!isRunning) return;
             
             renderFrame();
-            phase += (speed * 65536); // Avança a animação global
+            phase += (speed * 65536);
             
             animationId = requestAnimationFrame(renderLoop);
         }
     </script>
 </body>
-</html>
