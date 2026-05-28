@@ -116,11 +116,19 @@ compile_wasm() {
     local out_js="$OUTPUT_DIR/${PROJECT_NAME}.js"
     local out_wasm="$OUTPUT_DIR/${PROJECT_NAME}.wasm"
 
-    emcc -O3 -s WASM=1 \
-        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_wasm_render_canvas", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_gradient_angle", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_malloc", "_free"]' \
+    emcc -O2 -s WASM=1 \
+        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_malloc", "_free"]' \
         -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
         -s ALLOW_MEMORY_GROWTH=1 \
-        -I./src src/neonx_core.c src/neonx_wasm.c -o "$out_js"
+        -s NO_EXIT_RUNTIME=1 \
+        -s EXPORT_ALL=1 \
+        -s "LINKABLE=1" \
+        -g \
+        -I./src \
+        src/neonx_core.c \
+        src/main_wasm.c \
+        src/msgs.c \
+        -o "$out_js"
 
     if [[ $? -ne 0 || ! -f "$out_js" ]]; then
         print_error "Falha na compilação: $label"

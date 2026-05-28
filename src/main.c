@@ -110,14 +110,14 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts)
     for (int i = 1; i < argc; i++) {
         char *arg = argv[i];
 
-        if (!strcmp(arg, "-h") || !strcmp(arg, "--help"))      { opts->show_help_flag = true; continue; }
-        if (!strcmp(arg, "-v") || !strcmp(arg, "--version"))   { opts->show_version_flag = true; continue; }
-        if (!strcmp(arg, "--license"))                         { opts->show_license_flag = true; continue; }
-        if (!strcmp(arg, "--verify-sig"))                      { opts->verify_sig_flag = true; continue; }
-        if (!strcmp(arg, "--spin"))                            { opts->spin_flag = true; continue; }
-        if (!strcmp(arg, "-S"))                                { opts->static_mode = true; continue; }
-        if (!strcmp(arg, "-L"))                                { opts->stream_mode = true; continue; }
-        if (!strcmp(arg, "--quantized"))                       { shaders_set_quantization(true); continue; }
+        if (!strcmp(arg, "-h") || !strcmp(arg, "--help")) { opts->show_help_flag = true; continue; }
+        if (!strcmp(arg, "-v") || !strcmp(arg, "--version")) { opts->show_version_flag = true; continue; }
+        if (!strcmp(arg, "--license")) { opts->show_license_flag = true; continue; }
+        if (!strcmp(arg, "--verify-sig")) { opts->verify_sig_flag = true; continue; }
+        if (!strcmp(arg, "--spin")) { opts->spin_flag = true; continue; }
+        if (!strcmp(arg, "-S")) { opts->static_mode = true; continue; }
+        if (!strcmp(arg, "-L")) { opts->stream_mode = true; continue; }
+        if (!strcmp(arg, "--quantized")) { shaders_set_quantization(true); continue; }
 
         if (!strcmp(arg, "--lang") && i + 1 < argc) {
             msgs_set_language(argv[++i]);

@@ -1,6 +1,7 @@
 # 🌈 NeonX – Shaders Avançadas para Terminal
 
-[![Versão](https://img.shields.io/badge/version-2.0.7--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.1.0--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Web Site](https://img.shields.io/badge/website-online-brightgreen)](https://neonx-web.netlify.app/)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Android%20%7C%20Windows-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
 [![Build Oficial](https://img.shields.io/badge/build-oficial-green)]()
@@ -29,6 +30,14 @@ O **NeonX** é um filtro de cores para o terminal. Você envia um texto via `std
 ---
 
 ## 🚀 Uso rápido
+
+### 🌐 Experimente online
+
+Teste o NeonX diretamente no seu navegador:  
+👉 **[NeonX Web Player](https://neonx-web.netlify.app/)** – sem instalação, com todos os 11 shaders e controles em tempo real.
+
+### Exemplos
+
 <details>
 <summary>Ver Exemplo</summary>
 
@@ -74,6 +83,8 @@ cat banner.txt | neonx -S
 *(Nota: O NeonX possui também uma flag oculta --verify-sig utilizada exclusivamente por scripts de segurança para verificar a validação matemática interna).*
 </details>
 
+---
+
 ## 🎨 Modos de animação (shaders)
 <details>
 <summary>Ver todos os modos</summary>
@@ -94,6 +105,8 @@ cat banner.txt | neonx -S
 | **11** | Pulso expansivo | Ondas circulares partindo do centro |
 </details>
 
+---
+
 ## 🎯 Presets
 Os presets ajustam automaticamente várias opções para um tema específico:
 | Preset | Modo | Velocidade | Frequência | Ângulo |
@@ -106,8 +119,10 @@ Os presets ajustam automaticamente várias opções para um tema específico:
 * Exemplo de uso combinado:
 ```bash
 cat arquivo.txt | neonx --preset matrix -F 30 -d 5
-
 ```
+
+---
+
 ## 🔒 Integridade e Dupla Blindagem
 O NeonX adota um sistema de segurança extremo, criando um "beco sem saída" para arquivos modificados através de uma arquitetura de **Dupla Blindagem**:
  1. **Auto-verificação Matemática (Interna):** O executável contém o motor criptográfico Monocypher embutido. Ao rodar o projeto, o próprio código em C cruza seu pacote de dados com a chave pública e uma assinatura Ed25519 de 128 bytes anexada no final do arquivo. Se 1 byte for alterado, o binário acusa o status **MODIFICADO** no comando --version.
@@ -121,6 +136,8 @@ O NeonX adota um sistema de segurança extremo, criando um "beco sem saída" par
 > ./verify.sh ./neonx
 > 
 > ```
+
+---
 
 ## 📦 Instalação Rápida (Via Terminal)
 
@@ -205,6 +222,8 @@ Move-Item -Path ".\neonx.exe" -Destination "C:\Windows\System32\" -Force
 ```
 </details>
 
+---
+
 ## 🧑‍💻 Para Desenvolvedores (Build Local)
 Quer compilar você mesmo, modificar ou entender a arquitetura?
 ```bash
@@ -225,7 +244,6 @@ Veja o texto completo com neonx --license ou no arquivo [LICENSE](./LICENSE).
 
 ---
 
-
 ## 📱 História
 <details>
 <summary>Ver História</summary>
@@ -237,4 +255,3 @@ Para provar que engenharia de software de verdade não exige setups caros com m�
 Desde a primeira linha escrita em C puro, passando pela matemática trigonométrica em ponto fixo dos shaders, a compilação cruzada via Zig, até a implementação de assinaturas criptográficas Ed25519 (Monocypher) e a integração contínua (CI/CD) no GitHub Actions — tudo foi auditado, codificado e testado no bolso.
 Engenharia sob fortes restrições gera inovação e pragmatismo. Espero que o NeonX deixe o seu terminal tão incrível quanto foi a jornada de criá-lo! 🚀📱
 </details>
-
