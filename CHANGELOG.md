@@ -2,6 +2,12 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.1.4-STABLE] – 2026
+
+### Corrigido
+- **Bug de Opacidade (-o):** Correção de erro de escala na aritmética de ponto-fixo que causava tela preta ao utilizar a flag de opacidade em certos modos (especialmente `-m 7`).
+- **Limpeza de Código:** Remoção de funções legadas e redundantes de configuração de opacidade.
+
 ## [2.1.3-STABLE] – 2026
 
 ### Adicionado

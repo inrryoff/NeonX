@@ -27,7 +27,7 @@ echo "NeonX Engine" | neonx --preset cyberpunk -d 5
 
 ---
 
-## ✨ Destaques da v2.1.3-STABLE
+## ✨ Destaques da v2.1.4-STABLE
 
 - **Performance Extrema:** Matemática de ponto fixo (Fixed-Point) para garantir zero overhead de FPU.
 - **Segurança Reforçada:** Novo parser numérico robusto e blindagem Ed25519 (Monocypher).
@@ -112,7 +112,7 @@ neonx --lang en -v
 
 ## 📦 Instalação
 
-Escolha sua plataforma e siga as instruções para instalar a versão **v2.1.3-STABLE**:
+Escolha sua plataforma e siga as instruções para instalar a versão **v2.1.4-STABLE**:
 
 ### 🐧 Linux
 <details>
