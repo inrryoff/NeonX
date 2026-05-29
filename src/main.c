@@ -66,13 +66,17 @@ static int32_t str_to_fixed(const char *s) {
 
 // ==================== Processamento de Argumentos ====================
 
-#ifdef __GNUC__
-__attribute__((format(printf, 1, 2)))
-#endif
 static void print_error_msg(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
     vfprintf(stderr, fmt, args);
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
     va_end(args);
 }
 

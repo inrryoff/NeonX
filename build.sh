@@ -32,7 +32,10 @@ fi
 HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wstrict-overflow=5 -fstack-clash-protection"
 HARDENING_LDFLAGS=""
 ARCH=$(uname -m)
-if [[ "$OSTYPE" != "msys"* && "$OSTYPE" != "cygwin"* && "$OSTYPE" != "win32"* && "$WINDOWS_HOST" != "true" ]]; then
+
+# Aplicar flags de hardening apenas em sistemas que usam GNU ld ou LLD (Linux Desktop/Server)
+# Evitar em Android/Termux e macOS onde o linker pode ser diferente ou mais restrito.
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     HARDENING_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--as-needed"
     if [[ "$ARCH" == "x86_64" || "$ARCH" == "i686" ]]; then
         HARDENING_CFLAGS="$HARDENING_CFLAGS -fcf-protection=full"
