@@ -1,6 +1,13 @@
 #include "neonx_core.h"
-#include <math.h>
 #include <stdlib.h>
+#include <time.h>
+#include <math.h>
+
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h> 
+#endif
 
 // Tamanho da LUT
 #define LUT_SIZE 4096
@@ -10,9 +17,9 @@
 #define RAD_TO_INDEX_FIXED 42722831L
 
 // Variáveis globais estáticas (encapsuladas)
-static int32_t freq_fixed = FLOAT_TO_FIXED(0.3f);
+static int32_t freq_fixed = 19660; // 0.3 em ponto fixo
 static int32_t opacity_fixed = 0;
-static int32_t gradient_angle_fixed = FLOAT_TO_FIXED(-1.0f);
+static int32_t gradient_angle_fixed = -65536; // -1.0 em ponto fixo
 static bool use_quantization = false;
 static int32_t sin_lut_fixed[LUT_SIZE];
 
@@ -20,17 +27,25 @@ static int32_t sin_lut_fixed[LUT_SIZE];
 static int32_t grad_cos_fixed = 0;
 static int32_t grad_sin_fixed = 0;
 
+uint32_t secure_random_u32(void) {
+#ifndef _WIN32
+    return (uint32_t)time(NULL) ^ (uint32_t)getpid();
+#else
+    return (uint32_t)time(NULL) ^ (uint32_t)_getpid();
+#endif
+}
+
 void neonx_init_lut(void) {
     for(int i = 0; i < LUT_SIZE; i++) {
-        sin_lut_fixed[i] = FLOAT_TO_FIXED(sin(2.0 * M_PI * i / LUT_SIZE));
+        sin_lut_fixed[i] = (int32_t)(sin(2.0 * M_PI * i / LUT_SIZE) * 65536.0);
     }
 }
 
 static void precalc_gradient_angle(void) {
     if (gradient_angle_fixed >= 0) {
-        float rad = FIXED_TO_FLOAT(gradient_angle_fixed) * M_PI / 180.0f;
-        grad_cos_fixed = FLOAT_TO_FIXED(cosf(rad));
-        grad_sin_fixed = FLOAT_TO_FIXED(sinf(rad));
+        double rad = ((double)gradient_angle_fixed / 65536.0) * M_PI / 180.0;
+        grad_cos_fixed = (int32_t)(cos(rad) * 65536.0);
+        grad_sin_fixed = (int32_t)(sin(rad) * 65536.0);
     }
 }
 
@@ -41,7 +56,7 @@ uint32_t neonx_isqrt64(uint64_t n) {
     while (bit != 0) {
         if (n >= root + bit) {
             n -= root + bit;
-            root = (root >> 1) + bit;
+            root = (uint32_t)((root >> 1) + bit);
         } else {
             root >>= 1;
         }
@@ -53,7 +68,7 @@ uint32_t neonx_isqrt64(uint64_t n) {
 int32_t neonx_fast_dist_fixed(int32_t dx, int32_t dy) {
     int64_t dx_normal = dx >> FIXED_SHIFT;
     int64_t dy_normal = dy >> FIXED_SHIFT;
-    uint64_t sq = (dx_normal * dx_normal) + (dy_normal * dy_normal);
+    uint64_t sq = (uint64_t)((dx_normal * dx_normal) + (dy_normal * dy_normal));
     return (int32_t)(neonx_isqrt64(sq) << FIXED_SHIFT);
 }
 
@@ -70,8 +85,8 @@ int32_t neonx_fast_sin_fixed(int32_t x_fixed) {
 // --- SHADERS INTERNOS ---
 
 static int32_t shader_sunset_fixed(int32_t x, int32_t y, int32_t phase) {
-    int32_t p1 = FIXED_MUL(x, FLOAT_TO_FIXED(0.15f)) + phase;
-    int32_t p2 = FIXED_MUL(y, FLOAT_TO_FIXED(0.15f)) + (phase >> 1);
+    int32_t p1 = FIXED_MUL(x, 9830) + phase;
+    int32_t p2 = FIXED_MUL(y, 9830) + (phase >> 1);
     return neonx_fast_sin_fixed(p1) + neonx_fast_sin_fixed(p2);
 }
 
@@ -84,16 +99,16 @@ static inline int32_t pseudo_rand(int32_t x, int32_t y, int32_t phase) {
 }
 
 static int32_t shader_matrix_fixed(int32_t x, int32_t y, int32_t phase, int32_t *intensity) {
-    int32_t p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.1f)) + FIXED_MUL(y, FLOAT_TO_FIXED(0.1f));
-    int32_t pulse = FIXED_MUL(neonx_fast_sin_fixed(FIXED_MUL(phase, 3)), FLOAT_TO_FIXED(0.15f)) + FLOAT_TO_FIXED(0.85f);
+    int32_t p = phase + FIXED_MUL(x, 6553) + FIXED_MUL(y, 6553);
+    int32_t pulse = FIXED_MUL(neonx_fast_sin_fixed(FIXED_MUL(phase, 3)), 9830) + 55705;
     int32_t y_int = y >> FIXED_SHIFT;
     int32_t phase_int = (FIXED_MUL(phase, 5)) >> FIXED_SHIFT;
     int32_t y_mod_int = (y_int - phase_int) % 10;
     if (y_mod_int < 0) y_mod_int += 10;
-    int32_t scanline = (y_mod_int < 1) ? FLOAT_TO_FIXED(0.7f) : FIXED_ONE;
-    int32_t sparkle = (pseudo_rand(x, y, phase) % 100 > 98) ? FLOAT_TO_FIXED(0.5f) : FIXED_ONE;
+    int32_t scanline = (y_mod_int < 1) ? 45875 : FIXED_ONE;
+    int32_t sparkle = (pseudo_rand(x, y, phase) % 100 > 98) ? 32768 : FIXED_ONE;
     *intensity = FIXED_MUL(FIXED_MUL(pulse, scanline), sparkle);
-    if (*intensity < FLOAT_TO_FIXED(0.15f)) *intensity = FLOAT_TO_FIXED(0.15f);
+    if (*intensity < 9830) *intensity = 9830;
     return p;
 }
 
@@ -104,7 +119,7 @@ static int32_t shader_pulse_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, 
     int32_t p = dist - phase;
     int32_t sin_val = neonx_fast_sin_fixed((dist >> 1) - (phase << 1));
     *intensity = (sin_val + FIXED_ONE) >> 1;
-    *intensity = FIXED_MUL(*intensity, FLOAT_TO_FIXED(0.8f)) + FLOAT_TO_FIXED(0.2f);
+    *intensity = FIXED_MUL(*intensity, 52428) + 13107;
     return p;
 }
 
@@ -135,33 +150,33 @@ void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int
     case 1: p = shader_sunset_fixed(x, y, phase); break;
     case 2: p = phase; break;
     case 3: p = (y >> 1) + phase; break;
-    case 4: p = FIXED_MUL(y, FLOAT_TO_FIXED(0.8f)) + FIXED_MUL(neonx_fast_sin_fixed(FIXED_MUL(x, FLOAT_TO_FIXED(0.3f))), FLOAT_TO_FIXED(3.0f)) + phase; break;
+    case 4: p = FIXED_MUL(y, 52428) + FIXED_MUL(neonx_fast_sin_fixed(FIXED_MUL(x, 19660)), 196608) + phase; break;
     case 5: p = neonx_fast_dist_fixed(x - cx, y - cy) - phase; break;
-    case 6: p = FIXED_MUL(FIXED_MUL(neonx_fast_sin_fixed(FIXED_MUL(x, FLOAT_TO_FIXED(0.2f))), neonx_fast_sin_fixed(FIXED_MUL(y, FLOAT_TO_FIXED(0.2f)) + FIXED_PI_2)), FLOAT_TO_FIXED(10.0f)) + phase; break;
+    case 6: p = FIXED_MUL(FIXED_MUL(neonx_fast_sin_fixed(FIXED_MUL(x, 13107)), neonx_fast_sin_fixed(FIXED_MUL(y, 13107) + FIXED_PI_2)), 655360) + phase; break;
     case 7: {
-        p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.1f));
+        p = phase + FIXED_MUL(x, 6553);
         int32_t diff = x > cx ? x - cx : cx - x;
         int32_t ratio = (cx == 0) ? 0 : (int32_t)(((int64_t)diff * FIXED_ONE) / cx);
-        intensity = FIXED_ONE - FIXED_MUL(ratio, FLOAT_TO_FIXED(0.8f));
-        if(intensity < FLOAT_TO_FIXED(0.2f)) intensity = FLOAT_TO_FIXED(0.2f);
+        intensity = FIXED_ONE - FIXED_MUL(ratio, 52428);
+        if(intensity < 13107) intensity = 13107;
         break;
     }
     case 8: {
-        p = phase + FIXED_MUL(y, FLOAT_TO_FIXED(0.2f));
+        p = phase + FIXED_MUL(y, 13107);
         int32_t diff = y > cy ? y - cy : cy - y;
         int32_t ratio = (cy == 0) ? 0 : (int32_t)(((int64_t)diff * FIXED_ONE) / cy);
-        intensity = FIXED_ONE - FIXED_MUL(ratio, FLOAT_TO_FIXED(0.7f));
-        if(intensity < FLOAT_TO_FIXED(0.3f)) intensity = FLOAT_TO_FIXED(0.3f);
+        intensity = FIXED_ONE - FIXED_MUL(ratio, 45875);
+        if(intensity < 19660) intensity = 19660;
         break;
     }
     case 9:
-        p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.1f));
-        intensity = ((x >> FIXED_SHIFT) % 2 == 0) ? FIXED_ONE : FLOAT_TO_FIXED(0.6f);
+        p = phase + FIXED_MUL(x, 6553);
+        intensity = ((x >> FIXED_SHIFT) % 2 == 0) ? FIXED_ONE : 39321;
         break;
     case 10: p = shader_matrix_fixed(x, y, phase, &intensity); break;
     case 11: p = shader_pulse_fixed(x, y, cx, cy, phase, &intensity); break;
     default:
-        p = phase + FIXED_MUL(x, FLOAT_TO_FIXED(0.2f)) + FIXED_MUL(y, FLOAT_TO_FIXED(0.1f));
+        p = phase + FIXED_MUL(x, 13107) + FIXED_MUL(y, 6553);
         if (gradient_angle_fixed >= 0) {
             p += FIXED_MUL(grad_cos_fixed, x) + FIXED_MUL(grad_sin_fixed, y);
         }
@@ -171,8 +186,8 @@ void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int
 
     int32_t base_phase = FIXED_MUL(freq_fixed, p);
     int32_t sin_r = neonx_fast_sin_fixed(base_phase);
-    int32_t sin_g = neonx_fast_sin_fixed(base_phase + FLOAT_TO_FIXED(2.094f));
-    int32_t sin_b = neonx_fast_sin_fixed(base_phase + FLOAT_TO_FIXED(4.188f));
+    int32_t sin_g = neonx_fast_sin_fixed(base_phase + 137233);
+    int32_t sin_b = neonx_fast_sin_fixed(base_phase + 274466);
 
     int raw_r = ((sin_r * 127) >> FIXED_SHIFT) + 128;
     int raw_g = ((sin_g * 127) >> FIXED_SHIFT) + 128;

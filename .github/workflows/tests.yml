@@ -27,61 +27,47 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y minisign unzip expect jq
-          chmod +x *.sh
+          chmod +x *.sh tests/*.sh
 
       - name: ⚙️ Instalar Dependências (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install minisign
-          chmod +x *.sh
+          chmod +x *.sh tests/*.sh
 
       - name: ⚙️ Instalar Dependências (Windows)
         if: runner.os == 'Windows'
         run: |
           choco install minisign
-          # Permissões no Windows são diferentes, mas o bash do runner ajuda
-          chmod +x *.sh || true
+          chmod +x *.sh tests/*.sh || true
 
-      - name: 🛠️ Build 1 - Script Genérico (--native)
-        run: |
-          echo "Testando compilação genérica via build.sh..."
-          ./build.sh --native
-        shell: bash
-
-      - name: 🛠️ Build 2 - Script Termux Edition (Make-NeonX.sh)
-        if: runner.os != 'Windows'
-        run: |
-          echo "Testando auto-versionamento e pipeline interativa..."
-          # Passa "1" e "0" para navegar no menu interativo (Build Nativa e Sair)
-          echo -e "1\n0\n" | ./Make-NeonX.sh
-        shell: bash
-
-      - name: 🧪 Teste 1 - Core Info
-        run: |
-          BIN="./build/neonx"
-          if [ "${{ runner.os }}" = "Windows" ]; then BIN="./build/neonx.exe"; fi
-          $BIN -v | grep -q "NeonX"
-          $BIN --license | grep -q "USAGE LICENSE"
-          $BIN --help | grep -q "Usage:"
-        shell: bash
-
-      - name: 🧪 Teste 2 - Unit Tests
+      - name: 🛠️ Build e Teste Completo (Nativo + Integração)
         run: |
           ./build.sh --test
         shell: bash
 
-      - name: 🧪 Teste 3 - Internacionalização (i18n)
-        if: runner.os == 'Linux'
-        run: |
-          LANG=zh_CN.UTF-8 ./build/neonx --help | grep -q "用法"
-          LANG=es_ES.UTF-8 ./build/neonx --help | grep -qi "uso:"
-          echo "✅ Internacionalização operante."
-        shell: bash
-
-      - name: 🧪 Teste 4 - Modos de Renderização
+      - name: 🧪 Teste Avançado de Estabilidade (Fuzzing leve de flags)
         run: |
           BIN="./build/neonx"
           if [ "${{ runner.os }}" = "Windows" ]; then BIN="./build/neonx.exe"; fi
-          echo "NEONX STATIC" | $BIN -m 7 -S -o 0 > static.txt
-          if [[ ! -s static.txt ]]; then exit 1; fi
+          
+          echo "Testando combinações complexas..."
+          # Stream + Preset + Quantização
+          echo "Stream Test" | $BIN -L --preset matrix --quantized -d 0.1
+          
+          # Opacidade extrema + Ângulo + Modo Radial
+          echo "Visual Test" | $BIN -m 5 -o 1.0 -A 359 -S
+          
+          # Spin redirection
+          $BIN --spin | grep -q "38;2;"
+          
+          echo "✅ Estabilidade confirmada."
+        shell: bash
+
+      - name: 🧪 Teste 4 - Internacionalização (i18n)
+        if: runner.os == 'Linux'
+        run: |
+          ./build/neonx --lang zh --help | grep -q "用法"
+          ./build/neonx --lang es --help | grep -qi "uso:"
+          echo "✅ Internacionalização operante."
         shell: bash

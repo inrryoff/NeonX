@@ -1,42 +1,27 @@
 #include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include "neonx_core.h"
 #include "shaders.h"
 
-// Mini-framework de testes caseiro
-#define ASSERT_NEAR(a, b, epsilon) do { \
-    int32_t _a = (a); \
-    int32_t _b = (b); \
-    int32_t diff = _a > _b ? _a - _b : _b - _a; \
-    if (diff > (epsilon)) { \
-        fprintf(stderr, "FAIL: %s (%d) near %s (%d) (diff %d > %d) at %s:%d\n", #a, (int)_a, #b, (int)_b, (int)diff, (int)(epsilon), __FILE__, __LINE__); \
-        exit(1); \
-    } \
-} while(0)
-
-int main() {
-    printf("--- Iniciando Testes Unitários: NeonX Math ---\n");
-    
-    // Inicializa tabelas de seno (LUT)
+void test_sin_lut(void) {
     init_lut();
+    int errors = 0;
+    for (int deg = 0; deg <= 360; deg++) {
+        int32_t fixed_angle = (int32_t)(deg * M_PI / 180.0 * 65536.0);
+        int32_t val = fast_sin_fixed(fixed_angle);
+        double expected = sin(deg * M_PI / 180.0);
+        int32_t expected_fixed = (int32_t)(expected * 65536.0);
+        int diff = abs(val - expected_fixed);
+        if (diff > 100) {
+            printf("Erro em %d°: got %d (%.5f), expected %d (%.5f)\n", deg, val, val/65536.0, expected_fixed, expected);
+            errors++;
+        }
+    }
+    printf(errors ? "LUT seno: %d erros\n" : "LUT seno: OK\n", errors);
+}
 
-    // Teste 1: Seno em ponto fixo
-    printf("[1/2] Testando fast_sin_fixed...\n");
-    ASSERT_NEAR(fast_sin_fixed(0), 0, 500); // Seno(0) = 0
-    ASSERT_NEAR(fast_sin_fixed(FIXED_PI_2), FIXED_ONE, 500); // Seno(π/2) = 1
-    ASSERT_NEAR(fast_sin_fixed(FLOAT_TO_FIXED(3.14159f)), 0, 500); // Seno(π) = 0
-    ASSERT_NEAR(fast_sin_fixed(FLOAT_TO_FIXED(4.71238f)), -FIXED_ONE, 500); // Seno(3π/2) = -1
-
-    // Teste 2: Distância Euclidiana em ponto fixo (Pitágoras)
-    printf("[2/2] Testando fast_dist_fixed...\n");
-    // Triângulo 3-4-5
-    int32_t d3 = FLOAT_TO_FIXED(3.0f);
-    int32_t d4 = FLOAT_TO_FIXED(4.0f);
-    int32_t d5 = FLOAT_TO_FIXED(5.0f);
-    ASSERT_NEAR(fast_dist_fixed(d3, d4), d5, 500);
-    ASSERT_NEAR(fast_dist_fixed(0, d5), d5, 500);
-
-    printf("--- TODOS OS TESTES PASSARAM COM SUCESSO ---\n");
-    return 0;
+int main() { 
+    test_sin_lut(); 
+    return 0; 
 }

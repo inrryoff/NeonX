@@ -1,54 +1,50 @@
-#!/usr/bin/env bash
+## build.sh
 set -e
-
-# =====================================================
-# NeonX Builder – CI & Generic Developer Edition
-# =====================================================
-
-# --------------------------------------------------
-# Portabilidade de Dispositivo Nulo (Estilo #ifndef _WIN32)
-# --------------------------------------------------
-if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* ]]; then
+if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* || "$(uname 2>/dev/null)" == *"MINGW"* || "$(uname 2>/dev/null)" == *"MSYS"* ]]; then
     NULL_DEV="NUL"
+    WINDOWS_HOST="true"
 else
     NULL_DEV="/dev/null"
+    WINDOWS_HOST="false"
 fi
-
-# Cores
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 RED='\033[0;31m'
 NC='\033[0m'
-
-# --------------------------------------------------
-# Configurações de Identidade (Versão Genérica)
-# --------------------------------------------------
 VERSION="DEVELOPMENT-BUILD"
 BUILD_STATUS="UNOFFICIAL_BUILD"
 BUILD_MAINTAINER="COMMUNITY"
-
-# Diretórios
 SRC_DIR="src"
 TOOLS_DIR="tools"
 OUTPUT_DIR="build"
 ZIP_DIR="bzip"
 PROJECT_NAME="neonx"
 
-# --------------------------------------------------
-# Flags de Compilação & Performance
-# --------------------------------------------------
 if [[ "$PORTABLE" == "1" ]]; then
     TUNE_FLAGS="-march=x86-64"
-    PERF_FLAGS="-O3 -fno-math-errno -flto -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
+    PERF_FLAGS="-O3 -fno-math-errno -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
 else
     TUNE_FLAGS="-march=native"
-    PERF_FLAGS="-O3 -ffast-math -flto -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
+    PERF_FLAGS="-O3 -ffast-math -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
 fi
 
-# --------------------------------------------------
-# Funções Auxiliares
-# --------------------------------------------------
+HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wstrict-overflow=5 -fstack-clash-protection"
+HARDENING_LDFLAGS=""
+ARCH=$(uname -m)
+if [[ "$OSTYPE" != "msys"* && "$OSTYPE" != "cygwin"* && "$OSTYPE" != "win32"* && "$WINDOWS_HOST" != "true" ]]; then
+    HARDENING_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--as-needed"
+    if [[ "$ARCH" == "x86_64" || "$ARCH" == "i686" ]]; then
+        HARDENING_CFLAGS="$HARDENING_CFLAGS -fcf-protection=full"
+    fi
+fi
+
+MATH_LIB="-lm"
+if [[ "$WINDOWS_HOST" == "true" ]]; then
+    PERF_FLAGS="$PERF_FLAGS"
+    MATH_LIB=""
+fi
+
 print_info()    { echo -e "${CYAN}ℹ $1${NC}"; }
 print_success() { echo -e "${GREEN}✓ $1${NC}"; }
 print_warn()    { echo -e "${YELLOW}⚠ $1${NC}"; }
@@ -63,95 +59,83 @@ check_deps() {
     done
 }
 
-# --------------------------------------------------
-# Geração do Pacote ZIP
-# --------------------------------------------------
 create_zip() {
     local binary_path="$1"
     local label="$2"
     local is_windows="$3"
-
     if ! command -v zip &> "$NULL_DEV"; then
         print_error "Comando 'zip' não instalado. Não foi possível gerar o pacote comprimido."
         return 1
     fi
-
     print_info "Criando pacote ZIP para a build: $label..."
     local internal_bin_name="$PROJECT_NAME"
-
     if [[ "$is_windows" == "true" ]]; then
         internal_bin_name="${PROJECT_NAME}.exe"
     fi
-
     local zip_name="${PROJECT_NAME}_${label}.zip"
     local tmp_dir
     tmp_dir=$(mktemp -d)
     cp "$binary_path" "$tmp_dir/$internal_bin_name"
-
     (cd "$tmp_dir" && zip -q "$zip_name" "$internal_bin_name")
     mv "$tmp_dir/$zip_name" "$ZIP_DIR/"
     rm -rf "$tmp_dir"
     print_success "Arquivo gerado com sucesso: $ZIP_DIR/$zip_name"
 }
 
-# --------------------------------------------------
-# Compilação WebAssembly (Integrada)
-# --------------------------------------------------
 compile_wasm() {
     local label="wasm"
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build genérica: WebAssembly ($label)"
     mkdir -p "$OUTPUT_DIR" "$ZIP_DIR"
-
     if ! command -v emcc &> "$NULL_DEV"; then
         export PATH="$PATH:/data/data/com.termux/files/usr/opt/emscripten"
     fi
-
     if ! command -v emcc &> "$NULL_DEV"; then
         print_error "Emscripten (emcc) não encontrado no PATH."
         print_info "Instale via: pkg install emscripten"
         return 1
     fi
-
     local out_js="$OUTPUT_DIR/${PROJECT_NAME}.js"
     local out_wasm="$OUTPUT_DIR/${PROJECT_NAME}.wasm"
-
-    emcc -O3 -s WASM=1 \
-        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_wasm_render_canvas", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_gradient_angle", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_malloc", "_free"]' \
+    emcc -O2 -s WASM=1 \
+        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_malloc", "_free"]' \
         -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
         -s ALLOW_MEMORY_GROWTH=1 \
-        -I./src src/neonx_core.c src/neonx_wasm.c -o "$out_js"
-
+        -s NO_EXIT_RUNTIME=1 \
+        -g \
+        -I./src \
+        src/neonx_core.c \
+        src/main_wasm.c \
+        src/msgs.c \
+        -o "$out_js"
     if [[ $? -ne 0 || ! -f "$out_js" ]]; then
         print_error "Falha na compilação: $label"
         return 1
     fi
-
     print_info "Criando pacote ZIP para a build: $label..."
     local zip_name="${PROJECT_NAME}_${label}.zip"
     local tmp_dir
     tmp_dir=$(mktemp -d)
-    
     cp "$out_js" "$out_wasm" "$tmp_dir/"
     (cd "$tmp_dir" && zip -q "$zip_name" "${PROJECT_NAME}.js" "${PROJECT_NAME}.wasm")
     mv "$tmp_dir/$zip_name" "$ZIP_DIR/"
     rm -rf "$tmp_dir"
-    
     print_success "Build $label concluída!"
 }
 
-# --------------------------------------------------
-# Compilação de Ferramentas Auxiliares
-# --------------------------------------------------
 building_tools() {
     print_info "Verificando ferramentas internas em $TOOLS_DIR/..."
     mkdir -p "$TOOLS_DIR"
+    local extra_flags=""
+    if [[ "$WINDOWS_HOST" == "true" ]]; then
+        extra_flags="-D_CRT_SECURE_NO_WARNINGS"
+    fi
     for tool_src in "$TOOLS_DIR"/*.c; do
         [[ -e "$tool_src" ]] || continue
         local tool_bin="${tool_src%.c}"
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
             print_info "Compilando ferramenta host: $(basename "$tool_src")..."
-            if clang "$tool_src" -o "$tool_bin" -O2 2> "$NULL_DEV"; then
+            if clang "$tool_src" -o "$tool_bin" -O2 $extra_flags $HARDENING_FLAGS 2> "$NULL_DEV"; then
                 print_success "Ferramenta $(basename "$tool_bin") pronta!"
             else
                 print_warn "Falha ou falta de clang ao compilar $(basename "$tool_src") (não afeta o build genérico)."
@@ -160,9 +144,6 @@ building_tools() {
     done
 }
 
-# --------------------------------------------------
-# Núcleo de Compilação
-# --------------------------------------------------
 compile_tool() {
     local target="$1"
     local bin_out="$2"
@@ -172,35 +153,49 @@ compile_tool() {
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build genérica: $label"
     local final_bin="$OUTPUT_DIR/${bin_out}_${label}"
-    
     if [[ "$label" == "native" ]]; then
         final_bin="$OUTPUT_DIR/${bin_out}"
+        if [[ "$WINDOWS_HOST" == "true" ]]; then
+            final_bin="${final_bin}.exe"
+        fi
     fi
-
     local is_windows="false"
     local active_perf_flags="$PERF_FLAGS"
-
-    if [[ "$label" == *"windows"* ]]; then
+    if [[ "$label" == *"windows"* || ("$label" == "native" && "$WINDOWS_HOST" == "true") ]]; then
         is_windows="true"
         active_perf_flags="${active_perf_flags//-flto/}"
     fi
+    local lib_prefix="lib"
+    local lib_ext="a"
+    if [[ "$WINDOWS_HOST" == "true" && "$is_native" == "true" ]]; then
+        lib_prefix=""
+        lib_ext="lib"
+    fi
+    local target_math_lib="$MATH_LIB"
+    if [[ "$is_windows" == "true" ]]; then
+        target_math_lib=""
+    fi
+
+    if [[ "$SANITIZE" == "1" ]]; then
+        SANITIZER_FLAGS="-fsanitize=address,undefined -g -O1"
+    else
+        SANITIZER_FLAGS=""
+    fi
 
     if [[ "$is_native" == "true" ]]; then
-        clang -c "$SRC_DIR/neonx_core.c" -o "$OUTPUT_DIR/neonx_core.o" $TUNE_FLAGS $active_perf_flags
-        ar rcs "$OUTPUT_DIR/libneonx_core.a" "$OUTPUT_DIR/neonx_core.o"
-
+        clang -c "$SRC_DIR/neonx_core.c" -o "$OUTPUT_DIR/neonx_core.o" $TUNE_FLAGS $active_perf_flags $SANITIZER_FLAGS $HARDENING_CFLAGS
+        ar rcs "$OUTPUT_DIR/${lib_prefix}neonx_core.${lib_ext}" "$OUTPUT_DIR/neonx_core.o" 2> "$NULL_DEV" || true
         clang "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
+            "$OUTPUT_DIR/neonx_core.o" \
             -o "$final_bin" \
-            -L"$OUTPUT_DIR" -lneonx_core \
             $TUNE_FLAGS $active_perf_flags $DEV_KEY_MACRO \
             -DVERSION="\"$VERSION\"" \
             -DBUILD_STATUS="\"$BUILD_STATUS\"" \
             -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-            $DEV_FLAG -lm
+            $DEV_FLAG $target_math_lib $SANITIZER_FLAGS $HARDENING_CFLAGS $HARDENING_LDFLAGS
     else
-        zig cc -c "$SRC_DIR/neonx_core.c" -o "$OUTPUT_DIR/neonx_core.o" -target "$target" $active_perf_flags
-        ar rcs "$OUTPUT_DIR/libneonx_core.a" "$OUTPUT_DIR/neonx_core.o"
-
+        zig cc -c "$SRC_DIR/neonx_core.c" -o "$OUTPUT_DIR/neonx_core.o" -target "$target" $active_perf_flags $SANITIZER_FLAGS $HARDENING_CFLAGS
+        ar rcs "$OUTPUT_DIR/libneonx_core.a" "$OUTPUT_DIR/neonx_core.o" 2> "$NULL_DEV" || true
         zig cc "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
             -o "$final_bin" -target "$target" \
             -L"$OUTPUT_DIR" -lneonx_core \
@@ -208,40 +203,40 @@ compile_tool() {
             -DVERSION="\"$VERSION\"" \
             -DBUILD_STATUS="\"$BUILD_STATUS\"" \
             -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-            $DEV_FLAG -lm
+            $DEV_FLAG $target_math_lib $SANITIZER_FLAGS $HARDENING_CFLAGS $HARDENING_LDFLAGS
     fi
-
     if [[ $? -ne 0 ]]; then
         print_error "Falha na compilação: $label"
         return 1
     fi
-
     if [[ "$is_windows" == "true" ]]; then
         rm -f "$OUTPUT_DIR"/*.pdb 2> "$NULL_DEV" || true
     fi
-
     print_success "Build $label concluída!"
     create_zip "$final_bin" "$label" "$is_windows"
 }
 
-# --------------------------------------------------
-# Modo de Execução (CI vs Interativo)
-# --------------------------------------------------
 check_deps
-
 if [[ $# -gt 0 ]]; then
     TARGET=""
     OUTPUT_BIN="$PROJECT_NAME"
     LABEL=""
     IS_NATIVE="false"
-
     while [[ $# -gt 0 ]]; do
         case $1 in
             --test)
-                print_info "Iniciando testes unitários..."
+                print_info "Iniciando testes unitários e de integração..."
                 mkdir -p "$OUTPUT_DIR/tests"
-                clang tests/unit/test_math.c src/shaders.c src/neonx_core.c src/msgs.c -o "$OUTPUT_DIR/tests/test_math" -Isrc -lm
+                clang tests/unit/test_math.c src/shaders.c src/neonx_core.c src/msgs.c -o "$OUTPUT_DIR/tests/test_math" -Isrc $MATH_LIB $PERF_FLAGS $HARDENING_CFLAGS $HARDENING_LDFLAGS
                 "$OUTPUT_DIR/tests/test_math"
+                
+                # Integrar testes de CLI se o binário nativo existir ou for compilado agora
+                if [[ ! -f "$OUTPUT_DIR/$PROJECT_NAME" && ! -f "$OUTPUT_DIR/${PROJECT_NAME}.exe" ]]; then
+                    print_info "Compilando binário temporário para testes de integração..."
+                    compile_tool "native" "$PROJECT_NAME" "native" "true"
+                fi
+                chmod +x tests/integration_test.sh
+                ./tests/integration_test.sh
                 exit 0
                 ;;
             --native)
@@ -268,7 +263,6 @@ if [[ $# -gt 0 ]]; then
                 ;;
         esac
     done
-
     if [[ "$IS_NATIVE" == "true" ]]; then
         compile_tool "native" "$OUTPUT_BIN" "$LABEL" "true"
     elif [[ "$TARGET" == "wasm" ]]; then
@@ -279,10 +273,8 @@ if [[ $# -gt 0 ]]; then
         print_error "Nenhum alvo especificado. O CI precisa passar --native ou --target."
         exit 1
     fi
-
 else
     building_tools
-
     show_menu() {
         echo -e "\n${CYAN}╔════════════════════════════════════════════════════╗${NC}"
         echo -e "${CYAN}║${NC} ${YELLOW}NeonX Dev Builder (Clang Native & Zig Cross)       ${NC}${CYAN}║${NC}"
@@ -302,10 +294,8 @@ else
         echo -e "${CYAN}║${NC} 0. Sair                                            ${CYAN}║${NC}"
         echo -e "${CYAN}╚════════════════════════════════════════════════════╝${NC}"
     }
-
     targets=("x86_64-linux-musl" "x86-linux-musl" "aarch64-linux-musl" "arm-linux-musleabihf" "x86_64-windows-gnu" "x86-windows-gnu" "aarch64-macos" "x86_64-macos")
     labels=("linux-x64" "linux-x86" "linux-arm64" "linux-arm32" "windows-x64" "windows-x86" "macos-arm64" "macos-x64")
-
     while true; do
         show_menu
         read -p "Opção: " opt
@@ -331,6 +321,5 @@ else
             *) print_error "Opção inválida!"; sleep 1 ;;
         esac
     done
-
     echo -e "\n${GREEN}Processo finalizado. Verifique as pastas $OUTPUT_DIR/ e $ZIP_DIR/${NC}"
 fi

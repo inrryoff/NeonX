@@ -18,10 +18,7 @@ void apply_border_opacity_fixed(int32_t x_fixed, int32_t y_fixed, int32_t cx_fix
 void get_color_fast(int32_t x_fixed, int32_t y_fixed, int mode, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, int32_t phase_fixed, int *r, int *g, int *b);
 
 void shaders_set_preset(const char *preset, int *anim_mode, int32_t *speed_fixed);
-void shaders_set_frequency(int32_t freq);
-void shaders_set_gradient_angle(int32_t angle);
 void shaders_set_opacity_from_string(const char *o_val);
-void shaders_set_quantization(bool enable);
 void shaders_finalize_setup(void);
 
 #endif

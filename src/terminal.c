@@ -1,9 +1,11 @@
-// ==================== terminal.c ====================
+#define _XOPEN_SOURCE 700
+#define _DEFAULT_SOURCE
 #include "terminal.h"
 #include "msgs.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
+#include <signal.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -19,14 +21,21 @@
 #include <unistd.h>
 #endif
 
-// Instância global que contém o documento textual lido.
-Content content = {.count = 0};
+#if defined(__linux__)
+extern char *program_invocation_short_name;
+#define PROG_NAME program_invocation_short_name
+#elif defined(__APPLE__) || defined(__FreeBSD__)
+#include <stdlib.h>
+#define PROG_NAME getprogname()
+#else
+#define PROG_NAME "neonx"
+#endif
 
-// O valor inicial (2) significa "Desconhecido / Em andamento" da validação
-static int g_integrity_status = 2;
+static int g_integrity_status = -1;
+static Content *g_current_content = NULL;
 
-// Metadados que são exibidos nos comandos informativos `--version`
-const char* ORIGINAL_CREATOR = "@inrryoff";
+// Identidade imutável do projeto
+static const char* ORIGINAL_CREATOR = "@inrryoff";
 
 // Macros que costumam ser introduzidas de fora via compilação (Make/CMake)
 #ifndef BUILD_MAINTAINER
@@ -36,13 +45,7 @@ const char* ORIGINAL_CREATOR = "@inrryoff";
 #define VERSION "Unspecified"
 #endif
 
-/**
- * Nome da função: set_integrity_status
- * O que faz: Atualiza o status atual para permitir que `--version` avise o usuário da quebra.
- * Como funciona: Apenas sobrescreve o inteiro.
- */
-void set_integrity_status(int status)
-{
+void set_integrity_status(int status) {
     g_integrity_status = status;
 }
 
@@ -71,9 +74,16 @@ void sleep_us(uint32_t microseconds)
  * Retorno: Nenhum.
  * Onde é usada: Chamada ao desligar o programa.
  */
-void free_content(Content *c)
-{
-    for(int i=0; i<c->count; i++) if(c->lines[i]) free(c->lines[i]);
+void free_content(Content *c) {
+    if (!c || !c->lines) return;
+    for (int i = 0; i < c->count; i++) {
+        if (c->lines[i]) {
+            free(c->lines[i]);
+            c->lines[i] = NULL;
+        }
+    }
+    free(c->lines);
+    c->lines = NULL;
     c->count = 0;
 }
 
@@ -81,11 +91,11 @@ void free_content(Content *c)
  * Nome da função: print_version
  * O que faz: Exibe o nome do desenvolvedor e se esse programa não sofreu ataques maliciosos ou injetores.
  */
-void print_version(void)
-{
+void print_version(void) {
     printf("NeonX v%s\n", VERSION);
-    printf(MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR);
-    printf(MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
+    printf("%s%s\n", MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR);
+    printf("%s%s\n", MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
+    
     if (g_integrity_status == 0) {
         printf("%s", MSG(MSG_VERSION_STATUS_OFFICIAL));
     } else if (g_integrity_status == 2) {
@@ -115,7 +125,11 @@ void print_license(void)
 // ==================== terminal.c ====================
 void show_help(void)
 {
-    printf(MSG(MSG_HELP_HEADER), VERSION, ORIGINAL_CREATOR, BUILD_MAINTAINER);
+    printf("NeonX v%s | %s%s | %s%s\n\n", 
+           VERSION, 
+           MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR,
+           MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
+    
     printf("%s", MSG(MSG_HELP_USAGE));
     printf("%s", MSG(MSG_HELP_M));
     printf("%s", MSG(MSG_HELP_S));
@@ -147,16 +161,30 @@ void show_help(void)
  * Observações: A escrita "\033[?7h\033[?25h\033[0m\n" reativa o cursor invisível na tela e reseta as cores do cmd.
  */
 static bool content_initialized = false;
-void set_content_initialized(void)
-{
+void set_content_initialized(void) {
     content_initialized = true;
 }
 
-void handle_sigint(int sig)
-{
-    write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16);
-    if (content_initialized) {
-        free_content(&content);
-    }
-    exit(130);
+void handle_sigint(int sig) {
+    (void)sig;
+    #ifndef _WIN32
+    if (write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16) == -1) {}
+    #else
+    printf("\033[?7h\033[?25h\033[0m\n");
+    #endif
+    _exit(130);
+}
+
+// Interceptor injetado para setup de sinais limpos com SA_RESTART
+void terminal_setup_signals(Content *c) {
+    g_current_content = c;
+#ifndef _WIN32
+    struct sigaction sa;
+    sa.sa_handler = handle_sigint;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    sigaction(SIGINT, &sa, NULL);
+#else
+    signal(SIGINT, handle_sigint);
+#endif
 }

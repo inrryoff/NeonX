@@ -1,4 +1,3 @@
-// ==================== integrity.c ====================
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,15 +7,10 @@
 #include "monocypher.h" // Biblioteca de criptografia externa
 
 // Configuração de diretórios específicos de acordo com o sistema operacional
-#ifdef _WIN32
+#ifdef __linux__
+#include <unistd.h>
+#elif defined(_WIN32)
 #include <windows.h>
-#ifndef MAX_PATH
-#define MAX_PATH 260 // Limite padrão de caminhos no Windows
-#endif
-#elif defined(__APPLE__)
-#include <mach-o/dyld.h> // Necessário para acessar caminho do executável no macOS
-#else
-#include <unistd.h>      // Necessário para acessar o sistema de arquivos no Linux/Unix
 #endif
 
 // Chave pública (32 bytes) gravada diretamente no código-fonte (hardcoded).
@@ -35,24 +29,20 @@ static void load_active_key(void)
     if (key_loaded) return;
 
     const char *env_path = getenv("NEONX_KEY_FILE");
-    const char *path = env_path ? env_path : "keys/NeonX.pub";
-
-    FILE *f = fopen(path, "rb");
-    if (f) {
-        if (fread(active_public_key, 1, 32, f) == 32) {
-            fclose(f);
-            key_loaded = true;
-            return;
-        }
-        fclose(f);
-    }
-
-    // Se o usuário especificou um caminho via ENV e falhou, avisa usando o dicionário.
     if (env_path) {
-        fprintf(stderr, "%s", MSG(MSG_WARN_KEY_LOAD_FAIL));
+        FILE *f = fopen(env_path, "rb");
+        if (f) {
+            if (fread(active_public_key, 1, 32, f) == 32) {
+                fclose(f);
+                key_loaded = true;
+                return;
+            }
+            fclose(f);
+            fprintf(stderr, "%s", MSG(MSG_WARN_KEY_LOAD_FAIL));
+        }
     }
 
-    // Fallback
+    // Default: usa a chave embutida no binário
     memcpy(active_public_key, NEONX_PUBLIC_KEY, 32);
     key_loaded = true;
 }
@@ -74,92 +64,82 @@ static void load_active_key(void)
  * Observações: Aloca memória para armazenar o executável durante a checagem,
  * portanto pode exigir um espaço razoável de RAM equivalente ao tamanho do programa.
  */
-int check_integrity(void)
-{
-    char path[1024]; // Buffer para armazenar o caminho do executável
-
-    // O processo de descobrir o caminho do próprio executável muda em cada sistema operacional:
-#ifdef _WIN32
-    // Pega o caminho no Windows
-    if (GetModuleFileNameA(NULL, path, sizeof(path)) == 0) return 2;
-#elif defined(__APPLE__)
-    // Pega o caminho no macOS
-    uint32_t size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) != 0) return 2;
-#else
-    // Pega o caminho no Linux lendo o link simbólico /proc/self/exe
-    ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
-    if (len <= 0) {
-        return 2; // Falha na leitura
+static int hex2bin(uint8_t *bin, const uint8_t *hex, size_t hex_len) {
+    if (hex_len % 2 != 0) return -1;
+    for (size_t i = 0; i < hex_len / 2; i++) {
+        uint8_t h_char = hex[i * 2];
+        uint8_t l_char = hex[i * 2 + 1];
+        int h, l;
+        if (h_char >= '0' && h_char <= '9') h = h_char - '0';
+        else if (h_char >= 'A' && h_char <= 'F') h = h_char - 'A' + 10;
+        else if (h_char >= 'a' && h_char <= 'f') h = h_char - 'a' + 10;
+        else return -1;
+        if (l_char >= '0' && l_char <= '9') l = l_char - '0';
+        else if (l_char >= 'A' && l_char <= 'F') l = l_char - 'A' + 10;
+        else if (l_char >= 'a' && l_char <= 'f') l = l_char - 'a' + 10;
+        else return -1;
+        bin[i] = (uint8_t)((h << 4) | l);
     }
-    path[len] = '\0'; // Garante que a string termine corretamente
+    return 0;
+}
+
+int check_integrity(void) {
+    load_active_key();
+    char exec_path[1024] = {0};
+#ifdef __linux__
+    ssize_t len = readlink("/proc/self/exe", exec_path, sizeof(exec_path)-1);
+    if (len == -1) return 2;
+#elif defined(_WIN32)
+    GetModuleFileNameA(NULL, exec_path, sizeof(exec_path));
+#else
+    return 2;
 #endif
 
-    // Abre o arquivo do próprio executável no modo 'rb' (read binary)
-    FILE *f = fopen(path, "rb");
-    if (!f) {
-        fprintf(stderr, "%s", MSG(MSG_ERR_INTEGRITY_OPEN));
-        return 2;
-    }
-    // Move o ponteiro de leitura para o final do arquivo
-    fseek(f, 0, SEEK_END);
-    long total_size = ftell(f); // Onde o ponteiro está = tamanho total do arquivo
+    FILE *f = fopen(exec_path, "rb");
+    if (!f) return 2;
 
-    // Se o arquivo for menor que a assinatura (128 bytes), é impossível ser válido
-    if (total_size <= 128) {
+    fseek(f, 0, SEEK_END);
+    long file_size = ftell(f);
+    if (file_size < 128) {
         fclose(f);
-        fprintf(stderr, "%s", MSG(MSG_ERR_INTEGRITY_SIZE));
         return 1;
     }
 
-    // Move o ponteiro para ler especificamente os últimos 128 bytes
-    fseek(f, total_size - 128, SEEK_SET);
-    char sig_hex[129] = {0}; // Buffer para os 128 caracteres da assinatura + \0
-    if (fread(sig_hex, 1, 128, f) != 128) {
+    uint8_t hex_signature[128];
+    fseek(f, -128, SEEK_END);
+    if (fread(hex_signature, 1, 128, f) != 128) {
         fclose(f);
-        return 2; // Falha na leitura do disco
-    }
-
-    // Converte os caracteres Hexadecimais ("FF") em bytes de verdade (0xFF)
-    unsigned char signature[64];
-    for (int i = 0; i < 64; i++) {
-        unsigned int byte;
-        // sscanf lê de 2 em 2 caracteres hex (%2x) e salva no inteiro 'byte'
-        if (sscanf(sig_hex + i*2, "%2x", &byte) != 1) {
-            fclose(f);
-            return 1; // Se a formatação for inválida, falhou
-        }
-        signature[i] = (unsigned char)byte;
-    }
-
-    // Calcula o tamanho do programa SEM a assinatura no final
-    size_t data_len = total_size - 128;
-
-    // Aloca memória RAM para carregar todo o arquivo para validação
-    unsigned char *data = malloc(data_len);
-    if (!data) {
-        fclose(f);
-        fprintf(stderr, "%s", MSG(MSG_ERR_INTEGRITY_MEMORY));
         return 2;
     }
 
-    // Volta o ponteiro do arquivo para o início e lê o programa inteiro para a RAM
-    fseek(f, 0, SEEK_SET);
-    size_t bytes_read = fread(data, 1, data_len, f);
-    fclose(f); // Arquivo lido, já podemos fechar o acesso ao disco
-
-    if (bytes_read != data_len) {
-        free(data);
-        return 2; // O tamanho lido não bate com o esperado
+    uint8_t bin_signature[64];
+    if (hex2bin(bin_signature, hex_signature, 128) != 0) {
+        fclose(f);
+        return 1;
     }
 
-    // Carrega a chave (arquivo, env ou fallback)
-    load_active_key();
+    fseek(f, 0, SEEK_SET);
+    crypto_blake2b_ctx blake_ctx;
+    crypto_blake2b_init(&blake_ctx, 64);
+    
+    uint8_t buffer[8192];
+    long remaining = file_size - 128;
+    
+    while (remaining > 0) {
+        size_t to_read = (remaining > (long)sizeof(buffer)) ? sizeof(buffer) : (size_t)remaining;
+        size_t read_bytes = fread(buffer, 1, to_read, f);
+        if (read_bytes == 0) break;
+        crypto_blake2b_update(&blake_ctx, buffer, read_bytes);
+        remaining -= (long)read_bytes;
+    }
+    fclose(f);
+    
+    uint8_t hash[64];
+    crypto_blake2b_final(&blake_ctx, hash);
 
-    // A função crypto_eddsa_check (da Monocypher) faz a matemática pesada
-    // validando os dados com a chave pública. Resulta em 0 se tudo for autêntico.
-    int result = crypto_eddsa_check(signature, active_public_key, data, data_len);
-
-    free(data); // Libera a memória RAM alocada
-    return (result == 0) ? 0 : 1;
+    if (crypto_eddsa_check(bin_signature, active_public_key, hash, 64) == 0) {
+        return 0;
+    }
+    
+    return 1;
 }

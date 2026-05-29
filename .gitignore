@@ -1,7 +1,11 @@
-keys/NeonX.key
-keys/minisign.key
+keys/*.key
 Make-NeonX.sh
+NeonX_web.zip
 tools/keygen
 tools/sign_binary
-build/
+build/*
 bzip/
+!build/**/*.js
+!build/**/*.wasm
+!build/**/*.a
+!build/**/*.o

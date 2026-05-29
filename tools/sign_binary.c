@@ -12,24 +12,36 @@ int main(int argc, char **argv) {
 
     FILE *f = fopen(argv[1], "rb");
     if (!f) { perror("fopen binario"); return 1; }
-    fseek(f, 0, SEEK_END);
-    size_t size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    unsigned char *data = malloc(size);
-    if (!data) { fclose(f); return 1; }
-    fread(data, 1, size, f);
+    
+    // Hash the file using Blake2b (matching integrity.c)
+    crypto_blake2b_ctx blake_ctx;
+    crypto_blake2b_init(&blake_ctx, 64);
+    
+    unsigned char buffer[8192];
+    size_t read_bytes;
+    while ((read_bytes = fread(buffer, 1, sizeof(buffer), f)) > 0) {
+        crypto_blake2b_update(&blake_ctx, buffer, read_bytes);
+    }
     fclose(f);
+    
+    unsigned char hash[64];
+    crypto_blake2b_final(&blake_ctx, hash);
 
+    // Read secret key
     f = fopen(argv[2], "rb");
-    if (!f) { perror("fopen chave"); free(data); return 1; }
+    if (!f) { perror("fopen chave"); return 1; }
     unsigned char secret_key[64];
-    fread(secret_key, 1, 64, f);
+    if (fread(secret_key, 1, 64, f) != 64) {
+        fprintf(stderr, "Erro ao ler chave privada (esperado 64 bytes)\n");
+        fclose(f);
+        return 1;
+    }
     fclose(f);
 
     unsigned char signature[64];
-    crypto_eddsa_sign(signature, secret_key, data, size);
+    // Sign the hash (matching integrity.c)
+    crypto_eddsa_sign(signature, secret_key, hash, 64);
 
     for (int i = 0; i < 64; i++) printf("%02X", signature[i]);
-    free(data);
     return 0;
 }

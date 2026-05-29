@@ -1,50 +1,54 @@
 # Guia de Contribuição - NeonX 🌈
 
-Obrigado por se interessar em contribuir para o NeonX! Este é um projeto open source focado em performance e estética para o terminal.
+Obrigado por se interessar em contribuir para o NeonX! Este é um projeto focado em performance extrema e estética para o terminal e web.
 
 ## 🛠️ Como Compilar Localmente
 
-O NeonX utiliza scripts Bash para facilitar o processo de build:
+O NeonX utiliza o script `build.sh` para gerenciar todo o ciclo de vida do build:
 
 1.  **Build Nativa:**
     ```bash
     ./build.sh --native
     ```
-    Isso gerará o binário em `build/neonx`.
+    Gera o binário em `build/neonx`. Use `PORTABLE=1` para máxima compatibilidade com CPUs antigas.
 
-2.  **Build Portátil:**
-    Se você deseja gerar um binário compatível com CPUs mais antigas:
+2.  **WebAssembly (WASM):**
+    Para compilar a versão web, você precisará do **Emscripten**.
+    - No **Termux**: `pkg install emscripten`
+    - No Linux: `sudo apt install emscripten` (ou via SDK oficial).
+    
+    Rode o comando:
     ```bash
-    PORTABLE=1 ./build.sh --native
+    ./build.sh # Escolha a Opção 2 no menu
     ```
+    *Aviso: Não utilize caminhos absolutos (hardcoded) em scripts ou código novo para garantir a portabilidade entre ambientes.*
 
 3.  **Cross-Compilation:**
-    O projeto utiliza Zig para compilar para diversas plataformas. Basta rodar `./build.sh` sem argumentos para ver o menu interativo.
+    Utilizamos Zig para gerar binários para Windows, macOS e diversas arquiteturas Linux. Basta rodar `./build.sh` e seguir o menu.
 
-## 🧪 Testes
+## 🧪 Testes e Validação
 
-Sempre verifique se suas alterações não quebraram a lógica matemática ou o motor de renderização:
+Antes de abrir um Pull Request, você **deve** validar suas alterações:
 
-```bash
-./build.sh --test
-```
+1.  **Testes Unitários:**
+    ```bash
+    ./build.sh --test
+    ```
+    Isso valida a integridade da matemática de ponto fixo e funções do core.
 
-## 📝 Padrões de Código e Commits
+2.  **Interface WASM:**
+    Se você alterou o `neonx_core.c` ou `shaders.c`, teste a interface web abrindo o arquivo `index.html` em um servidor local (ex: `python3 -m http.server`) após compilar o WASM. Como nosso CI atual foca em builds nativas, a validação manual do WASM é obrigatória.
 
-*   **Linguagem:** C puro (C99/C11) com foco em portabilidade.
-*   **Estilo:** Mantenha a consistência com o código existente (uso de ponto fixo para matemática, nomes claros de funções).
-*   **Mensagens de Commit:** Recomendamos o uso de [Conventional Commits](https://www.conventionalcommits.org/):
-    *   `feat:` Nova funcionalidade.
-    *   `fix:` Correção de bug.
-    *   `docs:` Alterações na documentação.
-    *   `style:` Formatação, ponto e vírgula ausente, etc.
-    *   `refactor:` Refatoração de código que não altera comportamento.
+## 📝 Padrões de Código
 
-## 🔒 Política de Pull Requests
+*   **Linguagem:** C puro (C99/C11).
+*   **Matemática:** Use sempre as macros de ponto fixo em `neonx_core.h`. **Não utilize `float` ou `double`** no motor de renderização principal.
+*   **Commits:** Siga o padrão [Conventional Commits](https://www.conventionalcommits.org/) (ex: `feat:`, `fix:`, `docs:`).
 
-*   Commits assinados (GPG/SSH/Ed25519) são bem-vindos e incentivados, mas não obrigatórios.
-*   Certifique-se de que a build passa em todos os jobs do CI (Linux, macOS, Windows).
-*   **Importante:** Nunca introduza código que bloqueie a execução do binário por falha de integridade. O NeonX deve apenas avisar sobre modificações, permanecendo funcional.
+## 🔒 Política de Segurança
+
+*   O NeonX possui auto-verificação de integridade. Se você modificar o código, o binário indicará status `MODIFIED`. Isso é esperado para builds da comunidade.
+*   **Nunca** desative ou remova as checagens de integridade no `integrity.c`.
 
 ---
-Desenvolvido com ☕ e Termux.
+Desenvolvido com ☕, C e Termux.

@@ -2,188 +2,47 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeonX - Web Animator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NeonX · ASCII Animator (versão estável)</title>
     <script src="https://cdn.jsdelivr.net/npm/ansi_up@5.1.0/ansi_up.min.js"></script>
     <style>
-        :root {
-            --neon-green: #00ffcc;
-            --bg-color: #050505;
-            --panel-bg: #111;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--neon-green);
-            font-family: monospace;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        h2 {
-            text-align: center;
-            margin: 0;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
-        }
-
-        .input-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 120px;
-            background-color: var(--panel-bg);
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre;
-            box-sizing: border-box;
-            resize: vertical;
-        }
-
-        .controls-row {
-            display: flex;
-            gap: 10px;
-            position: relative;
-        }
-
-        button {
-            background-color: #222;
-            color: var(--neon-green);
-            border: 1px solid var(--neon-green);
-            border-radius: 6px;
-            padding: 12px 10px;
-            font-family: monospace;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-        }
-
-        button.active-play {
-            background-color: var(--neon-green);
-            color: #000;
-        }
-
-        button.verify-btn {
-            background-color: #1a1a1a;
-            border-style: dashed;
-            flex: 0.8;
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Menu Expansível (Dropdown) */
-        .dropdown { flex: 1; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --neon-cyan: #00ffcc; --bg-deep: #0a0a0f; --card-bg: rgba(18, 18, 26, 0.85); --text-muted: #a0a0b0; }
+        body { background: radial-gradient(circle at 20% 30%, #0a0a0f, #010105); color: var(--neon-cyan); font-family: 'Fira Code', monospace; padding: 1.5rem; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; backdrop-filter: blur(2px); }
+        h2 { text-align: center; font-size: 2.2rem; letter-spacing: 3px; margin-bottom: 1.5rem; text-shadow: 0 0 12px var(--neon-cyan); font-weight: 400; }
+        .card { background: var(--card-bg); backdrop-filter: blur(8px); border: 1px solid rgba(0,255,204,0.3); border-radius: 28px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+        textarea { width: 100%; background: #0c0c14; color: #eef; border: 1px solid #2a2a3a; border-radius: 20px; padding: 14px; font-family: monospace; font-size: 14px; resize: vertical; outline: none; }
+        textarea:focus { border-color: var(--neon-cyan); box-shadow: 0 0 12px rgba(0,255,204,0.3); }
+        .controls-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 0.5rem; }
+        button { background: #11131f; color: var(--neon-cyan); border: 1.5px solid var(--neon-cyan); border-radius: 60px; padding: 10px 20px; font-family: monospace; font-weight: bold; cursor: pointer; transition: 0.2s; flex: 1; }
+        button:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px var(--neon-cyan); transform: scale(1.02); }
+        button.active-play { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        button.verify-btn { border-style: dashed; background: #1a1a2a; }
+        .dropdown { position: relative; flex: 1; }
         .dropbtn { width: 100%; display: flex; justify-content: space-between; align-items: center; }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: var(--panel-bg);
-            width: calc(100% / 2.8); /* Ajustado para 3 botões */
-            right: 0;
-            top: 100%;
-            margin-top: 5px;
-            box-shadow: 0px 8px 16px 0px rgba(0,255,204,0.2);
-            border: 1px solid var(--neon-green);
-            border-radius: 6px;
-            z-index: 10;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
+        .dropdown-content { display: none; position: absolute; background: #14141f; min-width: 180px; right: 0; top: 110%; border: 1px solid var(--neon-cyan); border-radius: 20px; z-index: 30; max-height: 270px; overflow-y: auto; }
         .dropdown-content.show { display: block; }
-
-        .dropdown-content div {
-            color: #fff;
-            padding: 12px 16px;
-            border-bottom: 1px solid #222;
-            cursor: pointer;
-        }
-
-        .dropdown-content div:hover {
-            background-color: #333;
-            color: var(--neon-green);
-        }
-
-        /* Painel de Flags Extras */
-        .flags-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: 10px;
-            background-color: #0a0a0a;
-            border: 1px dashed #333;
-            border-radius: 6px;
-            padding: 12px;
-        }
-
-        .flag-item { display: flex; flex-direction: column; gap: 5px; }
-        .flag-item label { font-size: 11px; color: #888; }
-
-        .flag-item input[type="number"], .flag-item input[type="range"] {
-            background-color: #111;
-            color: var(--neon-green);
-            border: 1px solid #444;
-            border-radius: 4px;
-            padding: 6px;
-            font-family: monospace;
-            font-size: 12px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            height: 100%;
-            gap: 8px;
-            color: #ccc;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        input[type="checkbox"] {
-            accent-color: var(--neon-green);
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
-
-        #output-box {
-            background-color: #000;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 15px;
-            min-height: 200px;
-            overflow-x: auto;
-            line-height: 1.1;
-            font-size: 12px;
-            white-space: pre;
-        }
+        .dropdown-content div { padding: 10px 18px; border-bottom: 1px solid #2a2a3a; cursor: pointer; }
+        .dropdown-content div:hover { background: var(--neon-cyan); color: #000; }
+        .flags-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .flag-item { display: flex; flex-direction: column; gap: 6px; }
+        .flag-item label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+        .flag-item input { background: #0c0c14; border: 1px solid #2a2a3a; border-radius: 40px; padding: 8px 12px; color: var(--neon-cyan); font-family: monospace; }
+        .slider-with-value { display: flex; align-items: center; gap: 12px; }
+        .slider-with-value span { min-width: 45px; text-align: center; background: #00000055; padding: 4px 8px; border-radius: 30px; }
+        .checkbox-group { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; }
+        #output-box { background: #010105e6; border: 1px solid #2a2a3a; border-radius: 24px; padding: 1.2rem; min-height: 300px; overflow-x: auto; font-family: monospace; font-size: 13px; line-height: 1.45; white-space: pre; }
+        footer { text-align: center; margin-top: 2rem; font-size: 0.7rem; opacity: 0.6; }
     </style>
 </head>
 <body>
-
-    <h2>NeonX ASCII Engine</h2>
-
-    <div class="input-section">
-        <label>Cole sua arte ASCII aqui:</label>
-        <textarea id="input-art">
+<div class="container">
+    <h2>✦ NEONX — ASCII ENGINE ✦</h2>
+    <div class="card">
+        <label>📄 SUA ASCII ART (UTF‑8):</label>
+        <textarea id="input-art" rows="5">
   _   _                   __  __ 
  | \ | | ___  ___  _ __   \ \/ / 
  |  \| |/ _ \/ _ \| '_ \   \  /  
@@ -191,251 +50,309 @@
  |_| \_|\___|\___/|_| |_| /_/\_\ 
         </textarea>
     </div>
-
-    <div class="controls-row">
-        <button id="play-btn" onclick="toggleAnimation()">Iniciar ▶</button>
-        
-        <button class="verify-btn" onclick="runVerifySig()">--verify-sig</button>
-
-        <div class="dropdown">
-            <button class="dropbtn" id="mode-btn" onclick="toggleDropdown()">Flag -m [0] ▼</button>
-            <div id="mode-dropdown" class="dropdown-content">
-                <div onclick="setMode(0, 'Cyberpunk')">0 - Cyberpunk</div>
-                <div onclick="setMode(1, 'Sunset')">1 - Sunset</div>
-                <div onclick="setMode(2, 'Linear')">2 - Linear</div>
-                <div onclick="setMode(3, 'Chaos')">3 - Chaos</div>
-                <div onclick="setMode(4, 'Retro')">4 - Retro</div>
-                <div onclick="setMode(5, 'Vignette')">5 - Vignette</div>
-                <div onclick="setMode(6, 'Plasma')">6 - Plasma</div>
-                <div onclick="setMode(7, 'Diagonal')">7 - Diagonal</div>
-                <div onclick="setMode(8, 'Vertical')">8 - Vertical</div>
-                <div onclick="setMode(9, 'Stripe')">9 - Stripe</div>
-                <div onclick="setMode(10, 'Matrix')">10 - Matrix</div>
-                <div onclick="setMode(11, 'Pulse')">11 - Pulse</div>
+    <div class="card">
+        <div class="controls-row">
+            <button id="play-btn" disabled>▶ INICIAR</button>
+            <button id="verify-btn" class="verify-btn" disabled>🔒 --verify-sig</button>
+            <div class="dropdown">
+                <button class="dropbtn" id="mode-btn" disabled>🎨 MODO [0] ▼</button>
+                <div id="mode-dropdown" class="dropdown-content">
+                    <div data-mode="0">0 · Cyberpunk</div><div data-mode="1">1 · Sunset</div>
+                    <div data-mode="2">2 · Linear</div><div data-mode="3">3 · Chaos</div>
+                    <div data-mode="4">4 · Retro</div><div data-mode="5">5 · Vignette</div>
+                    <div data-mode="6">6 · Plasma</div><div data-mode="7">7 · Diagonal</div>
+                    <div data-mode="8">8 · Vertical</div><div data-mode="9">9 · Stripe</div>
+                    <div data-mode="10">10 · Matrix</div><div data-mode="11">11 · Pulse</div>
+                </div>
+            </div>
+        </div>
+        <div class="flags-panel">
+            <div class="flag-item"><label>⚡ VELOCIDADE (-s)</label><input type="number" id="flag-s" value="0.12" step="0.02" disabled></div>
+            <div class="flag-item"><label>🌀 FREQUÊNCIA (-f)</label><input type="number" id="flag-f" value="0.55" step="0.05" disabled></div>
+            <div class="flag-item"><label>🌫️ OPACIDADE (-o)</label><div class="slider-with-value"><input type="range" id="flag-o" min="0" max="1000" value="80" disabled><span id="opacity-value">80</span></div></div>
+            <div class="checkbox-group">
+                <label class="checkbox-wrapper"><input type="checkbox" id="flag-q" disabled> quantizado</label>
+                <label class="checkbox-wrapper"><input type="checkbox" id="flag-static" disabled> estático (-S)</label>
+                <label class="checkbox-wrapper"><input type="checkbox" id="flag-stream" disabled> stream (-L)</label>
             </div>
         </div>
     </div>
+    <div id="output-box">⏳ Aguardando motor NeonX (WASM) ...</div>
+    <footer>✦ --verify-sig simulado | mudar velocidade/frequência reseta animação | modo estático limpa tela</footer>
+</div>
 
-    <div class="flags-panel">
-        <div class="flag-item">
-            <label>Velocidade (-s)</label>
-            <input type="number" id="flag-s" value="0.1" step="0.1" onchange="updateFlags()">
-        </div>
-        <div class="flag-item">
-            <label>Freq (-f)</label>
-            <input type="number" id="flag-f" value="0.5" step="0.1" onchange="updateFlags()">
-        </div>
-        <div class="flag-item">
-            <label>Opac (-o)</label>
-            <input type="range" id="flag-o" min="0" max="1000" value="0" oninput="updateFlags()">
-        </div>
-        <div class="flag-item" style="justify-content: center; gap: 8px;">
-            <label class="checkbox-wrapper">
-                <input type="checkbox" id="flag-q" onchange="updateFlags()"> --quantized
-            </label>
-            <label class="checkbox-wrapper">
-                <input type="checkbox" id="flag-static" onchange="updateFlags()"> -S (Estático)
-            </label>
-            <label class="checkbox-wrapper">
-                <input type="checkbox" id="flag-stream" onchange="updateFlags()"> -L (Line/Stream)
-            </label>
-        </div>
-    </div>
+<script>
+    // ========== ESTADO GLOBAL ==========
+    let isWasmReady = false;
+    let currentMode = 0;
+    let phase = 0.0;
+    let speed = 0.12;
+    let isRunning = false;
+    let animationId = null;
+    let isStaticMode = false;
+    let isStreamMode = false;
+    let verificationActive = false;
 
-    <div id="output-box">Carregando motor WASM... aguarde.</div>
+    const ansiUp = new AnsiUp();
+    const outBox = document.getElementById('output-box');
+    const playBtn = document.getElementById('play-btn');
+    const modeBtn = document.getElementById('mode-btn');
+    const inputArt = document.getElementById('input-art');
+    const flagS = document.getElementById('flag-s');
+    const flagF = document.getElementById('flag-f');
+    const flagO = document.getElementById('flag-o');
+    const opacitySpan = document.getElementById('opacity-value');
+    const flagQ = document.getElementById('flag-q');
+    const flagStatic = document.getElementById('flag-static');
+    const flagStream = document.getElementById('flag-stream');
 
-    <script>
-        var Module = {
-            // Se o código em C tentar acessar memória inválida ou falhar, aparece aqui
-            printErr: function(text) {
-                const out = document.getElementById('output-box');
-                if(out) out.innerHTML += '\n<span style="color:#ff3333; font-weight:bold;">[ERRO WASM] ' + text + '</span>';
-            },
-            onAbort: function(what) {
-                const out = document.getElementById('output-box');
-                if(out) out.innerHTML += '\n<span style="color:#ff3333; font-weight:bold;">[CRASH FATAL] ' + what + '</span>';
-            },
-            onRuntimeInitialized: () => {
-                try {
-                    // Inicializa o backend em C
-                    if (Module._neonx_wasm_init) Module._neonx_wasm_init();
-                    
-                    // Atualiza as flags e força o primeiro frame
-                    updateFlags();
-                    renderFrame();
-                } catch (e) {
-                    document.getElementById('output-box').innerHTML += '\n<span style="color:#ff3333; font-weight:bold;">[ERRO JS/C] ' + e.message + '</span>';
-                }
-            }
-        };
-    </script>
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
 
-    <script src="neonx.js"></script>
-
-    <!-- 3. E por fim coloque a lógica da sua interface -->
-    <script>
-        const ansiUp = new AnsiUp();
-        let currentMode = 0;
-        let phase = 0;
-        let speed = 0.2;
-        let isRunning = false;
-        let animationId = null;
-        let isStaticMode = false;
-        let isStreamMode = false;
-        
-        // --- Controles de Interface ---
-        function toggleDropdown() {
-            const dropdown = document.getElementById("mode-dropdown");
-            const btn = document.getElementById("mode-btn");
-            dropdown.classList.toggle("show");
+    // ========== MÓDULO WASM (usando a mesma abordagem que funcionou) ==========
+    window.Module = {
+        onRuntimeInitialized: function() {
+            console.log("[NeonX] onRuntimeInitialized disparado");
+            // Verifica funções essenciais (com underscore, como no HTML que funcionou)
+            const hasApply = typeof Module._neonx_apply_colors === 'function';
+            const hasInit = typeof Module._neonx_wasm_init === 'function';
+            const hasMalloc = typeof Module._malloc === 'function';
             
-            btn.innerHTML = dropdown.classList.contains("show") 
-                ? `Flag -m [${currentMode}] ▲` 
-                : `Flag -m [${currentMode}] ▼`;
-        }
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.dropbtn')) {
-                const dropdowns = document.getElementsByClassName("dropdown-content");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show')) {
-                        dropdowns[i].classList.remove('show');
-                        document.getElementById("mode-btn").innerHTML = `Flag -m [${currentMode}] ▼`;
-                    }
-                }
-            }
-        }
-
-        function setMode(mode, name) {
-            currentMode = mode;
-            document.getElementById("mode-btn").innerHTML = `Flag -m [${currentMode}] ▼`;
-            document.getElementById("mode-dropdown").classList.remove("show");
-
-            let newFreq = 0.3;
-            if (mode === 10) newFreq = 1.2;
-            else if (mode === 0) newFreq = 0.5;
-            else if (mode === 4) newFreq = 0.8;
+            // Mostra no console quais funções estão disponíveis (para debug)
+            console.log("Funções disponíveis no Module:", Object.keys(Module).filter(k => typeof Module[k] === 'function').slice(0, 30));
             
-            document.getElementById('flag-f').value = newFreq;
-            updateFlags();
-        }
-
-        // --- Verificação de Assinatura Emulada ---
-        function runVerifySig() {
-            if (isRunning) toggleAnimation(); // Pausa se estiver animando
-            
-            const outBox = document.getElementById('output-box');
-            outBox.innerHTML = "<span style='color:#888'>Executando crypto_eddsa_check (Monocypher)...</span>\n";
-            
-            // Simula o tempo de hash
-            setTimeout(() => {
-                outBox.innerHTML += "<span style='color:#888'>Verificando assinatura EdDSA em ambiente WASM...</span>\n";
-                setTimeout(() => {
-                    outBox.innerHTML += "\nStatus: <span style='color: #00ffcc; font-weight: bold;'>OFFICIAL_BY_INRRYOFF</span>\n";
-                    outBox.innerHTML += "<span style='color: #00ffcc'>OK</span>\n";
-                }, 600);
-            }, 400);
-        }
-
-        function toggleAnimation() {
-            if (isStaticMode) return; // Não inicia se o estático estiver marcado
-
-            isRunning = !isRunning;
-            const btn = document.getElementById('play-btn');
-            
-            if (isRunning) {
-                btn.innerHTML = "Pausar ⏸";
-                btn.classList.add('active-play');
-                renderLoop();
+            if (hasApply && hasInit && hasMalloc) {
+                isWasmReady = true;
+                if (Module._neonx_wasm_init) Module._neonx_wasm_init();
+                // Habilita controles
+                document.getElementById('play-btn').disabled = false;
+                document.getElementById('verify-btn').disabled = false;
+                document.getElementById('mode-btn').disabled = false;
+                document.getElementById('flag-s').disabled = false;
+                document.getElementById('flag-f').disabled = false;
+                document.getElementById('flag-o').disabled = false;
+                document.getElementById('flag-q').disabled = false;
+                document.getElementById('flag-static').disabled = false;
+                document.getElementById('flag-stream').disabled = false;
+                updateFlags();
+                renderFrame();
+                outBox.innerHTML = "✅ Motor WASM pronto. Animação disponível.";
             } else {
-                btn.innerHTML = "Iniciar ▶";
-                btn.classList.remove('active-play');
-                if (animationId) cancelAnimationFrame(animationId);
+                outBox.innerHTML = `❌ Erro: funções WASM não encontradas.<br>
+                Esperadas: _neonx_apply_colors, _neonx_wasm_init, _malloc<br>
+                Verifique a compilação e limpe o cache.`;
+                console.error("Funções ausentes:", { hasApply, hasInit, hasMalloc });
             }
+        },
+        printErr: function(text) {
+            console.warn("[WASM]", text);
+            if (outBox) outBox.innerHTML += '\n<span style="color:#ffaa66;">' + escapeHtml(text) + '</span>';
         }
+    };
 
-        function updateFlags() {
-            if (!Module.ccall) return;
+    // Força o não-cache do neonx.js e do wasm (adiciona timestamp)
+    const script = document.createElement('script');
+    script.src = 'neonx.js?t=' + Date.now();
+    script.onerror = () => { outBox.innerHTML = "❌ Erro fatal: não foi possível carregar neonx.js."; };
+    document.head.appendChild(script);
 
-            speed = parseFloat(document.getElementById('flag-s').value) || 0.2;
-            const f = parseFloat(document.getElementById('flag-f').value) || 0.3;
-            const o = parseInt(document.getElementById('flag-o').value) || 0;
-            const q = document.getElementById('flag-q').checked;
-            
-            isStaticMode = document.getElementById('flag-static').checked;
-            isStreamMode = document.getElementById('flag-stream').checked;
-
-            if (Module._neonx_wasm_set_frequency) Module._neonx_wasm_set_frequency(f * 65536);
-            if (Module._neonx_wasm_set_opacity) Module._neonx_wasm_set_opacity(o);
-            if (Module._neonx_wasm_set_quantization) Module._neonx_wasm_set_quantization(q);
-
-            // Controle do Modo Estático
-            const playBtn = document.getElementById('play-btn');
-            if (isStaticMode) {
-                if (isRunning) toggleAnimation();
-                playBtn.disabled = true;
-                playBtn.innerHTML = "Travado (-S)";
-                renderFrame(); // Renderiza um frame e para
-            } else {
-                playBtn.disabled = false;
-                if (!isRunning) playBtn.innerHTML = "Iniciar ▶";
-                if (!isRunning) renderFrame();
-            }
-        }
-
-        function renderFrame() {
-            const text = document.getElementById('input-art').value;
-            if (!text || !Module.ccall) return;
-
-            const lines = text.split('\n');
-            const height = lines.length;
-            const width = Math.max(...lines.map(line => line.length));
-
+    // ========== FUNÇÕES DE RENDERIZAÇÃO (usando Module.ccall com _neonx_apply_colors) ==========
+    function renderFrame() {
+        if (!isWasmReady) return;
+        if (verificationActive) return;
+        const text = inputArt.value;
+        if (!text.trim()) return;
+        const lines = text.split('\n');
+        const height = lines.length;
+        const width = Math.max(...lines.map(l => l.length), 1);
+        try {
             if (isStreamMode) {
-                let streamOutput = "";
-                let streamPhase = phase;
-                
-                for (let i = 0; i < height; i++) {
+                let outHtml = "";
+                let linePhase = phase;
+                for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
-                    if (!line) { 
-                        streamOutput += "\n"; 
-                        continue; 
-                    }
-                    
-                    const outPtr = Module.ccall(
-                        'neonx_apply_colors', 
-                        'number', 
-                        ['string', 'number', 'number', 'number', 'number'], 
-                        [line, currentMode, width, 1, streamPhase / 65536] 
+                    if (line.length === 0) { outHtml += "\n"; continue; }
+                    const colored = Module.ccall(
+                        'neonx_apply_colors',   // nome SEM underscore (como funcionou antes)
+                        'string',
+                        ['string', 'number', 'number', 'number', 'number'],
+                        [line, currentMode, line.length, 1, linePhase]
                     );
-                    
-                    streamOutput += ansiUp.ansi_to_html(Module.UTF8ToString(outPtr)) + "\n";
-                    Module._free(outPtr);
-                    
-                    streamPhase += (speed * 65536); 
+                    outHtml += ansiUp.ansi_to_html(colored) + "\n";
+                    linePhase += speed;
                 }
-                document.getElementById('output-box').innerHTML = streamOutput;
-
+                outBox.innerHTML = outHtml;
             } else {
-                const outPtr = Module.ccall(
-                    'neonx_apply_colors', 
-                    'number', 
-                    ['string', 'number', 'number', 'number', 'number'], 
-                    [text, currentMode, width, height, phase / 65536] 
+                const colored = Module.ccall(
+                    'neonx_apply_colors',
+                    'string',
+                    ['string', 'number', 'number', 'number', 'number'],
+                    [text, currentMode, width, height, phase]
                 );
-
-                document.getElementById('output-box').innerHTML = ansiUp.ansi_to_html(Module.UTF8ToString(outPtr));
-                Module._free(outPtr);
+                outBox.innerHTML = ansiUp.ansi_to_html(colored);
             }
+        } catch (e) {
+            console.error(e);
+            outBox.innerHTML = `<span style="color:#f66">Erro: ${escapeHtml(e.message)}</span>`;
         }
+    }
 
-        function renderLoop() {
+    function startAnimation() {
+        if (isRunning) return;
+        verificationActive = false;
+        isRunning = true;
+        playBtn.innerHTML = "⏸ PAUSAR";
+        playBtn.classList.add('active-play');
+        if (animationId) cancelAnimationFrame(animationId);
+        function anim() {
             if (!isRunning) return;
-            
             renderFrame();
-            phase += (speed * 65536);
-            
-            animationId = requestAnimationFrame(renderLoop);
+            phase += speed;
+            animationId = requestAnimationFrame(anim);
         }
-    </script>
+        anim();
+    }
+
+    function stopAnimation() {
+        if (!isRunning) return;
+        isRunning = false;
+        playBtn.innerHTML = "▶ INICIAR";
+        playBtn.classList.remove('active-play');
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+
+    function resetAndRender() {
+        phase = 0.0;
+        verificationActive = false;
+        if (isStaticMode) {
+            renderFrame();
+        } else if (isRunning) {
+            stopAnimation();
+            startAnimation();
+        } else {
+            renderFrame();
+        }
+    }
+
+    function updateFlags() {
+        if (!isWasmReady) return;
+        const newSpeed = parseFloat(flagS.value) || 0.12;
+        const newFreq = parseFloat(flagF.value) || 0.55;
+        const opacity = parseInt(flagO.value, 10);
+        opacitySpan.innerText = opacity;
+        const quantized = flagQ.checked;
+        const newStatic = flagStatic.checked;
+        const newStream = flagStream.checked;
+
+        if (Module._neonx_wasm_set_frequency) Module._neonx_wasm_set_frequency(Math.floor(newFreq * 65536));
+        if (Module._neonx_wasm_set_opacity) Module._neonx_wasm_set_opacity(opacity);
+        if (Module._neonx_wasm_set_quantization) Module._neonx_wasm_set_quantization(quantized ? 1 : 0);
+
+        const speedChanged = (speed !== newSpeed);
+        speed = newSpeed;
+        const staticChanged = (isStaticMode !== newStatic);
+        isStaticMode = newStatic;
+        isStreamMode = newStream;
+
+        if (staticChanged && isStaticMode) {
+            if (isRunning) stopAnimation();
+            verificationActive = false;
+            phase = 0.0;
+            renderFrame();
+            playBtn.disabled = true;
+            playBtn.innerHTML = "⛔ ESTÁTICO";
+        } else if (staticChanged && !isStaticMode) {
+            playBtn.disabled = false;
+            if (!isRunning) playBtn.innerHTML = "▶ INICIAR";
+            renderFrame();
+        } else if (!isStaticMode && (speedChanged || newFreq !== (window._lastFreq || 0))) {
+            window._lastFreq = newFreq;
+            resetAndRender();
+        } else if (!isStaticMode && !isRunning) {
+            renderFrame();
+        }
+        window._lastFreq = newFreq;
+    }
+
+    function toggleAnimation() {
+        if (!isWasmReady) return;
+        if (isStaticMode) return;
+        if (verificationActive) {
+            verificationActive = false;
+            resetAndRender();
+            startAnimation();
+        } else if (isRunning) {
+            stopAnimation();
+        } else {
+            startAnimation();
+        }
+    }
+
+    // ========== SIMULAÇÃO DO --verify-sig ==========
+    async function simulateVerifySig() {
+        if (!isWasmReady) {
+            alert("Aguarde o motor carregar.");
+            return;
+        }
+        const wasRunning = isRunning;
+        if (wasRunning) stopAnimation();
+        verificationActive = true;
+        outBox.innerHTML = "🔐 VALIDAÇÃO DE INTEGRIDADE (simulação)\n";
+        outBox.innerHTML += "<span style='color:#888'>› verificando assinatura digital...</span>\n";
+        await new Promise(r => setTimeout(r, 700));
+        outBox.innerHTML += "\n✅ <span style='color: #00ffcc; font-weight: bold;'>OFICIAL_BY_INRRYOFF</span>\n";
+        outBox.innerHTML += "<span style='color: #00ffcc'>VERIFICAÇÃO EDDSA: OK (Integridade Confirmada)</span>\n";
+        outBox.innerHTML += "\n<span style='color: #aaa; font-size:11px'>[simulação — o módulo de assinatura real foi removido]</span>\n";
+        outBox.innerHTML += "\n<span style='color: #888'>▶ Clique em 'INICIAR' para retomar a animação</span>";
+        // Não reinicia automaticamente
+    }
+
+    // ========== EVENTOS ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        const modeDropdown = document.getElementById('mode-dropdown');
+        modeBtn.addEventListener('click', () => modeDropdown.classList.toggle('show'));
+        modeDropdown.querySelectorAll('div').forEach(div => {
+            div.addEventListener('click', (e) => {
+                const mode = parseInt(div.getAttribute('data-mode'), 10);
+                if (!isNaN(mode)) {
+                    currentMode = mode;
+                    modeBtn.innerHTML = `🎨 MODO [${currentMode}] ▼`;
+                    modeDropdown.classList.remove('show');
+                    let newFreq = 0.55;
+                    if (mode === 10) newFreq = 1.2;
+                    else if (mode === 0) newFreq = 0.55;
+                    else if (mode === 4) newFreq = 0.8;
+                    else if (mode === 6) newFreq = 0.45;
+                    flagF.value = newFreq;
+                    updateFlags();
+                    if (!isRunning && !isStaticMode && !verificationActive) renderFrame();
+                }
+            });
+        });
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown')) modeDropdown.classList.remove('show');
+        });
+
+        playBtn.addEventListener('click', toggleAnimation);
+        document.getElementById('verify-btn').addEventListener('click', simulateVerifySig);
+
+        flagO.addEventListener('input', (e) => {
+            opacitySpan.innerText = e.target.value;
+            updateFlags();
+        });
+        flagS.addEventListener('input', updateFlags);
+        flagF.addEventListener('input', updateFlags);
+        flagQ.addEventListener('change', updateFlags);
+        flagStatic.addEventListener('change', updateFlags);
+        flagStream.addEventListener('change', updateFlags);
+
+        inputArt.addEventListener('input', () => {
+            if (!isRunning && !isStaticMode && !verificationActive && isWasmReady) renderFrame();
+        });
+    });
+</script>
 </body>
+</html>

@@ -1,7 +1,27 @@
 # Changelog – NeonX
 
-Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.  
-O projeto é um colorizador de terminal com animações em tempo real, suporte a streaming, gradientes e verificação de integridade via assinatura digital.
+Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
+
+## [2.1.1-STABLE] – 2026
+
+### Adicionado
+- **Arquitetura Modular (NeonX Core):** O motor de renderização e a matemática de ponto fixo foram movidos para `src/neonx_core.c` e `src/neonx_core.h`, permitindo o uso do NeonX como uma biblioteca estática/dinâmica externa.
+- **Suporte Robusto a WebAssembly (WASM):**
+  - Implementação do bridge WASM em `src/main_wasm.c`.
+  - Interface HTML interativa (`index.html`) para demonstração dos shaders no navegador.
+  - Exportação de funções críticas via Emscripten para manipulação de cores em tempo real via JS.
+- **Melhorias no `build.sh`:**
+  - Adicionado suporte nativo para compilação WASM via Emscripten (`./build.sh` -> Opção 2).
+  - Otimização do pipeline de cross-compilação com Zig.
+  - Novo sistema de gerenciamento de ferramentas internas (keygen/sign) durante o build.
+- **Novas Flags de CLI:**
+  - `-max-lines <num>`: Permite configurar o limite do buffer de entrada (evita estouro de memória em arquivos gigantes).
+  - `-P <valor>`: Permite definir um deslocamento (offset) manual de fase para animações.
+
+### Alterado
+- Refatoração completa dos headers para evitar dependências circulares entre `shaders.h` e `neonx_core.h`.
+- Correção de erro de compilação em `main.c` (falta de `<stdarg.h>`) que impedia o build em alguns compiladores rigorosos.
+- Melhoria na precisão da interpolação linear da tabela de senos.
 
 ## [2.0.4-STABLE] – 2026
 
