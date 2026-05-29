@@ -39,13 +39,10 @@ int main(int argc, char **argv) {
     unsigned char signature[64];
     crypto_eddsa_sign(signature, secret_key, hash, 64);
 
-    // Abrir novamente para anexar (append) a assinatura em HEX
-    f = fopen(argv[1], "ab");
-    if (!f) { perror("fopen binario (escrita)"); return 1; }
+    // Retornamos a assinatura via STDOUT para compatibilidade com o builder original
     for (int i = 0; i < 64; i++) {
-        fprintf(f, "%02X", signature[i]);
+        printf("%02X", signature[i]);
     }
-    fclose(f);
-
+    
     return 0;
 }

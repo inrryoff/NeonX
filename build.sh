@@ -243,7 +243,9 @@ compile_tool() {
     # Assinar o binário gerado
     if [[ -x "$TOOLS_DIR/sign_binary" && -f "$tmp_key_dir/priv.key" ]]; then
         print_info "Assinando binário com chave comunitária efêmera..."
-        "$TOOLS_DIR/sign_binary" "$final_bin" "$tmp_key_dir/priv.key"
+        # Capturar a assinatura via STDOUT e anexar ao fim do binário
+        local SIG_HEX=$("$TOOLS_DIR/sign_binary" "$final_bin" "$tmp_key_dir/priv.key")
+        echo -n "$SIG_HEX" >> "$final_bin"
     fi
     rm -rf "$tmp_key_dir"
 

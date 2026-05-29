@@ -1,6 +1,7 @@
 #include "msgs.h"
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -1074,6 +1075,15 @@ void msgs_init(void) {
     const char *lang = msgs_detect_windows_locale();
 #else
     const char *lang = getenv("LANG");
+    // Em sistemas Unix, o LANG pode vir como "pt_BR.UTF-8". 
+    // Precisamos isolar os primeiros 2 caracteres.
+    static char lang_clean[3] = {0};
+    if (lang && strlen(lang) >= 2) {
+        lang_clean[0] = (char)tolower((unsigned char)lang[0]);
+        lang_clean[1] = (char)tolower((unsigned char)lang[1]);
+        lang_clean[2] = '\0';
+        lang = lang_clean;
+    }
 #endif
     int idx = lookup_language(lang);
     idioma_atual = (idx >= 0) ? idx : 1;  // fallback para inglês (1)

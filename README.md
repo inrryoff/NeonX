@@ -61,9 +61,28 @@ Para detalhes sobre a evolução técnica, leia o [CHANGELOG.md](./CHANGELOG.md)
 | `--preset` | Presets: `cyberpunk`, `retro`, `matrix`, `sunset` | - |
 | `--quantized`| Ativa modo 15-bit (retrô/blocos) | OFF |
 | `--verify-sig`| Valida a integridade matemática do binário | - |
-| `--lang` | Idioma: `pt`, `en`, `es`, `zh` | auto |
+| `--lang [idioma]`| Seleciona o idioma: `pt`, `en`, `es`, `zh`, `ja`, etc. | auto |
 
 </details>
+
+---
+
+## 🌍 Idiomas e Internacionalização
+
+O NeonX detecta automaticamente o idioma do seu sistema:
+- **Windows:** Utiliza a linguagem configurada na UI do sistema.
+- **Linux/macOS/Android:** Utiliza a variável de ambiente `$LANG`.
+
+Se desejar forçar um idioma específico, utilize a flag `--lang`:
+```bash
+# Forçar Chinês
+neonx --lang zh --help
+
+# Forçar Inglês (mesmo em sistema PT-BR)
+neonx --lang en -v
+```
+
+---
 
 ---
 
