@@ -56,38 +56,6 @@ void shaders_set_preset(const char *preset, int *anim_mode, int32_t *speed_fixed
     }
 }
 
-void shaders_set_opacity_from_string(const char *o_val) {
-    // Custom str_to_fixed logic to avoid strtod
-    int32_t val_fixed = 0;
-    int32_t fraction = 0;
-    int divisor = 1;
-    bool in_fraction = false;
-    const char *s = o_val;
-    
-    while (*s) {
-        if (*s == '.') {
-            in_fraction = true;
-        } else if (*s >= '0' && *s <= '9') {
-            if (in_fraction) {
-                fraction = fraction * 10 + (*s - '0');
-                divisor *= 10;
-            } else {
-                val_fixed = val_fixed * 10 + (*s - '0');
-            }
-        } else {
-            fprintf(stderr, "%s", MSG(MSG_ERR_INVALID_NUMBER));
-            exit(3);
-        }
-        s++;
-    }
-    int32_t result = (val_fixed * 1000) + ((fraction * 1000) / divisor);
-    if (result < 0 || result > 1000) {
-        fprintf(stderr, "%s", MSG(MSG_ERR_INVALID_NUMBER));
-        exit(3);
-    }
-    neonx_set_opacity(result);
-}
-
 void shaders_finalize_setup(void) {
     // neonx_set_gradient_angle já chama precalc
 }

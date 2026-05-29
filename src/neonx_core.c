@@ -128,19 +128,18 @@ static int32_t shader_pulse_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, 
 }
 
 static void apply_border_opacity_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, int32_t max_dist, int32_t op, int *r, int *g, int *b) {
-    if (op <= 0 || max_dist == 0) return;
+    if (op <= 0 || max_dist <= 0) return;
     int32_t dist = neonx_fast_dist_fixed(x - cx, y - cy);
-    int32_t max_d_normal = max_dist >> FIXED_SHIFT;
-    int32_t dist_normal = dist >> FIXED_SHIFT;
-    if (max_d_normal == 0) return;
-    int32_t dist_ratio = (dist_normal * 1000) / max_d_normal;
-    int32_t decay = (dist_ratio * op) / 1000;
-    int32_t factor = 1000 - decay;
+    int32_t ratio = (int32_t)(((int64_t)dist * FIXED_ONE) / max_dist);
+    int32_t decay = FIXED_MUL(ratio, op);
+    int32_t factor = FIXED_ONE - decay;
     if (factor < 0) factor = 0;
-    if (factor > 1000) factor = 1000;
-    *r = (int)(((int64_t)*r * factor) / 1000);
-    *g = (int)(((int64_t)*g * factor) / 1000);
-    *b = (int)(((int64_t)*b * factor) / 1000);
+    if (factor > FIXED_ONE) factor = FIXED_ONE;
+
+    *r = (*r * factor) >> FIXED_SHIFT;
+    *g = (*g * factor) >> FIXED_SHIFT;
+    *b = (*b * factor) >> FIXED_SHIFT;
+
     if (*r < 0) *r = 0; else if (*r > 255) *r = 255;
     if (*g < 0) *g = 0; else if (*g > 255) *g = 255;
     if (*b < 0) *b = 0; else if (*b > 255) *b = 255;
