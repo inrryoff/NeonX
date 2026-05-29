@@ -171,9 +171,8 @@ compile_tool() {
     local GENERIC_PUB_HEX=""
     if [[ -x "$TOOLS_DIR/keygen" ]]; then
         print_info "Gerando chaves efêmeras para assinatura comunitária..."
-        "$TOOLS_DIR/keygen" "$tmp_key_dir/priv.key" "$tmp_key_dir/pub.key" > /dev/null
-        # Usar tr -dc para pegar apenas caracteres hexadecimais, eliminando espaços/tabs/quebras de linha
-        GENERIC_PUB_HEX=$(od -An -tx1 -v "$tmp_key_dir/pub.key" | tr -dc '0-9a-fA-F')
+        # Capturar a hex diretamente da saída do keygen para máxima portabilidade (Windows/macOS/Linux)
+        GENERIC_PUB_HEX=$("$TOOLS_DIR/keygen" "$tmp_key_dir/priv.key" "$tmp_key_dir/pub.key" --print-hex | tail -n 1 | tr -dc '0-9a-fA-F')
     fi
     
     local SIG_MACRO=""
