@@ -67,8 +67,8 @@ Se você deseja manter uma identidade persistente como mantenedor de um fork:
    PUB_HEX=$(od -An -tx1 -v minhas_chaves.pub | tr -d ' \n')
    # Compile passando a macro e o mantenedor
    clang ... -DGENERIC_PUBLIC_KEY=\"$PUB_HEX\" -DBUILD_MAINTAINER=\"SeuNome\" ...
-   # Assine o binário final
-   ./tools/sign_binary build/neonx minhas_chaves.key
+   # Assine o binário final (anexando o output ao fim do arquivo)
+   ./tools/sign_binary build/neonx minhas_chaves.key >> build/neonx
    ```
 
 ---

@@ -19,7 +19,7 @@ NeonX/
 │   └── msgs.c/.h        # Sistema de internacionalização (PT/EN)
 ├── tools/               # Ferramentas auxiliares para o Host (Build-time)
 │   ├── keygen.c         # Gera o par de chaves (NeonX.key e NeonX.pub)
-│   └── sign_binary.c    # Anexa a assinatura de 128 bytes no final do binário
+│   └── sign_binary.c    # Gera a assinatura Ed25519 e a envia via STDOUT para o builder
 ├── keys/                # Chaves criptográficas, hashes e assinaturas
 │   ├── NeonX.key / .pub # Par de chaves EdDSA do binário em C
 │   ├── minisign.key/pub # Par de chaves para a assinatura externa

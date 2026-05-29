@@ -2,6 +2,27 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.1.3-STABLE] – 2026
+
+### Adicionado
+- **Segurança e Robustez Numérica:** Substituição do parser manual de ponto-fixo por `secure_str_to_fixed`, utilizando `strtod` e verificação de `errno` para evitar comportamentos indefinidos com entradas malformadas.
+- **Gestão de Memória em Sinais:** O tratador de `SIGINT` (Ctrl+C) agora libera explicitamente o buffer de conteúdo principal (`free_content`) antes de encerrar o processo, garantindo encerramento limpo.
+
+### Alterado
+- Refatoração da validação de argumentos numéricos (`-o`, `-F`, `-m`, `-c`, `-P`) com mensagens de erro mais precisas e validação rigorosa de limites.
+- Migração interna: a opacidade agora é configurada via `neonx_set_opacity` (ponto-fixo) em vez de strings, melhorando a consistência com o `neonx_core`.
+
+## [2.1.2-STABLE] – 2026
+
+### Adicionado
+- **Expansão de Testes i18n:** Novos casos de teste para Espanhol (`es`) e Chinês (`zh`) no `integration_test.sh`.
+- **CI/CD Robusto:** O workflow do GitHub Actions agora valida corretamente caracteres multi-byte e UTF-8 em diferentes sistemas operacionais (Linux, macOS, Windows).
+
+### Alterado
+- **Melhoria na Detecção de Idioma:** O sistema agora isola corretamente o código de idioma em sistemas Unix quando `LANG` contém sufixos de codificação (ex: de `pt_BR.UTF-8` para `pt`).
+- **Ordem de Inicialização:** A chamada `setlocale(LC_ALL, "")` foi movida para o início de `init_system_context`, garantindo que todas as bibliotecas e mensagens sigam o locale do sistema desde o primeiro byte.
+- **Refatoração do Sistema de Assinatura:** A ferramenta `sign_binary` agora envia a assinatura via STDOUT, permitindo que o `build.sh` gerencie a anexação ao binário de forma mais flexível.
+
 ## [2.1.1-STABLE] – 2026
 
 ### Adicionado

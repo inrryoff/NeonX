@@ -179,6 +179,11 @@ void handle_sigint(int sig) {
     #else
     printf("\033[?7h\033[?25h\033[0m\n");
     #endif
+    
+    if (g_current_content) {
+        free_content(g_current_content);
+    }
+    
     _exit(130);
 }
 

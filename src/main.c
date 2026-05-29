@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <errno.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -30,38 +31,20 @@ int auth_status;
 int g_max_lines_limit = 10000;
 extern uint32_t secure_random_u32(void);
 
-static bool is_integer_fixed(int32_t value) {
-    return (value & 0xFFFF) == 0;
-}
-
-static int32_t str_to_fixed(const char *s) {
-    int32_t result = 0;
-    int32_t fraction = 0;
-    int divisor = 1;
-    bool in_fraction = false;
-    bool negative = false;
-    
-    if (*s == '-') {
-        negative = true;
-        s++;
+static int32_t secure_str_to_fixed(const char *s, bool *ok) {
+    if (!s || !*s) {
+        if (ok) *ok = false;
+        return 0;
     }
-    
-    while (*s) {
-        if (*s == '.') {
-            in_fraction = true;
-        } else if (*s >= '0' && *s <= '9') {
-            if (in_fraction) {
-                fraction = fraction * 10 + (*s - '0');
-                divisor *= 10;
-            } else {
-                result = result * 10 + (*s - '0');
-            }
-        }
-        s++;
+    char *endptr = NULL;
+    errno = 0;
+    double val = strtod(s, &endptr);
+    if (errno != 0 || endptr == s || (*endptr != '\0' && !isspace((unsigned char)*endptr))) {
+        if (ok) *ok = false;
+        return 0;
     }
-    
-    int32_t fixed_val = (result * FIXED_ONE) + ((fraction * FIXED_ONE) / divisor);
-    return negative ? -fixed_val : fixed_val;
+    if (ok) *ok = true;
+    return FLOAT_TO_FIXED(val);
 }
 
 // ==================== Processamento de Argumentos ====================
@@ -82,34 +65,38 @@ static void print_error_msg(const char *fmt, ...) {
 
 static int handle_numeric_argument(const char *arg, const char *val, struct neonx_options *opts)
 {
-    int32_t num_fixed = str_to_fixed(val);
+    if (!arg || !val || !opts) return 3;
+
+    bool ok = false;
+    int32_t num_fixed = secure_str_to_fixed(val, &ok);
+    if (!ok) {
+        print_error_msg(MSG(MSG_ERR_INVALID_NUMBER), arg, val);
+        return 3;
+    }
 
     if (!strcmp(arg, "-o")) {
         if (num_fixed < 0 || num_fixed > FIXED_ONE) {
             print_error_msg(MSG(MSG_ERR_INVALID_NUMBER), "-o", val);
             return 3;
         }
-        shaders_set_opacity_from_string(val); // Will refactor this function next
+        neonx_set_opacity(num_fixed);
         return 0;
     }
 
     if (!strcmp(arg, "-F")) {
-        if (!is_integer_fixed(num_fixed) || num_fixed <= 0) {
-            print_error_msg(num_fixed <= 0 ? MSG(MSG_ERR_MUST_BE_POSITIVE) : MSG(MSG_ERR_MUST_BE_INTEGER), "-F");
+        int32_t fps = num_fixed / FIXED_ONE;
+        if (fps <= 0) {
+            print_error_msg(MSG(MSG_ERR_MUST_BE_POSITIVE), "-F");
             return 3;
         }
-        opts->frame_time_us = (uint32_t)(1000000LL / (num_fixed / FIXED_ONE));
+        opts->frame_time_us = (uint32_t)(1000000LL / fps);
         return 0;
     }
 
     if (!strcmp(arg, "-m")) {
         int32_t mode = num_fixed / FIXED_ONE;
-        if (!is_integer_fixed(num_fixed) || mode < 0 || mode > MAX_ANIM_MODE) {
-            if (mode < 0 || mode > MAX_ANIM_MODE) {
-                fprintf(stderr, "%s", MSG(MSG_ERR_MODE_LIMIT));
-            } else {
-                print_error_msg(MSG(MSG_ERR_MUST_BE_INTEGER), "-m");
-            }
+        if (mode < 0 || mode > MAX_ANIM_MODE) {
+            fprintf(stderr, "%s", MSG(MSG_ERR_MODE_LIMIT));
             return 4;
         }
         opts->anim_mode = (int)mode;
@@ -117,11 +104,12 @@ static int handle_numeric_argument(const char *arg, const char *val, struct neon
     }
 
     if (!strcmp(arg, "-c")) {
-        if (!is_integer_fixed(num_fixed) || num_fixed <= 0) {
-            print_error_msg(num_fixed <= 0 ? MSG(MSG_ERR_MUST_BE_POSITIVE) : MSG(MSG_ERR_MUST_BE_INTEGER), "-c");
+        int32_t width = num_fixed / FIXED_ONE;
+        if (width <= 0) {
+            print_error_msg(MSG(MSG_ERR_MUST_BE_POSITIVE), "-c");
             return 3;
         }
-        opts->fixed_width = num_fixed / FIXED_ONE;
+        opts->fixed_width = width;
         return 0;
     }
 
@@ -153,8 +141,9 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
             continue;
         }
         if (!strcmp(arg, "-P") && i + 1 < argc) {
-            opts->phase_fixed = str_to_fixed(argv[++i]);
-            opts->phase_fixed_set = true;
+            bool ok = false;
+            opts->phase_fixed = secure_str_to_fixed(argv[++i], &ok);
+            opts->phase_fixed_set = ok;
             continue;
         }
         if (!strcmp(arg, "-h") || !strcmp(arg, "--help")) { opts->show_help_flag = true; continue; }
