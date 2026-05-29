@@ -167,7 +167,8 @@ compile_tool() {
     if [[ -x "$TOOLS_DIR/keygen" ]]; then
         print_info "Gerando chaves efêmeras para assinatura comunitária..."
         "$TOOLS_DIR/keygen" "$tmp_key_dir/priv.key" "$tmp_key_dir/pub.key" > /dev/null
-        GENERIC_PUB_HEX=$(od -An -tx1 -v "$tmp_key_dir/pub.key" | tr -d ' \n')
+        # Usar tr -dc para pegar apenas caracteres hexadecimais, eliminando espaços/tabs/quebras de linha
+        GENERIC_PUB_HEX=$(od -An -tx1 -v "$tmp_key_dir/pub.key" | tr -dc '0-9a-fA-F')
     fi
     
     local SIG_MACRO=""
@@ -263,11 +264,10 @@ if [[ $# -gt 0 ]]; then
                 clang tests/unit/test_math.c src/shaders.c src/neonx_core.c src/msgs.c -o "$OUTPUT_DIR/tests/test_math" -Isrc $MATH_LIB $PERF_FLAGS $HARDENING_CFLAGS $HARDENING_LDFLAGS
                 "$OUTPUT_DIR/tests/test_math"
                 
-                # Integrar testes de CLI se o binário nativo existir ou for compilado agora
-                if [[ ! -f "$OUTPUT_DIR/$PROJECT_NAME" && ! -f "$OUTPUT_DIR/${PROJECT_NAME}.exe" ]]; then
-                    print_info "Compilando binário temporário para testes de integração..."
-                    compile_tool "native" "$PROJECT_NAME" "native" "true"
-                fi
+                # Sempre compilar o binário nativo para testes de integração para garantir assinatura válida
+                print_info "Compilando binário para testes de integração..."
+                compile_tool "native" "$PROJECT_NAME" "native" "true"
+
                 chmod +x tests/integration_test.sh
                 ./tests/integration_test.sh
                 exit 0
