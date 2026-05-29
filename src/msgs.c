@@ -1048,7 +1048,11 @@ static const char *mensagens[13][MSG_TOTAL] = {
 
 #ifdef _WIN32
 const char* msgs_detect_windows_locale(void) {
+    // Detect the user's default language.
+    // Note: langId is currently used implicitly by system-wide locale queries,
+    // but we'll cast it to void to prevent compiler warnings if not explicitly used.
     LANGID langId = GetUserDefaultUILanguage();
+    (void)langId;
 
     wchar_t wlocaleName[LOCALE_NAME_MAX_LENGTH];
     if (GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, wlocaleName, LOCALE_NAME_MAX_LENGTH) == 0) {

@@ -29,7 +29,12 @@ else
     PERF_FLAGS="-O3 -ffast-math -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
 fi
 
-HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wstrict-overflow=5 -fstack-clash-protection"
+HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wstrict-overflow=5"
+# -fstack-clash-protection não é suportado por todos os compiladores/plataformas (ex: macOS)
+if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "linux-android"* ]]; then
+    HARDENING_CFLAGS="$HARDENING_CFLAGS -fstack-clash-protection"
+fi
+
 HARDENING_LDFLAGS=""
 ARCH=$(uname -m)
 
