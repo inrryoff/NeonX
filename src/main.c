@@ -202,10 +202,10 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
 // ==================== Sub-rotinas do Main ====================
 
 static void init_system_context(void) {
+    setlocale(LC_ALL, "");
     msgs_init();
     neonx_init_lut();
     srand((unsigned int)time(NULL));
-    setlocale(LC_ALL, "");
 
 #ifdef _WIN32
     // Windows não tem SIGPIPE

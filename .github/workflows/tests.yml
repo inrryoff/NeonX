@@ -80,9 +80,26 @@ jobs:
         shell: bash
 
       - name: 🧪 Teste 4 - Internacionalização (i18n)
-        if: runner.os == 'Linux'
         run: |
-          ./build/neonx --lang zh --help | grep -q "用法"
-          ./build/neonx --lang es --help | grep -qi "uso:"
-          echo "✅ Internacionalização operante."
+          # Garantir que o ambiente de shell trate a saída como UTF-8
+          export LC_ALL=en_US.UTF-8 || export LC_ALL=C.UTF-8 || true
+          export LANG=en_US.UTF-8 || export LANG=C.UTF-8 || true
+          
+          BIN="./build/neonx"
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then BIN="./build/neonx.exe"; fi
+          
+          echo "Testando idioma Espanhol (ASCII)..."
+          $BIN --lang es --help | grep -qi "uso:"
+          
+          echo "Testando idioma Chinês (UTF-8 Multi-byte)..."
+          # No Windows/macOS, o grep pode ser sensível ao locale do sistema para caracteres multi-byte.
+          # Vamos tentar capturar e mostrar os primeiros bytes para depuração se falhar.
+          if ! $BIN --lang zh --help | grep -q "用法"; then
+            echo "❌ Falha ao detectar '用法' (Chinês) no output."
+            echo "Output bruto (primeiras 10 linhas):"
+            $BIN --lang zh --help | head -n 10
+            exit 1
+          fi
+          
+          echo "✅ Internacionalização operante em todas as plataformas."
         shell: bash
