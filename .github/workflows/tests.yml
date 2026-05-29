@@ -38,7 +38,7 @@ jobs:
       - name: ⚙️ Instalar Dependências (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install minisign
+          choco install minisign zip
           chmod +x *.sh tests/*.sh || true
 
       - name: 🛠️ Build e Teste Completo (Nativo + Integração)

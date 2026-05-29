@@ -9,6 +9,9 @@
 // Configuração de diretórios específicos de acordo com o sistema operacional
 #ifdef __linux__
 #include <unistd.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#include <limits.h>
 #elif defined(_WIN32)
 #include <windows.h>
 #endif
@@ -83,6 +86,9 @@ int check_integrity(void) {
 #ifdef __linux__
     ssize_t len = readlink("/proc/self/exe", exec_path, sizeof(exec_path)-1);
     if (len == -1) return 2;
+#elif defined(__APPLE__)
+    uint32_t size = sizeof(exec_path);
+    if (_NSGetExecutablePath(exec_path, &size) != 0) return 2;
 #elif defined(_WIN32)
     GetModuleFileNameA(NULL, exec_path, sizeof(exec_path));
 #else
