@@ -11,9 +11,8 @@ int main(int argc, char **argv) {
     }
 
     FILE *f = fopen(argv[1], "rb");
-    if (!f) { perror("fopen binario"); return 1; }
+    if (!f) { perror("fopen binario (leitura)"); return 1; }
     
-    // Hash the file using Blake2b (matching integrity.c)
     crypto_blake2b_ctx blake_ctx;
     crypto_blake2b_init(&blake_ctx, 64);
     
@@ -27,21 +26,26 @@ int main(int argc, char **argv) {
     unsigned char hash[64];
     crypto_blake2b_final(&blake_ctx, hash);
 
-    // Read secret key
     f = fopen(argv[2], "rb");
     if (!f) { perror("fopen chave"); return 1; }
     unsigned char secret_key[64];
     if (fread(secret_key, 1, 64, f) != 64) {
-        fprintf(stderr, "Erro ao ler chave privada (esperado 64 bytes)\n");
+        fprintf(stderr, "Erro ao ler chave privada\n");
         fclose(f);
         return 1;
     }
     fclose(f);
 
     unsigned char signature[64];
-    // Sign the hash (matching integrity.c)
     crypto_eddsa_sign(signature, secret_key, hash, 64);
 
-    for (int i = 0; i < 64; i++) printf("%02X", signature[i]);
+    // Abrir novamente para anexar (append) a assinatura em HEX
+    f = fopen(argv[1], "ab");
+    if (!f) { perror("fopen binario (escrita)"); return 1; }
+    for (int i = 0; i < 64; i++) {
+        fprintf(f, "%02X", signature[i]);
+    }
+    fclose(f);
+
     return 0;
 }

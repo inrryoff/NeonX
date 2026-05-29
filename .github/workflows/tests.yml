@@ -46,6 +46,21 @@ jobs:
           ./build.sh --test
         shell: bash
 
+      - name: 🧪 Verificação de Assinatura Comunitária
+        run: |
+          BIN="./build/neonx"
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then BIN="./build/neonx.exe"; fi
+          
+          # Deve passar com 0
+          $BIN --verify-sig
+          
+          # Deve conter informações da comunidade
+          $BIN -v | grep -q "COMMUNITY"
+          $BIN -v | grep -q "VALID_SIG_BY"
+          
+          echo "✅ Validação de assinatura comunitária concluída."
+        shell: bash
+
       - name: 🧪 Teste Avançado de Estabilidade (Fuzzing leve de flags)
         run: |
           BIN="./build/neonx"

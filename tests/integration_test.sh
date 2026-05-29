@@ -44,16 +44,21 @@ test_cmd "Help flag" "$BIN --help"
 test_cmd "Version flag" "$BIN --version"
 test_cmd "License flag" "$BIN --license"
 
-# Integrity check pode falhar em builds locais/modificadas (esperado)
-# O teste passa se o comando não sofrer crash e retornar um status conhecido
-echo -n "Testing Integrity check... "
-$BIN --verify-sig > /dev/null 2>&1
-EXIT_CODE=$?
-if [[ $EXIT_CODE -eq 0 || $EXIT_CODE -eq 1 ]]; then
-    echo -e "${GREEN}PASS (Status: $EXIT_CODE)${NC}"
+# Integrity check deve PASSAR (0) agora que o build.sh assina o binário
+test_cmd "Integrity check (Self-Signed)" "$BIN --verify-sig"
+
+# Verificar status dinâmico na versão
+echo -n "Checking Version maintainer info... "
+if $BIN -v | grep -q "COMMUNITY" && $BIN -v | grep -q "VALID_SIG_BY"; then
+    echo -e "${GREEN}PASS${NC}"
 else
-    echo -e "${RED}FAIL (Crash or Unexpected Status: $EXIT_CODE)${NC}"
-    FAILURES=$((FAILURES + 1))
+    # Se for build oficial de release (o que não é o caso aqui no dev)
+    if $BIN -v | grep -q "OFFICIAL_BY_INRRYOFF"; then
+        echo -e "${GREEN}PASS (OFFICIAL)${NC}"
+    else
+        echo -e "${RED}FAIL (Maintainer info mismatch)${NC}"
+        FAILURES=$((FAILURES + 1))
+    fi
 fi
 
 # 2. Modos de Renderização Estáticos (Evita loops infinitos no teste)

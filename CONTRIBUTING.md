@@ -45,10 +45,31 @@ Antes de abrir um Pull Request, você **deve** validar suas alterações:
 *   **Matemática:** Use sempre as macros de ponto fixo em `neonx_core.h`. **Não utilize `float` ou `double`** no motor de renderização principal.
 *   **Commits:** Siga o padrão [Conventional Commits](https://www.conventionalcommits.org/) (ex: `feat:`, `fix:`, `docs:`).
 
-## 🔒 Política de Segurança
+## 🔒 Assinatura e Integridade
 
-*   O NeonX possui auto-verificação de integridade. Se você modificar o código, o binário indicará status `MODIFIED`. Isso é esperado para builds da comunidade.
-*   **Nunca** desative ou remova as checagens de integridade no `integrity.c`.
+O NeonX exige que o binário seja assinado para passar na verificação de integridade.
+
+### Assinatura Automática (Efêmera)
+Por padrão, o `build.sh` gera uma chave descartável durante o build, injeta a chave pública no código e assina o executável. Isso garante que seu build local sempre passe no teste `--verify-sig` com o status `VALID_SIG_BY_COMMUNITY`.
+
+### Assinatura com Chave Própria (Personalizada)
+Se você deseja manter uma identidade persistente como mantenedor de um fork:
+1. Gere seu par de chaves uma única vez:
+   ```bash
+   # Compila a ferramenta de chaves
+   clang tools/keygen.c -o tools/keygen -Isrc
+   # Gera suas chaves persistentes
+   ./tools/keygen minhas_chaves.key minhas_chaves.pub
+   ```
+2. Para compilar usando sua chave:
+   ```bash
+   # Extraia a string hex da sua chave pública
+   PUB_HEX=$(od -An -tx1 -v minhas_chaves.pub | tr -d ' \n')
+   # Compile passando a macro e o mantenedor
+   clang ... -DGENERIC_PUBLIC_KEY=\"$PUB_HEX\" -DBUILD_MAINTAINER=\"SeuNome\" ...
+   # Assine o binário final
+   ./tools/sign_binary build/neonx minhas_chaves.key
+   ```
 
 ---
 Desenvolvido com ☕, C e Termux.

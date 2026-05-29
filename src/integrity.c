@@ -18,52 +18,8 @@
 
 static unsigned char active_public_key[32];
 static bool key_loaded = false;
+static bool using_official = false;
 
-/**
- * Nome da função: load_active_key
- * Tenta carregar a chave de keys/NeonX.pub ou da variável NEONX_KEY_FILE.
- * Se falhar, usa a chave embutida (NEONX_PUBLIC_KEY).
- */
-static void load_active_key(void)
-{
-    if (key_loaded) return;
-
-    const char *env_path = getenv("NEONX_KEY_FILE");
-    if (env_path) {
-        FILE *f = fopen(env_path, "rb");
-        if (f) {
-            if (fread(active_public_key, 1, 32, f) == 32) {
-                fclose(f);
-                key_loaded = true;
-                return;
-            }
-            fclose(f);
-            fprintf(stderr, "%s", MSG(MSG_WARN_KEY_LOAD_FAIL));
-        }
-    }
-
-    // Default: usa a chave embutida no binário
-    memcpy(active_public_key, NEONX_PUBLIC_KEY, 32);
-    key_loaded = true;
-}
-
-/**
- * Nome da função: check_integrity
- * O que faz: Checa a integridade do próprio arquivo executável.
- * Como funciona:
- * 1. Descobre o caminho no disco para o executável atual.
- * 2. Abre o arquivo em modo leitura binária.
- * 3. Lê os últimos 128 bytes (que contêm a assinatura em formato hexadecimal).
- * 4. Converte os 128 caracteres hexadecimais para 64 bytes binários reais.
- * 5. Lê o restante do arquivo (o programa original sem a assinatura).
- * 6. Usa a biblioteca Monocypher (EdDSA) para checar se a assinatura confere com o arquivo.
- * Parâmetros:
- * - Nenhum.
- * Retorno: 0 (Sucesso), 1 (Falha de Assinatura), 2 (Erro do Sistema/Arquivo).
- * Onde é usada: main() no arquivo main.c.
- * Observações: Aloca memória para armazenar o executável durante a checagem,
- * portanto pode exigir um espaço razoável de RAM equivalente ao tamanho do programa.
- */
 static int hex2bin(uint8_t *bin, const uint8_t *hex, size_t hex_len) {
     if (hex_len % 2 != 0) return -1;
     for (size_t i = 0; i < hex_len / 2; i++) {
@@ -81,6 +37,44 @@ static int hex2bin(uint8_t *bin, const uint8_t *hex, size_t hex_len) {
         bin[i] = (uint8_t)((h << 4) | l);
     }
     return 0;
+}
+
+static void load_active_key(void)
+{
+    if (key_loaded) return;
+
+    const char *env_path = getenv("NEONX_KEY_FILE");
+    if (env_path) {
+        FILE *f = fopen(env_path, "rb");
+        if (f) {
+            if (fread(active_public_key, 1, 32, f) == 32) {
+                fclose(f);
+                key_loaded = true;
+                using_official = false; // Chave externa é considerada não oficial/desenvolvedor
+                return;
+            }
+            fclose(f);
+            fprintf(stderr, "%s", MSG(MSG_WARN_KEY_LOAD_FAIL));
+        }
+    }
+
+#ifdef GENERIC_PUBLIC_KEY
+    if (hex2bin(active_public_key, (const uint8_t*)GENERIC_PUBLIC_KEY, 64) == 0) {
+        key_loaded = true;
+        using_official = false;
+        return;
+    }
+#endif
+
+    // Default: usa a chave embutida no binário
+    memcpy(active_public_key, NEONX_OFFICIAL_PUBLIC_KEY, 32);
+    key_loaded = true;
+    using_official = true;
+}
+
+bool is_using_official_key(void) {
+    load_active_key();
+    return using_official;
 }
 
 int check_integrity(void) {

@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "../src/monocypher.h"
 #include "../src/monocypher.c"
 
-int main() {
+int main(int argc, char **argv) {
+    if (argc != 3) {
+        fprintf(stderr, "Uso: %s <chave_privada.key> <chave_publica.pub>\n", argv[0]);
+        return 1;
+    }
+
     uint8_t seed[32];
     uint8_t secret_key[64];
     uint8_t public_key[32];
@@ -12,36 +18,25 @@ int main() {
         perror("Erro ao abrir /dev/urandom");
         return 1;
     }
-    fread(seed, 1, 32, f);
+    if (fread(seed, 1, 32, f) != 32) {
+        perror("Erro ao ler /dev/urandom");
+        fclose(f);
+        return 1;
+    }
     fclose(f);
+
     memcpy(secret_key, seed, 32);
     crypto_eddsa_key_pair(secret_key, public_key, secret_key);
-    f = fopen("../keys/NeonX.key", "wb");
-    if (f) {
-        fwrite(secret_key, 1, 64, f);
-        fclose(f);
-        printf("Chave privada salva em ../keys/NeonX.key\n");
-    }
 
-    f = fopen("../keys/NeonX.pub", "w");
-    if (f) {
-        for (int i = 0; i < 32; i++) {
-            fprintf(f, "%02X", public_key[i]);
-        }
-        fprintf(f, "\n");
-        fclose(f);
-        printf("Chave pública salva em ../keys/NeonX.pub\n");
-    }
+    f = fopen(argv[1], "wb");
+    if (!f) { perror("Erro ao abrir arquivo de chave privada"); return 1; }
+    fwrite(secret_key, 1, 64, f);
+    fclose(f);
 
-    printf("\nChave pública formatada:\n\n");
-    for (int i = 0; i < 32; i++) {
-        printf("0x%02X", public_key[i]);        
-        if (i < 31) {
-            printf(", ");
-        }
-        if ((i + 1) % 8 == 0) {
-            printf("\n    ");
-        }
-    }
-    printf("\n");
+    f = fopen(argv[2], "wb");
+    if (!f) { perror("Erro ao abrir arquivo de chave pública"); return 1; }
+    fwrite(public_key, 1, 32, f);
+    fclose(f);
+
+    return 0;
 }

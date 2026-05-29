@@ -10,6 +10,10 @@ Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) e
   - Implementação do bridge WASM em `src/main_wasm.c`.
   - Interface HTML interativa (`index.html`) para demonstração dos shaders no navegador.
   - Exportação de funções críticas via Emscripten para manipulação de cores em tempo real via JS.
+- **Sistema de Assinatura Efêmera:** 
+  - O `build.sh` agora gera chaves Ed25519 temporárias durante a compilação para assinar binários locais e de CI/CD automaticamente.
+  - Adicionado suporte à macro `GENERIC_PUBLIC_KEY` para injeção de chaves públicas em tempo de compilação.
+  - O comando `--version` agora diferencia entre `OFFICIAL_BY_INRRYOFF` e `VALID_SIG_BY_COMMUNITY` baseando-se na chave utilizada.
 - **Melhorias no `build.sh`:**
   - Adicionado suporte nativo para compilação WASM via Emscripten (`./build.sh` -> Opção 2).
   - Otimização do pipeline de cross-compilação com Zig.

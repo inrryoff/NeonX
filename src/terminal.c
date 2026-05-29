@@ -31,6 +31,9 @@ extern char *program_invocation_short_name;
 #define PROG_NAME "neonx"
 #endif
 
+#include "render.h"
+#include "integrity.h"
+
 static int g_integrity_status = -1;
 static Content *g_current_content = NULL;
 
@@ -97,7 +100,11 @@ void print_version(void) {
     printf("%s%s\n", MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
     
     if (g_integrity_status == 0) {
-        printf("%s", MSG(MSG_VERSION_STATUS_OFFICIAL));
+        if (is_using_official_key()) {
+            printf("%s", MSG(MSG_VERSION_STATUS_OFFICIAL));
+        } else {
+            printf("Integrity: VALID_SIG_BY_%s\n", BUILD_MAINTAINER);
+        }
     } else if (g_integrity_status == 2) {
         printf("%s", MSG(MSG_VERSION_STATUS_ERROR));
     } else {

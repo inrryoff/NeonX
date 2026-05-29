@@ -190,6 +190,8 @@ python3 -m http.server 8080
 
 O NeonX utiliza **Dupla Blindagem**:
 1. **Interna:** Auto-verificação Ed25519 em tempo de execução.
+   - *Builds Oficiais:* Validadas contra a chave mestre do autor.
+   - *Builds Comunitárias/Locais:* O `build.sh` gera automaticamente chaves efêmeras para garantir que o binário seja funcional e íntegro, exibindo o status `VALID_SIG_BY_COMMUNITY`.
 2. **Externa:** Assinaturas `.minisig` para verificação de download.
 
 ```bash

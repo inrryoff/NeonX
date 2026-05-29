@@ -155,6 +155,27 @@ compile_tool() {
     mkdir -p "$OUTPUT_DIR" "$ZIP_DIR"
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build genérica: $label"
+    
+    # --- Início do Processo de Assinatura Efêmera ---
+    local tmp_key_dir
+    tmp_key_dir=$(mktemp -d)
+    
+    # Garantir que as ferramentas de assinatura estejam prontas
+    building_tools
+    
+    local GENERIC_PUB_HEX=""
+    if [[ -x "$TOOLS_DIR/keygen" ]]; then
+        print_info "Gerando chaves efêmeras para assinatura comunitária..."
+        "$TOOLS_DIR/keygen" "$tmp_key_dir/priv.key" "$tmp_key_dir/pub.key" > /dev/null
+        GENERIC_PUB_HEX=$(od -An -tx1 -v "$tmp_key_dir/pub.key" | tr -d ' \n')
+    fi
+    
+    local SIG_MACRO=""
+    if [[ -n "$GENERIC_PUB_HEX" ]]; then
+        SIG_MACRO="-DGENERIC_PUBLIC_KEY=\"$GENERIC_PUB_HEX\""
+    fi
+    # --- Fim do Processo de Assinatura Efêmera ---
+
     local final_bin="$OUTPUT_DIR/${bin_out}_${label}"
     if [[ "$label" == "native" ]]; then
         final_bin="$OUTPUT_DIR/${bin_out}"
@@ -191,7 +212,7 @@ compile_tool() {
         clang "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
             "$OUTPUT_DIR/neonx_core.o" \
             -o "$final_bin" \
-            $TUNE_FLAGS $active_perf_flags $DEV_KEY_MACRO \
+            $TUNE_FLAGS $active_perf_flags $DEV_KEY_MACRO $SIG_MACRO \
             -DVERSION="\"$VERSION\"" \
             -DBUILD_STATUS="\"$BUILD_STATUS\"" \
             -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
@@ -202,7 +223,7 @@ compile_tool() {
         zig cc "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
             -o "$final_bin" -target "$target" \
             -L"$OUTPUT_DIR" -lneonx_core \
-            $active_perf_flags $DEV_KEY_MACRO \
+            $active_perf_flags $DEV_KEY_MACRO $SIG_MACRO \
             -DVERSION="\"$VERSION\"" \
             -DBUILD_STATUS="\"$BUILD_STATUS\"" \
             -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
@@ -210,8 +231,17 @@ compile_tool() {
     fi
     if [[ $? -ne 0 ]]; then
         print_error "Falha na compilação: $label"
+        rm -rf "$tmp_key_dir"
         return 1
     fi
+
+    # Assinar o binário gerado
+    if [[ -x "$TOOLS_DIR/sign_binary" && -f "$tmp_key_dir/priv.key" ]]; then
+        print_info "Assinando binário com chave comunitária efêmera..."
+        "$TOOLS_DIR/sign_binary" "$final_bin" "$tmp_key_dir/priv.key"
+    fi
+    rm -rf "$tmp_key_dir"
+
     if [[ "$is_windows" == "true" ]]; then
         rm -f "$OUTPUT_DIR"/*.pdb 2> "$NULL_DEV" || true
     fi
