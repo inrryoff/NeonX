@@ -61,19 +61,19 @@ void neonx_init_lut(void) {
 
 /** Calcula a raiz quadrada inteira de um valor de 64 bits. */
 uint32_t neonx_isqrt64(uint64_t n) {
-    uint32_t root = 0;
+    uint64_t root = 0;
     uint64_t bit = 1ULL << 62;
     while (bit > n) bit >>= 2;
     while (bit != 0) {
         if (n >= root + bit) {
             n -= root + bit;
-            root = (uint32_t)((root >> 1) + bit);
+            root = (root >> 1) + bit;
         } else {
             root >>= 1;
         }
         bit >>= 2;
     }
-    return root;
+    return (uint32_t)root;
 }
 
 /** Calcula a distância euclidiana entre dois pontos em ponto fixo 16.16. */

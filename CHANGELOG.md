@@ -2,6 +2,15 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.1.6-STABLE] – 2026
+
+### Corrigido
+- **Overflow Crítico em `neonx_isqrt64`:** Corrigido o erro de truncamento na função de raiz quadrada que afetava cálculos de distância em coordenadas grandes, resolvendo bugs na flag de opacidade (`-o`) e em shaders radiais.
+
+### Adicionado
+- **Suíte de Testes Abrangente:** Implementação de `tests/unit/test_comprehensive.c` que valida precisão matemática, lógica de cores e efeitos visuais.
+- **Modo de Teste Verboso:** Nova flag `./build.sh --test-debug` para depuração detalhada de erros de ponto fixo e visualização de resultados intermediários.
+
 ## [2.1.5-STABLE] – 2026
 
 ### Adicionado

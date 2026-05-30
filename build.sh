@@ -330,10 +330,18 @@ if [[ $# -gt 0 ]]; then
         case $1 in
             --test)
                 mkdir -p "$OUTPUT_DIR/tests"
-                clang tests/unit/test_math.c src/shaders.c src/math_fixed.c src/shader_effects.c src/render_core.c src/msgs.c -o "$OUTPUT_DIR/tests/test_math" -Isrc $MATH_LIB $PERF_FLAGS
-                "$OUTPUT_DIR/tests/test_math"
+                clang tests/unit/test_comprehensive.c src/shaders.c src/math_fixed.c src/shader_effects.c src/render_core.c src/msgs.c -o "$OUTPUT_DIR/tests/test_unit" -Isrc $MATH_LIB $PERF_FLAGS
+                "$OUTPUT_DIR/tests/test_unit"
+                
                 compile_tool "native" "$PROJECT_NAME" "native" "true"
                 [[ -f tests/integration_test.sh ]] && chmod +x tests/integration_test.sh && ./tests/integration_test.sh
+                exit 0
+                ;;
+            --test-debug)
+                mkdir -p "$OUTPUT_DIR/tests"
+                print_info "Compilando Testes em Modo Debug (Verbose)..."
+                clang tests/unit/test_comprehensive.c src/shaders.c src/math_fixed.c src/shader_effects.c src/render_core.c src/msgs.c -DVERBOSE_DEBUG -o "$OUTPUT_DIR/tests/test_debug" -Isrc $MATH_LIB $PERF_FLAGS
+                "$OUTPUT_DIR/tests/test_debug"
                 exit 0
                 ;;
             --native) compile_tool "native" "$PROJECT_NAME" "native" "true"; exit 0 ;;

@@ -93,7 +93,11 @@ O driver de renderização abstraído permite que a mesma lógica de colorizaç�
 ## 📝 Testando suas Alterações
 Após qualquer alteração, valide o sistema:
 ```bash
+# Teste unitário e de integração padrão
 ./build.sh --test
+
+# Teste unitário verboso (Debug de precisão e overflows)
+./build.sh --test-debug
 ```
 Ou manualmente:
 ```bash
