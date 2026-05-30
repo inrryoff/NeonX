@@ -2,6 +2,25 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.1.9-STABLE] – 2026
+
+### Corrigido
+- **Segurança e Melhores Práticas (Format Strings):** Implementação de `__attribute__((format(printf, ...)))` em todas as funções wrapper de log/erro (`src/main.c`, `src/render.c`). Isso permite que o compilador valide os argumentos em tempo de compilação, prevenindo vulnerabilidades de *Format String Attack*.
+- **Limpeza de Código:** Remoção de diretivas `#pragma GCC diagnostic` manuais, centralizando a gestão de avisos no sistema de build.
+- **Estabilidade no Windows:** Adicionada a macro `_CRT_SECURE_NO_WARNINGS` globalmente para silenciar avisos de funções inseguras da biblioteca padrão da Microsoft.
+
+## [2.1.8-INTERNAL] – 2026
+
+### Corrigido
+- **Linkedicao Windows (MSVC/Zig):** Ajuste na nomenclatura das bibliotecas estáticas de `.a` para `.lib` no ambiente Windows para satisfazer os requisitos do linker nativo.
+- **Avisos de Compilação:** Adicionada a flag `-Wno-format-nonliteral` no script de build para suportar o sistema de internacionalização (i18n) que utiliza strings de formato dinâmicas.
+
+## [2.1.7-INTERNAL] – 2026
+
+### Corrigido
+- **Compatibilidade macOS (Bash 3.2):** Refatoração do script `build.sh` para remover o uso de arrays associativos (`declare -A`), substituindo-os por lógica compatível com a versão legada do Bash presente no macOS.
+- **Portabilidade de Build:** Correção na detecção do dispositivo nulo (`NUL` vs `/dev/null`) e tratamento de flags de endurecimento (hardening) específicas para cada plataforma.
+
 ## [2.1.6-STABLE] – 2026
 
 ### Corrigido

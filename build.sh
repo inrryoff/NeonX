@@ -70,7 +70,7 @@ else
     PERF_FLAGS="-O3 -ffast-math -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
 fi
 
-HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wstrict-overflow=5 -Wno-unused-command-line-argument"
+HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wno-format-nonliteral -Wstrict-overflow=5 -Wno-unused-command-line-argument"
 if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "linux-android"* ]]; then
     HARDENING_CFLAGS="$HARDENING_CFLAGS -fstack-clash-protection"
 fi
@@ -263,7 +263,7 @@ compile_tool() {
     # Adicionado -lbcrypt para o Windows via Zig
     if [[ "$label" == *"windows"* || ("$is_native" == "true" && "$WINDOWS_HOST" == "true") ]]; then
         is_windows="true"
-        active_perf_flags="${active_perf_flags//-flto/} -D_CRT_SECURE_NO_WARNINGS -Wno-format-nonliteral"
+        active_perf_flags="${active_perf_flags//-flto/} -D_CRT_SECURE_NO_WARNINGS"
         target_math_lib="-lbcrypt"
         final_bin="${final_bin}.exe"
     fi
