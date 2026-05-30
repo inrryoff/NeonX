@@ -115,7 +115,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Ajusta a opacidade/suavidade das bordas\n",
         "  -F [valor]         Trava a taxa de quadros " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n",
         "  -L                 Processamento linha por linha " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nome]    Carrega paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix)" RESET "\n",
+        "  --preset [nome]    Carrega paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Quantização de cores " MSG_CMD_DIM "(Maior performance)" RESET "\n",
         "  --spin             Gera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n",
         "  --lang [id]        Sobrescreve o idioma " MSG_CMD_DIM "(ex: pt, en)" RESET "\n",
@@ -167,7 +169,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Adjusts edge opacity/smoothness\n",
         "  -F [val]           Locks the framerate " MSG_CMD_DIM "(e.g., 60, 90)" RESET "\n",
         "  -L                 Line-by-line processing " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [name]    Loads color palettes " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [name]    Loads color palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Color quantization " MSG_CMD_DIM "(Higher performance)" RESET "\n",
         "  --spin             Generates pure ANSI codes " MSG_CMD_DIM "(For scripts)" RESET "\n",
         "  --lang [id]        Overrides interface language " MSG_CMD_DIM "(e.g., pt, en)" RESET "\n",
@@ -219,7 +223,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Ajusta la opacidad/suavidad de los bordes\n",
         "  -F [val]           Bloquea los cuadros por segundo " MSG_CMD_DIM "(ej: 60, 90)" RESET "\n",
         "  -L                 Procesamiento línea por línea " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nom]     Carga paletas de colores " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [nom]     Carga paletas de colores " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Cuantización de colores " MSG_CMD_DIM "(Mayor rendimiento)" RESET "\n",
         "  --spin             Genera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n",
         "  --lang [id]        Sobrescribe el idioma " MSG_CMD_DIM "(ej: pt, en)" RESET "\n",
@@ -271,7 +277,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Ajuste l'opacité/douceur des bords\n",
         "  -F [val]           Verrouille le framerate " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n",
         "  -L                 Traitement ligne par ligne " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nom]     Charge des palettes de couleurs " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [nom]     Charge des palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Quantification des couleurs " MSG_CMD_DIM "(Hautes performances)" RESET "\n",
         "  --spin             Génère des codes ANSI purs " MSG_CMD_DIM "(Pour scripts)" RESET "\n",
         "  --lang [id]        Remplace la langue de l'interface " MSG_CMD_DIM "(ex: pt, en)" RESET "\n",
@@ -323,7 +331,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]         Passt die Randopazität/Glätte an\n",
         "  -F [Wert]          Sperrt die Bildrate " MSG_CMD_DIM "(z.B. 60, 90)" RESET "\n",
         "  -L                 Zeilenweise Verarbeitung " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [Name]    Lädt Farbpaletten " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [Name]    Lädt Farbpaletten " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Farbquantisierung " MSG_CMD_DIM "(Höhere Leistung)" RESET "\n",
         "  --spin             Generiert reine ANSI-Codes " MSG_CMD_DIM "(Für Skripte)" RESET "\n",
         "  --lang [id]        Überschreibt die Sprache " MSG_CMD_DIM "(z.B. pt, en)" RESET "\n",
@@ -375,7 +385,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Regola l'opacità/morbidezza dei bordi\n",
         "  -F [val]           Blocca il framerate " MSG_CMD_DIM "(es: 60, 90)" RESET "\n",
         "  -L                 Elaborazione riga per riga " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nome]    Carica le tavolozze di colori " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [nome]    Carica le tavolozze " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Quantizzazione colore " MSG_CMD_DIM "(Maggiori prestazioni)" RESET "\n",
         "  --spin             Genera codici ANSI puri " MSG_CMD_DIM "(Per script)" RESET "\n",
         "  --lang [id]        Sovrascrive la lingua " MSG_CMD_DIM "(es: pt, en)" RESET "\n",
@@ -427,7 +439,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Настройка непрозрачности/гладкости краев\n",
         "  -F [знач]          Блокирует частоту кадров " MSG_CMD_DIM "(напр: 60, 90)" RESET "\n",
         "  -L                 Построчная обработка " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [имя]     Загружает цветовые палитры " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [имя]     Загружает цветовые палитры " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Квантование цвета " MSG_CMD_DIM "(Высокая производительность)" RESET "\n",
         "  --spin             Генерирует чистые коды ANSI " MSG_CMD_DIM "(Для скриптов)" RESET "\n",
         "  --lang [id]        Переопределяет язык " MSG_CMD_DIM "(напр: pt, en)" RESET "\n",
@@ -479,7 +493,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           调整边缘不透明度/平滑度\n",
         "  -F [值]            锁定帧率 " MSG_CMD_DIM "(例如: 60, 90)" RESET "\n",
         "  -L                 逐行处理模式 " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [名称]    加载调色板 " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [名称]    加载调色板 " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        颜色量化模式 " MSG_CMD_DIM "(更高性能)" RESET "\n",
         "  --spin             生成纯 ANSI 代码 " MSG_CMD_DIM "(用于外部脚本)" RESET "\n",
         "  --lang [id]        覆盖界面语言 " MSG_CMD_DIM "(例如: pt, en)" RESET "\n",
@@ -531,7 +547,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           エッジの不透明度/滑らかさを調整\n",
         "  -F [値]            フレームレートをロック " MSG_CMD_DIM "(例: 60, 90)" RESET "\n",
         "  -L                 行ごとの処理 " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [名前]    カラーパレットをロード " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [名前]    カラーパレットをロード " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        カラー量子化 " MSG_CMD_DIM "(高パフォーマンス)" RESET "\n",
         "  --spin             純粋な ANSI コードを生成 " MSG_CMD_DIM "(スクリプト用)" RESET "\n",
         "  --lang [id]        言語を上書き " MSG_CMD_DIM "(例: pt, en)" RESET "\n",
@@ -583,7 +601,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           가장자리 불투명도/부드러움 조정\n",
         "  -F [값]            프레임 속도 고정 " MSG_CMD_DIM "(예: 60, 90)" RESET "\n",
         "  -L                 한 줄씩 처리 " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [이름]    색상 팔레트 로드 " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [이름]    색상 팔레트 로드 " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        색상 양자화 " MSG_CMD_DIM "(고성능 모드)" RESET "\n",
         "  --spin             순수 ANSI 코드 생성 " MSG_CMD_DIM "(스크립트용)" RESET "\n",
         "  --lang [id]        인터페이스 언어 재정의 " MSG_CMD_DIM "(예: pt, en)" RESET "\n",
@@ -635,7 +655,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Kenar opaklığını/pürüzsüzlüğünü ayarlar\n",
         "  -F [değer]         Kare hızını kilitler " MSG_CMD_DIM "(ör: 60, 90)" RESET "\n",
         "  -L                 Satır satır işleme " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [isim]    Renk paletlerini yükler " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [isim]    Renk paletlerini yükler " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Renk kuantizasyonu " MSG_CMD_DIM "(Daha yüksek performans)" RESET "\n",
         "  --spin             Saf ANSI kodları üretir " MSG_CMD_DIM "(Scriptler için)" RESET "\n",
         "  --lang [id]        Arayüz dilini geçersiz kılar " MSG_CMD_DIM "(ör: pt, en)" RESET "\n",
@@ -687,7 +709,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Dostosowuje krycie/gładkość krawędzi\n",
         "  -F [wartość]       Blokuje liczbę klatek " MSG_CMD_DIM "(np. 60, 90)" RESET "\n",
         "  -L                 Przetwarzanie linia po linii " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nazwa]   Ładuje palety kolorów " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [nazwa]   Ładuje palety kolorów " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Kwantyzacja kolorów " MSG_CMD_DIM "(Wyższa wydajność)" RESET "\n",
         "  --spin             Generuje czyste kody ANSI " MSG_CMD_DIM "(Dla skryptów)" RESET "\n",
         "  --lang [id]        Nadpisuje język interfejsu " MSG_CMD_DIM "(np. pt, en)" RESET "\n",
@@ -739,7 +763,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Menyesuaikan opasitas/kehalusan tepi\n",
         "  -F [nilai]         Mengunci kecepatan bingkai " MSG_CMD_DIM "(mis: 60, 90)" RESET "\n",
         "  -L                 Pemrosesan baris demi baris " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nama]    Memuat palet warna " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [nama]    Memuat palet warna " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Kuantisasi warna " MSG_CMD_DIM "(Performa lebih tinggi)" RESET "\n",
         "  --spin             Menghasilkan kode ANSI murni " MSG_CMD_DIM "(Untuk skrip)" RESET "\n",
         "  --lang [id]        Menimpa bahasa antarmuka " MSG_CMD_DIM "(mis: pt, en)" RESET "\n",
@@ -791,7 +817,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           يضبط شفافية/نعومة الحواف\n",
         "  -F [قيمة]          يُقفل معدل الإطارات " MSG_CMD_DIM "(مثل: 60, 90)" RESET "\n",
         "  -L                 معالجة سطر بسطر " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [اسم]     يحمل لوحات الألوان " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [اسم]     يحمل لوحات الألوان " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        تكميم اللون " MSG_CMD_DIM "(أداء أعلى)" RESET "\n",
         "  --spin             يولد أكواد ANSI نقية " MSG_CMD_DIM "(للنصوص البرمجية)" RESET "\n",
         "  --lang [id]        يتجاوز لغة الواجهة " MSG_CMD_DIM "(مثل: pt, en)" RESET "\n",
@@ -843,7 +871,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Регулира непрозрачността/гладкостта на ръбовете\n",
         "  -F [стойност]      Заключва кадрите в секунда " MSG_CMD_DIM "(напр. 60, 90)" RESET "\n",
         "  -L                 Обработка ред по ред " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [име]     Зарежда цветови палитри " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [име]     Зарежда цветови палитри " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Квантоване на цветовете " MSG_CMD_DIM "(По-висока производителност)" RESET "\n",
         "  --spin             Генерира чисти ANSI кодове " MSG_CMD_DIM "(За скриптове)" RESET "\n",
         "  --lang [id]        Презаписва езика на интерфейса " MSG_CMD_DIM "(напр. pt, en)" RESET "\n",
@@ -895,7 +925,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           Ρυθμίζει την αδιαφάνεια/ομαλότητα των άκρων\n",
         "  -F [τιμή]          Κλειδώνει το framerate " MSG_CMD_DIM "(π.χ. 60, 90)" RESET "\n",
         "  -L                 Επεξεργασία γραμμή προς γραμμή " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [όνομα]   Φορτώνει παλέτες χρωμάτων " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [όνομα]   Φορτώνει παλέτες χρωμάτων " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        Κβαντισμός χρώματος " MSG_CMD_DIM "(Υψηλότερη απόδοση)" RESET "\n",
         "  --spin             Δημιουργεί καθαρούς κωδικούς ANSI " MSG_CMD_DIM "(Για scripts)" RESET "\n",
         "  --lang [id]        Παρακάμπτει τη γλώσσα " MSG_CMD_DIM "(π.χ. pt, en)" RESET "\n",
@@ -947,7 +979,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           किनारे की अस्पष्टता/चिकनाई को समायोजित करता है\n",
         "  -F [मान]           फ्रेमरेट को लॉक करता है " MSG_CMD_DIM "(उदा. 60, 90)" RESET "\n",
         "  -L                 लाइन-बाय-लाइन प्रोसेसिंग " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [नाम]     रंग पट्टियाँ लोड करता है " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [नाम]     रंग पट्टियाँ लोड करता है " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        रंग परिमाणीकरण " MSG_CMD_DIM "(उच्च प्रदर्शन)" RESET "\n",
         "  --spin             शुद्ध ANSI कोड उत्पन्न करता है " MSG_CMD_DIM "(स्क्रिप्ट के लिए)" RESET "\n",
         "  --lang [id]        इंटरफ़ेस भाषा को ओवरराइड करता है " MSG_CMD_DIM "(उदा. pt, en)" RESET "\n",
@@ -999,7 +1033,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           ปรับความทึบ/ความเรียบเนียนของขอบ\n",
         "  -F [ค่า]            ล็อคอัตราเฟรม " MSG_CMD_DIM "(เช่น 60, 90)" RESET "\n",
         "  -L                 การประมวลผลทีละบรรทัด " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [ชื่อ]    โหลดจานสี " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [ชื่อ]      โหลดจานสี " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        การลดทอนสี " MSG_CMD_DIM "(ประสิทธิภาพสูงขึ้น)" RESET "\n",
         "  --spin             สร้างรหัส ANSI ล้วน " MSG_CMD_DIM "(สำหรับสคริปต์)" RESET "\n",
         "  --lang [id]        แทนที่ภาษาอินเทอร์เฟซ " MSG_CMD_DIM "(เช่น pt, en)" RESET "\n",
@@ -1051,7 +1087,9 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -o [0-1]           កែតម្រូវភាពស្រអាប់/ភាពរលោងនៃគែម\n",
         "  -F [តម្លៃ]          ចាក់សោអត្រាស៊ុម " MSG_CMD_DIM "(ឧ. 60, 90)" RESET "\n",
         "  -L                 ដំណើរការមួយបន្ទាត់ម្តង " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [ឈ្មោះ]   ផ្ទុកក្ដារលាយពណ៌ " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --preset [ឈ្មោះ]   ផ្ទុកក្ដារលាយពណ៌ " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
+        "                     sunset, vaporwave, ocean, forest, blood,\n"
+        "                     hacker, synthwave, dracula)" RESET "\n",
         "  --quantized        កង់ទីសកម្មពណ៌ " MSG_CMD_DIM "(ដំណើរការខ្ពស់ជាងមុន)" RESET "\n",
         "  --spin             បង្កើតកូដ ANSI សុទ្ធ " MSG_CMD_DIM "(សម្រាប់ស្គ្រីប)" RESET "\n",
         "  --lang [id]        បដិសេធភាសាចំណុចប្រទាក់ " MSG_CMD_DIM "(ឧ. pt, en)" RESET "\n",

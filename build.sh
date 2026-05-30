@@ -42,7 +42,7 @@ else
     print_warn "Arquivo $VERSION_FILE não encontrado. Usando padrão: $VERSION"
 fi
 
-BUILD_STATUS="UNOFFICIAL_BUILD"
+BUILD_STATUS="STABLE_RELEASE"
 BUILD_MAINTAINER="@community"
 MAINTAINER_CLEAN=$(echo "$BUILD_MAINTAINER" | tr -d '@' | tr 'a-z' 'A-Z')
 BUILD_STATUS="VALID_SIG_BY_${MAINTAINER_CLEAN}"

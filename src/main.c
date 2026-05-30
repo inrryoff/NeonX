@@ -169,7 +169,15 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
         }
 
         if (!strcmp(arg, "--preset") && i + 1 < argc) {
-            shaders_set_preset(argv[++i], &opts->anim_mode, &opts->speed_fixed);
+            const char *preset_val = argv[++i];
+            if (preset_val[0] == '-') {
+                print_error_msg(MSG(MSG_ERR_MISSING_VALUE), arg);
+                return 3;
+            }
+            if (!shaders_set_preset(preset_val, &opts->anim_mode, &opts->speed_fixed)) {
+                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), preset_val);
+                return 3;
+            }
             continue;
         }
 

@@ -20,10 +20,7 @@ NeonX/
 │   ├── monocypher.c/.h  # Motor de criptografia leve
 │   ├── shaders.c/.h     # Gerenciamento de presets (agora via JSON)
 │   ├── terminal.c/.h    # Gerenciamento ANSI e sinais de sistema
-│   └── msgs.c/.h        # Sistema i18n (agora via JSON)
-├── assets/              # Recursos externos (JSON)
-│   ├── presets.json     # Configurações de efeitos
-│   └── i18n.json        # Traduções dinâmicas
+│   └── style.h          # Estilos predefinidos e a logo do NeonX
 ├── tools/               # Ferramentas auxiliares
 ├── build/               # Binários compilados
 ├── Makefile             # Sistema de build estruturado (Clang/Make)
@@ -65,41 +62,31 @@ clang -O3 -c src/render_core.c -o build/render_core.o
 ar rcs build/libneonx_core.a build/math_fixed.o build/shader_effects.o build/render_core.o
 ```
 
-### Exemplo de Uso em C
-```c
-#include "render_core.h"
-#include "math_fixed.h"
-#include <stdio.h>
-
-int main() {
-    neonx_init_lut(); 
-    int r, g, b;
-    neonx_get_color(10 << 16, 10 << 16, 1, 0, 0, 0, 12345, &r, &g, &b);
-    printf("Cor: R:%d G:%d B:%d\n", r, g, b);
-    return 0;
-}
-```
-
 ---
 
 ## 🌐 WebAssembly (Uso na Web)
 
-O motor de cores do NeonX roda no navegador via WASM. O build (`make wasm`) gera `neonx.js` e `neonx.wasm`.
-
-O driver de renderização abstraído permite que a mesma lógica de colorização ANSI seja utilizada via WebAssembly em aplicações web que emulem terminais ou via canvas.
+O motor de cores do NeonX roda no navegador via WASM. O driver de renderização abstraído permite que a mesma lógica de colorização ANSI seja utilizada via WebAssembly.
 
 ---
 
 ## 📝 Testando suas Alterações
 Após qualquer alteração, valide o sistema:
 ```bash
-# Teste unitário e de integração padrão
 ./build.sh --test
+```
 
-# Teste unitário verboso (Debug de precisão e overflows)
-./build.sh --test-debug
-```
-Ou manualmente:
-```bash
-cat assets/i18n.json | ./build/neonx --preset sunset -L
-```
+---
+
+## 🔱 Criando um Fork e Personalizando
+
+Se você deseja criar sua própria versão do NeonX:
+
+1.  **Fork o Repositório:** Use o botão de Fork no GitHub.
+2.  **Personalize a Identidade:** No arquivo `src/style.h`, você pode alterar o `LOGO_NEONX` e as cores padrão.
+3.  **Adicione seus Presets:** Modifique `src/shaders.c` para incluir novas paletas e comportamentos.
+4.  **Assine seu Binário:** Siga as instruções em `CONTRIBUTING.md` para gerar suas próprias chaves e garantir que seu binário seja reconhecido como oficial do seu fork.
+5.  **Mantenha os Créditos:** Lembre-se que a licença exige a manutenção dos créditos ao autor original (@inrryoff).
+
+---
+Desenvolvido com ☕, C e Termux.

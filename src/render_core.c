@@ -12,6 +12,10 @@ static int32_t opacity_fixed = 0;
 static int32_t gradient_angle_fixed = -65536; 
 static bool use_quantization = false;
 
+static int32_t phase_off_r = 0;
+static int32_t phase_off_g = 137233; // Default Rainbow
+static int32_t phase_off_b = 274466;
+
 static int32_t grad_cos_fixed = 0;
 static int32_t grad_sin_fixed = 0;
 
@@ -87,9 +91,9 @@ void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int
     }
 
     int32_t base_phase = FIXED_MUL(freq_fixed, p);
-    int32_t sin_r = neonx_fast_sin_fixed(base_phase);
-    int32_t sin_g = neonx_fast_sin_fixed(base_phase + 137233);
-    int32_t sin_b = neonx_fast_sin_fixed(base_phase + 274466);
+    int32_t sin_r = neonx_fast_sin_fixed(base_phase + phase_off_r);
+    int32_t sin_g = neonx_fast_sin_fixed(base_phase + phase_off_g);
+    int32_t sin_b = neonx_fast_sin_fixed(base_phase + phase_off_b);
 
     int raw_r = ((sin_r * 127) >> FIXED_SHIFT) + 128;
     int raw_g = ((sin_g * 127) >> FIXED_SHIFT) + 128;
@@ -135,6 +139,20 @@ void neonx_set_opacity(int32_t op) {
 /** Ativa ou desativa a quantização de cores para efeito retrô. */
 void neonx_set_quantization(bool enable) {
     use_quantization = enable;
+}
+
+/** Define os offsets de fase RGB para paletas customizadas. */
+void neonx_set_palette_offsets(int32_t off_r, int32_t off_g, int32_t off_b) {
+    phase_off_r = off_r;
+    phase_off_g = off_g;
+    phase_off_b = off_b;
+}
+
+/** Restaura a paleta para o padrão arco-íris. */
+void neonx_reset_palette(void) {
+    phase_off_r = 0;
+    phase_off_g = 137233;
+    phase_off_b = 274466;
 }
 
 #include <wchar.h>

@@ -1,75 +1,50 @@
 # Guia de Contribuição - NeonX 🌈
 
-Obrigado por se interessar em contribuir para o NeonX! Este é um projeto focado em performance extrema e estética para o terminal e web.
+Olá! Ficamos muito felizes que você queira ajudar o **NeonX**. Não importa se você é um desenvolvedor experiente ou alguém que quer apenas apoiar o projeto, há várias formas de contribuir!
 
-## 🛠️ Como Compilar Localmente
+---
 
-O NeonX utiliza o script `build.sh` para gerenciar todo o ciclo de vida do build:
+## 💖 Como você pode ajudar?
 
-1.  **Build Nativa:**
-    ```bash
-    ./build.sh --native
-    ```
-    Gera o binário em `build/neonx`. Use `PORTABLE=1` para máxima compatibilidade com CPUs antigas.
+### 1. Sendo um Apoiador (Doações)
+Se você gosta do projeto e quer ajudar a manter os servidores ou o café do desenvolvedor, você pode fazer uma doação! Isso nos ajuda a dedicar mais tempo a melhorias e novos recursos.
+- **Link para Doação:** [Clique aqui para apoiar via PayPal/Pix/etc]
 
-2.  **WebAssembly (WASM):**
-    Para compilar a versão web, você precisará do **Emscripten**.
-    - No **Termux**: `pkg install emscripten`
-    - No Linux: `sudo apt install emscripten` (ou via SDK oficial).
-    
-    Rode o comando:
-    ```bash
-    ./build.sh # Escolha a Opção 2 no menu
-    ```
-    *Aviso: Não utilize caminhos absolutos (hardcoded) em scripts ou código novo para garantir a portabilidade entre ambientes.*
+### 2. Reportando Bugs e Sugerindo Ideias
+Encontrou algo errado ou tem uma ideia para um novo preset? Abra uma **Issue** no GitHub! Descreva o que aconteceu e como podemos melhorar.
 
-3.  **Cross-Compilation:**
-    Utilizamos Zig para gerar binários para Windows, macOS e diversas arquiteturas Linux. Basta rodar `./build.sh` e seguir o menu.
+### 3. Melhorando a Documentação
+Viu um erro de português ou algo difícil de entender? Sinta-se à vontade para enviar um Pull Request corrigindo os arquivos `.md`.
 
-## 🧪 Testes e Validação
+---
 
-Antes de abrir um Pull Request, você **deve** validar suas alterações:
+## 🛠️ Guia para Desenvolvedores
 
-1.  **Testes Unitários:**
-    ```bash
-    ./build.sh --test
-    ```
-    Isso valida a integridade da matemática de ponto fixo e funções do core.
+Se você quer colocar a mão no código, aqui está o caminho das pedras:
 
-2.  **Interface WASM:**
-    Se você alterou os módulos core (`math_fixed.c`, `shader_effects.c`, `render_core.c`) ou `shaders.c`, teste a interface web abrindo o arquivo `index.html` em um servidor local (ex: `python3 -m http.server`) após compilar o WASM. Como nosso CI atual foca em builds nativas, a validação manual do WASM é obrigatória.
-## 📝 Padrões de Código
+### Compilação Local
+O NeonX utiliza o script `build.sh` para facilitar tudo:
+```bash
+./build.sh --native
+```
+Gera o binário em `build/neonx`.
 
+### Testes
+Sempre rode os testes antes de enviar uma alteração:
+```bash
+./build.sh --test
+```
+
+### Padrões de Código
 *   **Linguagem:** C puro (C99/C11).
-*   **Matemática:** Use sempre as macros de ponto fixo em `math_fixed.h`. **Não utilize `float` ou `double`** no motor de renderização principal.
-*   **Aleatoriedade:** Para novos efeitos ou comportamentos aleatórios, utilize `secure_random_u32()` ou `neonx_random_phase()` para garantir entropia de sistema e evitar comportamentos repetitivos. Sempre aplique máscaras de bits para prevenir overflows aritméticos.
-*   **Commits:** Siga o padrão [Conventional Commits](https://www.conventionalcommits.org/) (ex: `feat:`, `fix:`, `docs:`).
+*   **Matemática:** Use as macros de ponto fixo em `math_fixed.h`. **Não utilize `float` ou `double`**.
+*   **Commits:** Seja claro no que mudou (ex: `feat: adiciona preset ocean`, `fix: corrige bug no parser`).
+
+---
 
 ## 🔒 Assinatura e Integridade
 
-O NeonX exige que o binário seja assinado para passar na verificação de integridade.
-
-### Assinatura Automática (Efêmera)
-Por padrão, o `build.sh` gera uma chave descartável durante o build, injeta a chave pública no código e assina o executável. Isso garante que seu build local sempre passe no teste `--verify-sig` com o status `VALID_SIG_BY_COMMUNITY`.
-
-### Assinatura com Chave Própria (Personalizada)
-Se você deseja manter uma identidade persistente como mantenedor de um fork:
-1. Gere seu par de chaves uma única vez:
-   ```bash
-   # Compila a ferramenta de chaves
-   clang tools/keygen.c -o tools/keygen -Isrc
-   # Gera suas chaves persistentes
-   ./tools/keygen minhas_chaves.key minhas_chaves.pub
-   ```
-2. Para compilar usando sua chave:
-   ```bash
-   # Extraia a string hex da sua chave pública
-   PUB_HEX=$(od -An -tx1 -v minhas_chaves.pub | tr -d ' \n')
-   # Compile passando a macro e o mantenedor
-   clang ... -DGENERIC_PUBLIC_KEY=\"$PUB_HEX\" -DBUILD_MAINTAINER=\"SeuNome\" ...
-   # Assine o binário final (anexando o output ao fim do arquivo)
-   ./tools/sign_binary build/neonx minhas_chaves.key >> build/neonx
-   ```
+Para que o NeonX aceite seu binário como seguro, ele precisa ser assinado. O script `build.sh` faz isso automaticamente com uma chave temporária para testes locais. Se você quiser se tornar um mantenedor oficial ou criar um fork persistente, consulte a seção de assinaturas no `DEVELOPMENT.md`.
 
 ---
-Desenvolvido com ☕, C e Termux.
+**Obrigado por fazer parte da comunidade NeonX!** 🚀

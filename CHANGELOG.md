@@ -2,6 +2,18 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.2.1-STABLE] – 2026
+
+### Adicionado
+- **Suporte a Paletas Customizadas:** O motor de renderização agora suporta offsets de fase RGB individuais por preset. Isso permite cores precisas e fiéis para temas como `Dracula` e `Synthwave`.
+- **Novos Presets Estéticos:** Adição de 7 novos temas: `vaporwave`, `ocean`, `forest`, `blood`, `hacker`, `synthwave` e `dracula`.
+- **Interface de Ajuda Expandida:** O menu `--help` agora lista dinamicamente todos os presets disponíveis em múltiplos idiomas.
+
+### Corrigido
+- **Blindagem do Parser de Argumentos:** Corrigida falha onde flags subsequentes (ex: `-L`) eram "engolidas" se passadas como valor para a flag `--preset`.
+- **Validação de Presets:** O sistema agora valida se o nome do preset existe antes de iniciar a renderização, exibindo um erro amigável em caso de falha.
+- **Ajuste Cromático do Tema Dracula:** O preset `dracula` foi reconfigurado para usar tons sombrios de roxo e rosa, eliminando cores quentes indesejadas.
+
 ## [2.2.0-STABLE] – 2026
 
 ### Adicionado

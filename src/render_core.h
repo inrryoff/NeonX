@@ -23,6 +23,12 @@ void neonx_set_gradient_angle(int32_t angle);
 /** Define o nível de opacidade das bordas. */
 void neonx_set_opacity(int32_t op);
 
+/** Define os offsets de fase RGB (paleta personalizada). */
+void neonx_set_palette_offsets(int32_t off_r, int32_t off_g, int32_t off_b);
+
+/** Restaura os offsets de fase para o padrão Rainbow. */
+void neonx_reset_palette(void);
+
 /** Ativa ou desativa a redução de cores (quantização). */
 void neonx_set_quantization(bool enable);
 
