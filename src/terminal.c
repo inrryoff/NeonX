@@ -133,6 +133,8 @@ void show_help(void)
     printf("%s", MSG(MSG_HELP_F_UPPER));
     printf("%s", MSG(MSG_HELP_L));
     printf("%s", MSG(MSG_HELP_PRESET));
+    printf("%s", MSG(MSG_HELP_COLOR1));
+    printf("%s", MSG(MSG_HELP_COLOR2));
     printf("%s", MSG(MSG_HELP_QUANTIZED));
     printf("%s", MSG(MSG_HELP_SPIN));
     printf("%s", MSG(MSG_HELP_LANG));

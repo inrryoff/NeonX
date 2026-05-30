@@ -53,6 +53,26 @@ static int32_t secure_str_to_fixed(const char *s, bool *ok) {
     return FLOAT_TO_FIXED(val);
 }
 
+/** Converte uma cor em formato hexadecimal (ex: #FF0000) para RGB. */
+static bool parse_hex_color(const char *hex, int *r, int *g, int *b) {
+    if (!hex) return false;
+    if (hex[0] == '#') hex++;
+    size_t len = strlen(hex);
+    if (len != 6) return false;
+    
+    for (size_t i = 0; i < 6; i++) {
+        if (!isxdigit((unsigned char)hex[i])) return false;
+    }
+
+    unsigned int val;
+    if (sscanf(hex, "%x", &val) != 1) return false;
+    
+    *r = (val >> 16) & 0xFF;
+    *g = (val >> 8) & 0xFF;
+    *b = val & 0xFF;
+    return true;
+}
+
 /** Exibe mensagens de erro formatadas no fluxo de erro padrão (stderr). */
 #ifdef __GNUC__
 __attribute__((format(printf, 1, 2)))
@@ -168,6 +188,29 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
             continue;
         }
 
+        if ((!strcmp(arg, "--color1") || !strcmp(arg, "--c1")) && i + 1 < argc) {
+            int r, g, b;
+            if (parse_hex_color(argv[++i], &r, &g, &b)) {
+                opts->c1_r = r; opts->c1_g = g; opts->c1_b = b;
+                opts->c1_set = true;
+            } else {
+                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), argv[i]);
+                return 3;
+            }
+            continue;
+        }
+        if ((!strcmp(arg, "--color2") || !strcmp(arg, "--c2")) && i + 1 < argc) {
+            int r, g, b;
+            if (parse_hex_color(argv[++i], &r, &g, &b)) {
+                opts->c2_r = r; opts->c2_g = g; opts->c2_b = b;
+                opts->c2_set = true;
+            } else {
+                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), argv[i]);
+                return 3;
+            }
+            continue;
+        }
+
         if (!strcmp(arg, "--preset") && i + 1 < argc) {
             const char *preset_val = argv[++i];
             if (preset_val[0] == '-') {
@@ -275,6 +318,10 @@ int main(int argc, char *argv[]) {
     
     int parse_res = parse_arguments(argc, argv, &opts);
     if (parse_res != 0) return parse_res;
+
+    if (opts.c1_set && opts.c2_set) {
+        neonx_set_custom_gradient(opts.c1_r, opts.c1_g, opts.c1_b, opts.c2_r, opts.c2_g, opts.c2_b);
+    }
     
     int info_res = handle_info_commands(&opts);
     if (info_res != -1) return info_res;

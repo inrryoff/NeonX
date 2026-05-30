@@ -2,6 +2,17 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.2.2-STABLE] – 2026
+
+### Adicionado
+- **Gradientes Customizados (v2.2.2):** Introdução das flags `--color1` e `--color2` (ou `--c1` / `--c2`), permitindo transições suaves entre cores hexadecimais arbitrárias (ex: `#FF0000` para `#FFA500`).
+- **Paridade Total WASM:** A interface WebAssembly agora exporta as mesmas funcionalidades do CLI, incluindo suporte a presets (`neonx_wasm_set_preset`), controle de paleta (`neonx_wasm_set_palette_offsets`) e reset de estado.
+- **Refatoração RenderDriver:** Unificação da arquitetura de saída entre CLI e WASM utilizando a abstração `RenderDriver`, garantindo que toda lógica de cor e caractere passe por uma interface agnóstica de plataforma.
+
+### Alterado
+- **Internacionalização:** Atualização das mensagens de ajuda em todos os 19 idiomas para incluir as novas opções de gradiente personalizado.
+- **Versão Global:** Salto de versão para 2.2.2 em todos os componentes do ecossistema (CLI, Core e WASM).
+
 ## [2.2.1-STABLE] – 2026
 
 ### Adicionado

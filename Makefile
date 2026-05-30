@@ -1,4 +1,4 @@
-VERSION = "2.2.1-STABLE"
+VERSION = "2.2.2-STABLE"
 BUILD_STATUS = "STABLE_RELEASE"
 BUILD_MAINTAINER = "COMMUNITY"
 
@@ -70,13 +70,13 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HDRS)
 wasm:
 	@mkdir -p $(BIN_DIR)
 	emcc -O2 -s WASM=1 \
-		-s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_malloc", "_free"]' \
+		-s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_neonx_wasm_set_custom_gradient", "_neonx_wasm_reset_palette", "_neonx_wasm_set_palette_offsets", "_neonx_wasm_set_preset", "_malloc", "_free"]' \
 		-s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
 		-s ALLOW_MEMORY_GROWTH=1 \
 		-s NO_EXIT_RUNTIME=1 \
 		-Isrc \
 		src/math_fixed.c src/shader_effects.c src/render_core.c \
-		src/main_wasm.c src/msgs.c \
+		src/main_wasm.c src/msgs.c src/shaders.c \
 		-o $(BIN_DIR)/neonx.js
 
 clean:

@@ -66,7 +66,12 @@ ar rcs build/libneonx_core.a build/math_fixed.o build/shader_effects.o build/ren
 
 ## 🌐 WebAssembly (Uso na Web)
 
-O motor de cores do NeonX roda no navegador via WASM. O driver de renderização abstraído permite que a mesma lógica de colorização ANSI seja utilizada via WebAssembly.
+O motor de cores do NeonX roda no navegador via WASM. A arquitetura é baseada no `RenderDriver` (`src/render_driver.h`), o que permite que a mesma lógica de renderização procedural seja utilizada tanto no CLI quanto na Web.
+
+As exportações WASM em `src/main_wasm.c` permitem:
+- Configurar presets idênticos aos do CLI (`neonx_wasm_set_preset`).
+- Definir gradientes customizados via Hex (`neonx_wasm_set_custom_gradient`).
+- Manipular offsets de cor e frequência em tempo real.
 
 ---
 

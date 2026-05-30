@@ -29,6 +29,9 @@ void neonx_set_palette_offsets(int32_t off_r, int32_t off_g, int32_t off_b);
 /** Restaura os offsets de fase para o padrão Rainbow. */
 void neonx_reset_palette(void);
 
+/** Define um gradiente customizado entre duas cores. */
+void neonx_set_custom_gradient(int r1, int g1, int b1, int r2, int g2, int b2);
+
 /** Ativa ou desativa a redução de cores (quantização). */
 void neonx_set_quantization(bool enable);
 

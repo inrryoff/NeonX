@@ -1,5 +1,5 @@
 keys/*.key
-Make-NeonX.sh
+MakeNeonX.sh
 NeonX_web.zip
 tools/keygen
 tools/sign_binary

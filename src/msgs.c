@@ -118,6 +118,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [nome]    Carrega paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Define a cor inicial do gradiente (ex: #FF0000)\n",
+        "  --color2 [hex]     Define a cor final do gradiente (ex: #FFA500)\n",
         "  --quantized        Quantização de cores " MSG_CMD_DIM "(Maior performance)" RESET "\n",
         "  --spin             Gera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n",
         "  --lang [id]        Sobrescreve o idioma " MSG_CMD_DIM "(ex: pt, en)" RESET "\n",
@@ -172,6 +174,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [name]    Loads color palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Color quantization " MSG_CMD_DIM "(Higher performance)" RESET "\n",
         "  --spin             Generates pure ANSI codes " MSG_CMD_DIM "(For scripts)" RESET "\n",
         "  --lang [id]        Overrides interface language " MSG_CMD_DIM "(e.g., pt, en)" RESET "\n",
@@ -226,6 +230,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [nom]     Carga paletas de colores " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Cuantización de colores " MSG_CMD_DIM "(Mayor rendimiento)" RESET "\n",
         "  --spin             Genera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n",
         "  --lang [id]        Sobrescribe el idioma " MSG_CMD_DIM "(ej: pt, en)" RESET "\n",
@@ -280,6 +286,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [nom]     Charge des palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Quantification des couleurs " MSG_CMD_DIM "(Hautes performances)" RESET "\n",
         "  --spin             Génère des codes ANSI purs " MSG_CMD_DIM "(Pour scripts)" RESET "\n",
         "  --lang [id]        Remplace la langue de l'interface " MSG_CMD_DIM "(ex: pt, en)" RESET "\n",
@@ -334,6 +342,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [Name]    Lädt Farbpaletten " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Farbquantisierung " MSG_CMD_DIM "(Höhere Leistung)" RESET "\n",
         "  --spin             Generiert reine ANSI-Codes " MSG_CMD_DIM "(Für Skripte)" RESET "\n",
         "  --lang [id]        Überschreibt die Sprache " MSG_CMD_DIM "(z.B. pt, en)" RESET "\n",
@@ -388,6 +398,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [nome]    Carica le tavolozze " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Quantizzazione colore " MSG_CMD_DIM "(Maggiori prestazioni)" RESET "\n",
         "  --spin             Genera codici ANSI puri " MSG_CMD_DIM "(Per script)" RESET "\n",
         "  --lang [id]        Sovrascrive la lingua " MSG_CMD_DIM "(es: pt, en)" RESET "\n",
@@ -442,6 +454,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [имя]     Загружает цветовые палитры " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Квантование цвета " MSG_CMD_DIM "(Высокая производительность)" RESET "\n",
         "  --spin             Генерирует чистые коды ANSI " MSG_CMD_DIM "(Для скриптов)" RESET "\n",
         "  --lang [id]        Переопределяет язык " MSG_CMD_DIM "(напр: pt, en)" RESET "\n",
@@ -496,6 +510,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [名称]    加载调色板 " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        颜色量化模式 " MSG_CMD_DIM "(更高性能)" RESET "\n",
         "  --spin             生成纯 ANSI 代码 " MSG_CMD_DIM "(用于外部脚本)" RESET "\n",
         "  --lang [id]        覆盖界面语言 " MSG_CMD_DIM "(例如: pt, en)" RESET "\n",
@@ -550,6 +566,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [名前]    カラーパレットをロード " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        カラー量子化 " MSG_CMD_DIM "(高パフォーマンス)" RESET "\n",
         "  --spin             純粋な ANSI コードを生成 " MSG_CMD_DIM "(スクリプト用)" RESET "\n",
         "  --lang [id]        言語を上書き " MSG_CMD_DIM "(例: pt, en)" RESET "\n",
@@ -604,6 +622,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [이름]    색상 팔레트 로드 " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        색상 양자화 " MSG_CMD_DIM "(고성능 모드)" RESET "\n",
         "  --spin             순수 ANSI 코드 생성 " MSG_CMD_DIM "(스크립트용)" RESET "\n",
         "  --lang [id]        인터페이스 언어 재정의 " MSG_CMD_DIM "(예: pt, en)" RESET "\n",
@@ -658,6 +678,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [isim]    Renk paletlerini yükler " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Renk kuantizasyonu " MSG_CMD_DIM "(Daha yüksek performans)" RESET "\n",
         "  --spin             Saf ANSI kodları üretir " MSG_CMD_DIM "(Scriptler için)" RESET "\n",
         "  --lang [id]        Arayüz dilini geçersiz kılar " MSG_CMD_DIM "(ör: pt, en)" RESET "\n",
@@ -712,6 +734,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [nazwa]   Ładuje palety kolorów " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Kwantyzacja kolorów " MSG_CMD_DIM "(Wyższa wydajność)" RESET "\n",
         "  --spin             Generuje czyste kody ANSI " MSG_CMD_DIM "(Dla skryptów)" RESET "\n",
         "  --lang [id]        Nadpisuje język interfejsu " MSG_CMD_DIM "(np. pt, en)" RESET "\n",
@@ -766,6 +790,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [nama]    Memuat palet warna " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Kuantisasi warna " MSG_CMD_DIM "(Performa lebih tinggi)" RESET "\n",
         "  --spin             Menghasilkan kode ANSI murni " MSG_CMD_DIM "(Untuk skrip)" RESET "\n",
         "  --lang [id]        Menimpa bahasa antarmuka " MSG_CMD_DIM "(mis: pt, en)" RESET "\n",
@@ -820,6 +846,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [اسم]     يحمل لوحات الألوان " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        تكميم اللون " MSG_CMD_DIM "(أداء أعلى)" RESET "\n",
         "  --spin             يولد أكواد ANSI نقية " MSG_CMD_DIM "(للنصوص البرمجية)" RESET "\n",
         "  --lang [id]        يتجاوز لغة الواجهة " MSG_CMD_DIM "(مثل: pt, en)" RESET "\n",
@@ -874,6 +902,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [име]     Зарежда цветови палитри " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Квантоване на цветовете " MSG_CMD_DIM "(По-висока производителност)" RESET "\n",
         "  --spin             Генерира чисти ANSI кодове " MSG_CMD_DIM "(За скриптове)" RESET "\n",
         "  --lang [id]        Презаписва езика на интерфейса " MSG_CMD_DIM "(напр. pt, en)" RESET "\n",
@@ -928,6 +958,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [όνομα]   Φορτώνει παλέτες χρωμάτων " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        Κβαντισμός χρώματος " MSG_CMD_DIM "(Υψηλότερη απόδοση)" RESET "\n",
         "  --spin             Δημιουργεί καθαρούς κωδικούς ANSI " MSG_CMD_DIM "(Για scripts)" RESET "\n",
         "  --lang [id]        Παρακάμπτει τη γλώσσα " MSG_CMD_DIM "(π.χ. pt, en)" RESET "\n",
@@ -982,6 +1014,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [नाम]     रंग पट्टियाँ लोड करता है " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        रंग परिमाणीकरण " MSG_CMD_DIM "(उच्च प्रदर्शन)" RESET "\n",
         "  --spin             शुद्ध ANSI कोड उत्पन्न करता है " MSG_CMD_DIM "(स्क्रिप्ट के लिए)" RESET "\n",
         "  --lang [id]        इंटरफ़ेस भाषा को ओवरराइड करता है " MSG_CMD_DIM "(उदा. pt, en)" RESET "\n",
@@ -1036,6 +1070,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [ชื่อ]      โหลดจานสี " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        การลดทอนสี " MSG_CMD_DIM "(ประสิทธิภาพสูงขึ้น)" RESET "\n",
         "  --spin             สร้างรหัส ANSI ล้วน " MSG_CMD_DIM "(สำหรับสคริปต์)" RESET "\n",
         "  --lang [id]        แทนที่ภาษาอินเทอร์เฟซ " MSG_CMD_DIM "(เช่น pt, en)" RESET "\n",
@@ -1090,6 +1126,8 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  --preset [ឈ្មោះ]   ផ្ទុកក្ដារលាយពណ៌ " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
         "                     sunset, vaporwave, ocean, forest, blood,\n"
         "                     hacker, synthwave, dracula)" RESET "\n",
+        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
+        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
         "  --quantized        កង់ទីសកម្មពណ៌ " MSG_CMD_DIM "(ដំណើរការខ្ពស់ជាងមុន)" RESET "\n",
         "  --spin             បង្កើតកូដ ANSI សុទ្ធ " MSG_CMD_DIM "(សម្រាប់ស្គ្រីប)" RESET "\n",
         "  --lang [id]        បដិសេធភាសាចំណុចប្រទាក់ " MSG_CMD_DIM "(ឧ. pt, en)" RESET "\n",

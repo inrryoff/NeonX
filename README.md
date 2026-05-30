@@ -1,6 +1,6 @@
 # 🌈 NeonX – Ultra-High Performance Terminal Colorizer
 
-[![Versão](https://img.shields.io/badge/version-2.2.1--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.2.2--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
 [![NeonX Web](https://img.shields.io/badge/NeonX-Web_Demo-0a0a0f?style=flat-square&logo=terminal&logoColor=00ffcc)](https://neonx-web.netlify.app/)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Android%20%7C%20Windows%20%7C%20WASM-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
@@ -18,17 +18,21 @@
 # 1. Pipe simples (Animação padrão)
 cat banner.txt | neonx
 
-# 2. Logs em tempo real (Modo Stream) com preset específico
+# 2. Gradiente customizado (Vermelho -> Laranja)
+cat banner.txt | neonx --color1 "#FF0000" --color2 "#FFA500"
+
+# 3. Logs em tempo real (Modo Stream) com preset específico
 tail -f access.log | neonx -L --preset dracula
 
-# 3. Animação estática de alta qualidade
+# 4. Animação estática de alta qualidade
 echo "NeonX Engine" | neonx --preset synthwave -S
 ```
 
 ---
 
-## ✨ O que há de novo na v2.2.1-STABLE
+## ✨ O que há de novo na v2.2.2-STABLE
 
+- **Gradientes Customizados:** Suporte total a transições suaves entre cores via `--color1` e `--color2` em formato Hexadecimal (ex: `#FF0000` para `#FFA500`).
 - **Paletas de Cores Reais:** Presets como `dracula`, `synthwave` e `hacker` agora utilizam canais RGB específicos para fidelidade visual absoluta.
 - **7 Novos Temas:** `vaporwave`, `ocean`, `forest`, `blood`, `hacker`, `synthwave` e `dracula`.
 - **Parser Blindado:** Correção de bugs críticos no parsing de argumentos que causavam comportamento inesperado ao combinar flags.
@@ -50,6 +54,8 @@ echo "NeonX Engine" | neonx --preset synthwave -S
 | `-A [graus]` | Ângulo do gradiente (0-360) | 0 |
 | `-o [0-1]` | Opacidade das bordas (Vignette) | 0.0 |
 | `-F [fps]` | Taxa de quadros por segundo | 20 |
+| `--color1 [hex]`| Cor inicial do gradiente (ex: #FF0000) | - |
+| `--color2 [hex]`| Cor final do gradiente (ex: #FFA500) | - |
 | `-L` | **Modo Stream:** Coloriza linha a linha (ideal para logs) | OFF |
 | `-S` | **Modo Estático:** Renderiza apenas o primeiro frame | OFF |
 | `--preset` | Presets: `cyberpunk`, `retro`, `matrix`, `sunset`, `dracula`, `hacker`, etc. | - |

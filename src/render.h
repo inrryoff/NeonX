@@ -22,6 +22,9 @@ struct neonx_options {
     bool show_license_flag;
     bool verify_sig_flag;
     bool spin_flag;
+    int c1_r, c1_g, c1_b;
+    int c2_r, c2_g, c2_b;
+    bool c1_set, c2_set;
 };
 
 /** Carrega os dados da entrada para renderização. */

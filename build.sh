@@ -209,10 +209,10 @@ compile_wasm() {
 
     # Removido o "-g" para silenciar o warning do binaryen e permitir O2 full
     emcc -O2 -s WASM=1 \
-        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_malloc", "_free"]' \
+        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_neonx_wasm_set_custom_gradient", "_neonx_wasm_reset_palette", "_neonx_wasm_set_palette_offsets", "_neonx_wasm_set_preset", "_malloc", "_free"]' \
         -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
         -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -I./src \
-        src/math_fixed.c src/shader_effects.c src/render_core.c src/main_wasm.c src/msgs.c \
+        src/math_fixed.c src/shader_effects.c src/render_core.c src/main_wasm.c src/msgs.c src/shaders.c \
         -o "$out_js"
 
     if [[ $? -ne 0 || ! -f "$out_js" ]]; then

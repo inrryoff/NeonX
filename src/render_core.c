@@ -16,6 +16,10 @@ static int32_t phase_off_r = 0;
 static int32_t phase_off_g = 137233; // Default Rainbow
 static int32_t phase_off_b = 274466;
 
+static bool custom_gradient_enabled = false;
+static int color1_r = 0, color1_g = 0, color1_b = 0;
+static int color2_r = 0, color2_g = 0, color2_b = 0;
+
 static int32_t grad_cos_fixed = 0;
 static int32_t grad_sin_fixed = 0;
 
@@ -91,13 +95,26 @@ void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int
     }
 
     int32_t base_phase = FIXED_MUL(freq_fixed, p);
-    int32_t sin_r = neonx_fast_sin_fixed(base_phase + phase_off_r);
-    int32_t sin_g = neonx_fast_sin_fixed(base_phase + phase_off_g);
-    int32_t sin_b = neonx_fast_sin_fixed(base_phase + phase_off_b);
+    
+    int raw_r, raw_g, raw_b;
 
-    int raw_r = ((sin_r * 127) >> FIXED_SHIFT) + 128;
-    int raw_g = ((sin_g * 127) >> FIXED_SHIFT) + 128;
-    int raw_b = ((sin_b * 127) >> FIXED_SHIFT) + 128;
+    if (custom_gradient_enabled) {
+        // Interpolação senoidal suave entre duas cores customizadas
+        int32_t s = neonx_fast_sin_fixed(base_phase);
+        int32_t t = (s + FIXED_ONE) >> 1; // Mapeia [-1, 1] para [0, 1] em ponto fixo
+
+        raw_r = (color1_r * (FIXED_ONE - t) + color2_r * t) >> FIXED_SHIFT;
+        raw_g = (color1_g * (FIXED_ONE - t) + color2_g * t) >> FIXED_SHIFT;
+        raw_b = (color1_b * (FIXED_ONE - t) + color2_b * t) >> FIXED_SHIFT;
+    } else {
+        int32_t sin_r = neonx_fast_sin_fixed(base_phase + phase_off_r);
+        int32_t sin_g = neonx_fast_sin_fixed(base_phase + phase_off_g);
+        int32_t sin_b = neonx_fast_sin_fixed(base_phase + phase_off_b);
+
+        raw_r = ((sin_r * 127) >> FIXED_SHIFT) + 128;
+        raw_g = ((sin_g * 127) >> FIXED_SHIFT) + 128;
+        raw_b = ((sin_b * 127) >> FIXED_SHIFT) + 128;
+    }
 
     if (mode == 0) {
         *r = raw_r; *g = raw_g; *b = raw_b;
@@ -153,6 +170,14 @@ void neonx_reset_palette(void) {
     phase_off_r = 0;
     phase_off_g = 137233;
     phase_off_b = 274466;
+    custom_gradient_enabled = false;
+}
+
+/** Define um gradiente customizado entre duas cores. */
+void neonx_set_custom_gradient(int r1, int g1, int b1, int r2, int g2, int b2) {
+    color1_r = r1; color1_g = g1; color1_b = b1;
+    color2_r = r2; color2_g = g2; color2_b = b2;
+    custom_gradient_enabled = true;
 }
 
 #include <wchar.h>
