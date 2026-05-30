@@ -1,6 +1,6 @@
 # 🌈 NeonX – Ultra-High Performance Terminal Colorizer
 
-[![Versão](https://img.shields.io/badge/version-2.1.3--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.1.5--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Android%20%7C%20Windows%20%7C%20WASM-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
 [![Testes](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml/badge.svg)](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml)
@@ -27,13 +27,13 @@ echo "NeonX Engine" | neonx --preset cyberpunk -d 5
 
 ---
 
-## ✨ Destaques da v2.1.4-STABLE
+## ✨ Destaques da v2.1.5-STABLE
 
+- **Aleatoriedade de Fase Robusta:** Novo sistema de entropia para gradientes dinâmicos únicos a cada execução.
 - **Performance Extrema:** Matemática de ponto fixo (Fixed-Point) para garantir zero overhead de FPU.
 - **Segurança Reforçada:** Novo parser numérico robusto e blindagem Ed25519 (Monocypher).
-- **Internacionalização Real:** Suporte aprimorado a UTF-8 e detecção inteligente de localidade Unix/Windows.
-- **NeonX Core:** Motor de renderização agora separado como uma biblioteca independente.
-- **Suporte WASM:** Compile para a web e rode shaders de terminal no navegador.
+- **Arquitetura Modular (NeonX Core):** Motor de renderização e matemática de ponto fixo agora divididos em módulos coesos e seguros.
+- **Abstração de Driver:** Renderização agnóstica de plataforma (CLI e WASM compartilham o mesmo motor).
 
 Para detalhes sobre a evolução técnica, leia o [CHANGELOG.md](./CHANGELOG.md). Para arquitetura profunda, veja o [DEVELOPMENT.md](./DEVELOPMENT.md).
 
@@ -112,7 +112,7 @@ neonx --lang en -v
 
 ## 📦 Instalação
 
-Escolha sua plataforma e siga as instruções para instalar a versão **v2.1.4-STABLE**:
+Escolha sua plataforma e siga as instruções para instalar a versão **v2.1.5-STABLE**:
 
 ### 🐧 Linux
 <details>
@@ -120,7 +120,7 @@ Escolha sua plataforma e siga as instruções para instalar a versão **v2.1.4-S
 
 ```bash
 # 1. Baixe o pacote x64
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.3/neonx_linux-x64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.5/neonx_linux-x64.zip
 
 # 2. Extraia e instale
 unzip neonx_linux-x64.zip
@@ -135,7 +135,7 @@ sudo chmod +x /usr/local/bin/neonx
 
 ```bash
 # 1. Baixe o pacote ARM64
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.3/neonx_linux-arm64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.5/neonx_linux-arm64.zip
 
 # 2. Extraia e instale no PATH do Termux
 unzip neonx_linux-arm64.zip
@@ -150,7 +150,7 @@ chmod +x $PREFIX/bin/neonx
 
 ```bash
 # 1. Baixe o pacote (arm64 para Apple Silicon)
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.3/neonx_macos-arm64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.5/neonx_macos-arm64.zip
 
 # 2. Extraia e remova a quarentena
 unzip neonx_macos-arm64.zip
@@ -166,7 +166,7 @@ sudo xattr -d com.apple.quarantine /usr/local/bin/neonx
 
 ```cmd
 :: 1. Baixe usando curl nativo do Windows
-curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.3/neonx_windows-x64.zip
+curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.5/neonx_windows-x64.zip
 
 :: 2. Extraia e mova para o System32 (necessário Admin)
 tar -xf neonx_windows-x64.zip
@@ -179,7 +179,7 @@ move neonx.exe C:\Windows\System32\
 
 ```powershell
 # 1. Baixe o pacote
-curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.3/neonx_windows-x64.zip
+curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.5/neonx_windows-x64.zip
 
 # 2. Extraia e instale globalmente
 Expand-Archive neonx_windows-x64.zip -DestinationPath . -Force
@@ -194,7 +194,7 @@ Move-Item -Path ".\neonx.exe" -Destination "C:\Windows\System32\" -Force
 O NeonX agora pode ser rodado diretamente no navegador como uma biblioteca.
 ```bash
 # 1. Baixe o pacote WASM
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.3/neonx_wasm.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.1.5/neonx_wasm.zip
 
 # 2. Extraia e rode um servidor local para testar
 unzip neonx_wasm.zip

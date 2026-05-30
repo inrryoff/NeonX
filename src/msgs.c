@@ -2,32 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdbool.h>
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-static int idioma_atual = 0;
-typedef struct {
-    const char *code;
-    int index;
-} LanguageMap;
-
-static const LanguageMap lang_map[] = {
-    {"pt", 0}, {"en", 1}, {"es", 2}, {"zh", 3},
-    {"ja", 4}, {"ar", 5}, {"ru", 6}, {"bg", 7},
-    {"el", 8}, {"ko", 9}, {"hi",10}, {"th",11},
-    {"km",12}
+static int idioma_atual = 1;
+static const char *lang_prefixes[13] = {
+    "pt", "en", "es", "zh", "ja", "ar", "ru", "bg", "el", "ko", "hi", "th", "km"
 };
-static const int lang_map_size = sizeof(lang_map) / sizeof(lang_map[0]);
-
-static int lookup_language(const char *code) {
-    if (!code) return -1;
-    for (int i = 0; i < lang_map_size; i++) {
-        if (strncmp(code, lang_map[i].code, 2) == 0)
-            return lang_map[i].index;
-    }
-    return -1;
-}
 
 static const char *mensagens[13][MSG_TOTAL] = {
     // ---------------- PORTUGUÊS (0) ----------------
@@ -37,7 +22,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // Versão
         "Criador Original: ",
         "Compilado por: ",
-        "Status: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Status: \033[1;32m'%s'\033[0m\n",
+        "Status: \033[1;33m'%s'\033[0m\n",
         "Status: \033[1;31mMODIFICADO\033[0m\n",
         "Status: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -120,7 +106,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // Versão
         "Original Creator: ",
         "Compiled by: ",
-        "Status: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Status: \033[1;32m'%s'\033[0m\n",
+        "Status: \033[1;33m'%s'\033[0m\n",
         "Status: \033[1;31mMODIFIED\033[0m\n",
         "Status: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -203,7 +190,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // Versão
         "Creador Original: ",
         "Compilado por: ",
-        "Estado: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Estado: \033[1;32m'%s'\033[0m\n",
+        "Estado: \033[1;33m'%s'\033[0m\n",
         "Estado: \033[1;31mMODIFICADO\033[0m\n",
         "Estado: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -286,8 +274,9 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // 核心版本信息
         "原作者: ",
         "编译者: ",
-        "状态: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
-        "状态: \033[1;31mMODIFICADO\033[0m\n", // 保留底层标识或翻译为 已修改
+        "状态: \033[1;32m'%s'\033[0m\n",
+        "状态: \033[1;33m'%s'\033[0m\n",
+        "状态: \033[1;31mMODIFIED\033[0m\n",
         "状态: \033[1;33mVERIFY_ERROR\033[0m\n",
 
         // 许可证
@@ -365,7 +354,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // Versão
         "オリジナル作者: ",
         "コンパイル: ",
-        "ステータス: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "ステータス: \033[1;32m'%s'\033[0m\n",
+        "ステータス: \033[1;33m'%s'\033[0m\n",
         "ステータス: \033[1;31mMODIFIED\033[0m\n",
         "ステータス: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -443,7 +433,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // الإصدار
         "المنشئ الأصلي: ",
         "تم تجميعه بواسطة: ",
-        "الحالة: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "الحالة: \033[1;32m'%s'\033[0m\n",
+        "الحالة: \033[1;33m'%s'\033[0m\n",
         "الحالة: \033[1;31mMODIFIED\033[0m\n",
         "الحالة: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -521,7 +512,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // Версия
         "Оригинальный автор: ",
         "Скомпилировано: ",
-        "Статус: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Статус: \033[1;32m'%s'\033[0m\n",
+        "Статус: \033[1;33m'%s'\033[0m\n",
         "Статус: \033[1;31mMODIFIED\033[0m\n",
         "Статус: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -597,7 +589,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // Версия
         "Оригинален създател: ",
         "Компилиран от: ",
-        "Статус: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Статус: \033[1;32m'%s'\033[0m\n",
+        "Статус: \033[1;33m'%s'\033[0m\n",
         "Статус: \033[1;31mMODIFIED\033[0m\n",
         "Статус: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -673,7 +666,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // Έκδοση
         "Αρχικός Δημιουργός: ",
         "Μεταγλωττίστηκε από: ",
-        "Κατάσταση: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "Κατάσταση: \033[1;32m'%s'\033[0m\n",
+        "Κατάσταση: \033[1;33m'%s'\033[0m\n",
         "Κατάσταση: \033[1;31mMODIFIED\033[0m\n",
         "Κατάσταση: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -749,7 +743,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // 버전
         "원본 작성자: ",
         "컴파일: %s\n",
-        "상태: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "상태: \033[1;32m'%s'\033[0m\n",
+        "상태: \033[1;33m'%s'\033[0m\n",
         "상태: \033[1;31mMODIFIED\033[0m\n",
         "상태: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -825,7 +820,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // संस्करण
         "मूल निर्माता: ",
         "द्वारा संकलित: ",
-        "स्थिति: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "स्थिति: \033[1;32m'%s'\033[0m\n",
+        "स्थिति: \033[1;33m'%s'\033[0m\n",
         "स्थिति: \033[1;31mMODIFIED\033[0m\n",
         "स्थिति: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -901,7 +897,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // รุ่น
         "ผู้สร้างดั้งเดิม: ",
         "คอมไพล์โดย: ",
-        "สถานะ: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "สถานะ: \033[1;32m'%s'\033[0m\n",
+        "สถานะ: \033[1;33m'%s'\033[0m\n",
         "สถานะ: \033[1;31mMODIFIED\033[0m\n",
         "สถานะ: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -977,7 +974,8 @@ static const char *mensagens[13][MSG_TOTAL] = {
         // កំណែ
         "អ្នកបង្កើតដើម: ",
         "ចងក្រងដោយ: ",
-        "ស្ថានភាព: \033[1;32mOFFICIAL_BY_INRRYOFF\033[0m\n",
+        "ស្ថានភាព: \033[1;32m'%s'\033[0m\n",
+        "ស្ថានភាព: \033[1;33m'%s'\033[0m\n",
         "ស្ថានភាព: \033[1;31mMODIFIED\033[0m\n",
         "ស្ថានភាព: \033[1;33mVERIFY_ERROR\033[0m\n",
 
@@ -1047,53 +1045,53 @@ static const char *mensagens[13][MSG_TOTAL] = {
     },
 };
 
+const char* get_msg(enum Mensagem id) {
+    if (id < 0 || id >= MSG_TOTAL) return "";
+    return mensagens[idioma_atual][id];
+}
+
 #ifdef _WIN32
 const char* msgs_detect_windows_locale(void) {
-    // Detect the user's default language.
-    // Note: langId is currently used implicitly by system-wide locale queries,
-    // but we'll cast it to void to prevent compiler warnings if not explicitly used.
     LANGID langId = GetUserDefaultUILanguage();
     (void)langId;
-
     wchar_t wlocaleName[LOCALE_NAME_MAX_LENGTH];
-    if (GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, wlocaleName, LOCALE_NAME_MAX_LENGTH) == 0) {
-        return "en";
-    }
-
+    if (GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, wlocaleName, LOCALE_NAME_MAX_LENGTH) == 0) return "en";
     static char localeName[LOCALE_NAME_MAX_LENGTH];
     size_t convertedChars = 0;
     wcstombs_s(&convertedChars, localeName, LOCALE_NAME_MAX_LENGTH, wlocaleName, _TRUNCATE);
-
-    if (strlen(localeName) >= 2) {
-        localeName[2] = '\0';
-    }
+    if (strlen(localeName) >= 2) localeName[2] = '\0';
     return localeName;
 }
 #endif
-void msgs_init(void) {
-#ifdef _WIN32
-    const char *lang = msgs_detect_windows_locale();
-#else
-    const char *lang = getenv("LANG");
-    // Em sistemas Unix, o LANG pode vir como "pt_BR.UTF-8". 
-    // Precisamos isolar os primeiros 2 caracteres.
-    static char lang_clean[3] = {0};
-    if (lang && strlen(lang) >= 2) {
-        lang_clean[0] = (char)tolower((unsigned char)lang[0]);
-        lang_clean[1] = (char)tolower((unsigned char)lang[1]);
-        lang_clean[2] = '\0';
-        lang = lang_clean;
-    }
-#endif
-    int idx = lookup_language(lang);
-    idioma_atual = (idx >= 0) ? idx : 1;  // fallback para inglês (1)
-}
 
 void msgs_set_language(const char *lang_code) {
-    int idx = lookup_language(lang_code);
-    idioma_atual = (idx >= 0) ? idx : 1;
+    if (!lang_code || strlen(lang_code) < 2) {
+        idioma_atual = 1;
+        return;
+    }
+
+    char prefix[3];
+    prefix[0] = (char)tolower((unsigned char)lang_code[0]);
+    prefix[1] = (char)tolower((unsigned char)lang_code[1]);
+    prefix[2] = '\0';
+
+    for (int i = 0; i < 13; i++) {
+        if (strncmp(prefix, lang_prefixes[i], 2) == 0) {
+            idioma_atual = i;
+            return;
+        }
+    }
+    
+    idioma_atual = 1;
 }
 
-const char* get_msg(enum Mensagem id) {
-    return mensagens[idioma_atual][id];
+void msgs_init(void) {
+    const char *lang = NULL;
+#ifdef _WIN32
+    lang = msgs_detect_windows_locale();
+#else
+    lang = getenv("LANG");
+#endif
+    
+    msgs_set_language(lang);
 }

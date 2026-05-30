@@ -2,52 +2,86 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "neonx_core.h"
+#include <wchar.h>
+#include "math_fixed.h"
+#include "render_core.h"
+#include "render_driver.h"
 
-// Buffer reutilizável para evitar alocações constantes no JS
 static char *wasm_buffer = NULL;
 static size_t wasm_buffer_size = 0;
 
-/**
- * Inicializa o núcleo NeonX no ambiente WASM.
- */
+typedef struct {
+    char *ptr;
+    size_t rem;
+    int last_r, last_g, last_b;
+} WasmDriverCtx;
+
+/** Define a cor ANSI 24-bits para o ambiente WebAssembly. */
+static void wasm_set_color(RenderDriver *self, int r, int g, int b) {
+    WasmDriverCtx *ctx = (WasmDriverCtx*)self->ctx;
+    if (r == ctx->last_r && g == ctx->last_g && b == ctx->last_b) return;
+    int n = snprintf(ctx->ptr, ctx->rem, "\033[38;2;%d;%d;%dm", r, g, b);
+    if (n > 0) { ctx->ptr += n; ctx->rem -= (size_t)n; }
+    ctx->last_r = r; ctx->last_g = g; ctx->last_b = b;
+}
+
+/** Reseta os atributos de cor no buffer WASM. */
+static void wasm_reset_color(RenderDriver *self) {
+    WasmDriverCtx *ctx = (WasmDriverCtx*)self->ctx;
+    int n = snprintf(ctx->ptr, ctx->rem, "\033[0m");
+    if (n > 0) { ctx->ptr += n; ctx->rem -= (size_t)n; }
+}
+
+/** Converte e anexa um caractere largo ao buffer de saída WASM. */
+static void wasm_put_char(RenderDriver *self, wchar_t c) {
+    WasmDriverCtx *ctx = (WasmDriverCtx*)self->ctx;
+    char mb[8];
+    int n = wctomb(mb, c);
+    if (n <= 0) { mb[0] = (char)c; n = 1; }
+    if ((size_t)n < ctx->rem) {
+        memcpy(ctx->ptr, mb, (size_t)n);
+        ctx->ptr += n;
+        ctx->rem -= (size_t)n;
+    }
+}
+
+/** Inicializa as tabelas matemáticas para o ambiente WebAssembly. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_init(void) {
     neonx_init_lut();
 }
 
-/**
- * Obtém a cor para uma coordenada específica.
- */
+/** Exporta a função de cálculo de cor para interface JavaScript. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t max_dist, int32_t phase, int *r, int *g, int *b) {
     neonx_get_color(x, y, mode, cx, cy, max_dist, phase, r, g, b);
 }
 
+/** Ajusta a frequência de oscilação via interface WASM. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_set_frequency(int32_t freq) {
     neonx_set_frequency(freq);
 }
 
+/** Define o ângulo do gradiente via interface WASM. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_set_gradient_angle(int32_t angle) {
     neonx_set_gradient_angle(angle);
 }
 
+/** Ajusta a opacidade das bordas via interface WASM. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_set_opacity(int32_t op) {
     neonx_set_opacity(op);
 }
 
+/** Alterna o modo de quantização de cores via interface WASM. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_set_quantization(bool enable) {
     neonx_set_quantization(enable);
 }
 
-/**
- * Aplica cores a um texto baseado na lógica NeonX.
- * Corrigido para tratar glifos UTF-8 (como █) como uma única unidade de X.
- */
+/** Aplica os efeitos de cor NeonX a uma string de texto no ambiente Web. */
 EMSCRIPTEN_KEEPALIVE
 char* neonx_apply_colors(const char* input_text, int mode, int width, int height, int32_t phase) {
     if (!input_text) return NULL;
@@ -60,75 +94,40 @@ char* neonx_apply_colors(const char* input_text, int mode, int width, int height
         wasm_buffer_size = needed;
     }
 
-    size_t len = strlen(input_text);
-    char *out_ptr = wasm_buffer;
+    WasmDriverCtx ctx = {wasm_buffer, wasm_buffer_size, -1, -1, -1};
+    RenderDriver driver = {wasm_set_color, wasm_reset_color, wasm_put_char, &ctx};
     
-    // Configurações do grid para o motor de cores (em ponto fixo)
-    int grid_x = 0;
-    int grid_y = 0;
-    int32_t cx = (int32_t)width << (FIXED_SHIFT - 1); // width / 2.0
-    int32_t cy = (int32_t)height << (FIXED_SHIFT - 1); // height / 2.0
-    
-    // Distância máxima do centro até um dos cantos
+    int32_t cx = (int32_t)width << (FIXED_SHIFT - 1);
+    int32_t cy = (int32_t)height << (FIXED_SHIFT - 1);
     int32_t max_dist = neonx_fast_dist_fixed(cx, cy);
     
-    int last_r = -1, last_g = -1, last_b = -1;
+    size_t wlen = mbstowcs(NULL, input_text, 0);
+    if (wlen == (size_t)-1) return NULL;
+    wchar_t *winput = malloc((wlen + 1) * sizeof(wchar_t));
+    if (!winput) return NULL;
+    mbstowcs(winput, input_text, wlen + 1);
 
-    for (size_t i = 0; i < len; ) {
-        unsigned char c = (unsigned char)input_text[i];
-        
-        // Tratamento de quebra de linha
-        if (c == '\n') {
-            grid_y++;
-            grid_x = 0;
-            *out_ptr++ = (char)c;
-            i++;
-            continue;
+    int grid_y = 0;
+    wchar_t *line_start = winput;
+    for (size_t i = 0; i <= wlen; i++) {
+        if (winput[i] == L'\n' || winput[i] == L'\0') {
+            wchar_t saved = winput[i];
+            winput[i] = L'\0';
+            neonx_render_line(line_start, (int32_t)grid_y << FIXED_SHIFT, phase, mode, cx, cy, max_dist, &driver);
+            if (saved == L'\n') {
+                wasm_put_char(&driver, L'\n');
+                grid_y++;
+                line_start = &winput[i+1];
+            }
         }
-
-        // Determina quantos bytes tem o caractere UTF-8 atual
-        int char_len = 1;
-        if (c >= 0xF0) char_len = 4;
-        else if (c >= 0xE0) char_len = 3;
-        else if (c >= 0xC0) char_len = 2;
-
-        if (i + (size_t)char_len > len) char_len = 1;
-
-        // Espaços e tabs incrementam X mas não calculam cor
-        if (c == ' ' || c == '\t' || c == '\r') {
-            for(int j=0; j<char_len; j++) *out_ptr++ = input_text[i+j];
-            grid_x++;
-            i += (size_t)char_len;
-            continue;
-        }
-
-        // Calcula cor para o glifo atual (X, Y)
-        int r, g, b;
-        neonx_get_color((int32_t)grid_x << FIXED_SHIFT, (int32_t)grid_y << FIXED_SHIFT, mode, cx, cy, max_dist, phase, &r, &g, &b);
-
-        // Injeta ANSI se a cor mudou
-        if (r != last_r || g != last_g || b != last_b) {
-            out_ptr += sprintf(out_ptr, "\033[38;2;%d;%d;%dm", r, g, b);
-            last_r = r; last_g = g; last_b = b;
-        }
-        
-        // Copia todos os bytes do glifo
-        for (int j = 0; j < char_len; j++) {
-            *out_ptr++ = input_text[i + j];
-        }
-        
-        grid_x++;
-        i += (size_t)char_len;
     }
     
-    // Reset final e terminação
-    strcpy(out_ptr, "\033[0m");
-    out_ptr += 4;
-    *out_ptr = '\0';
-
+    free(winput);
+    *ctx.ptr = '\0';
     return wasm_buffer;
 }
 
+/** Renderiza diretamente em um buffer de pixels (Canvas) via WebAssembly. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_render_canvas(uint8_t* buffer, int width, int height, int mode, int32_t phase) {
     int32_t cx = (int32_t)width << (FIXED_SHIFT - 1);
@@ -149,3 +148,4 @@ void neonx_wasm_render_canvas(uint8_t* buffer, int width, int height, int mode, 
         }
     }
 }
+

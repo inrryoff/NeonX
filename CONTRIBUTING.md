@@ -37,12 +37,12 @@ Antes de abrir um Pull Request, você **deve** validar suas alterações:
     Isso valida a integridade da matemática de ponto fixo e funções do core.
 
 2.  **Interface WASM:**
-    Se você alterou o `neonx_core.c` ou `shaders.c`, teste a interface web abrindo o arquivo `index.html` em um servidor local (ex: `python3 -m http.server`) após compilar o WASM. Como nosso CI atual foca em builds nativas, a validação manual do WASM é obrigatória.
-
+    Se você alterou os módulos core (`math_fixed.c`, `shader_effects.c`, `render_core.c`) ou `shaders.c`, teste a interface web abrindo o arquivo `index.html` em um servidor local (ex: `python3 -m http.server`) após compilar o WASM. Como nosso CI atual foca em builds nativas, a validação manual do WASM é obrigatória.
 ## 📝 Padrões de Código
 
 *   **Linguagem:** C puro (C99/C11).
-*   **Matemática:** Use sempre as macros de ponto fixo em `neonx_core.h`. **Não utilize `float` ou `double`** no motor de renderização principal.
+*   **Matemática:** Use sempre as macros de ponto fixo em `math_fixed.h`. **Não utilize `float` ou `double`** no motor de renderização principal.
+*   **Aleatoriedade:** Para novos efeitos ou comportamentos aleatórios, utilize `secure_random_u32()` ou `neonx_random_phase()` para garantir entropia de sistema e evitar comportamentos repetitivos. Sempre aplique máscaras de bits para prevenir overflows aritméticos.
 *   **Commits:** Siga o padrão [Conventional Commits](https://www.conventionalcommits.org/) (ex: `feat:`, `fix:`, `docs:`).
 
 ## 🔒 Assinatura e Integridade

@@ -1,4 +1,3 @@
-// ==================== render.h ====================
 #ifndef RENDER_H
 #define RENDER_H
 
@@ -6,8 +5,7 @@
 #include <stdbool.h>
 #include "terminal.h"
 
-// Estrutura que guarda todas as dezenas de opções (features) que o usuário solicitou via Linha de Comando (CLI).
-// Isso agrupa os booleanos permitindo ser facilmente passada em 1 único ponteiro pelas funções no programa.
+/** Configurações globais de execução do NeonX. */
 struct neonx_options {
     bool static_mode;
     bool stream_mode;
@@ -15,7 +13,6 @@ struct neonx_options {
     int32_t speed_fixed;
     int32_t duration_fixed;
     uint64_t duration_us;
-    int32_t start_phase_fixed;
     int32_t phase_fixed;
     bool phase_fixed_set;
     int fixed_width;
@@ -27,10 +24,16 @@ struct neonx_options {
     bool spin_flag;
 };
 
-// Funções públicas expostas de rendering
+/** Carrega os dados da entrada para renderização. */
 void load_input_data(struct neonx_options *opts, Content *content_ptr);
+
+/** Executa o processamento em modo streaming. */
 int run_stream_mode(struct neonx_options *opts, Content *content_ptr);
+
+/** Executa a animação em modo bufferizado. */
 int run_buffered_mode(struct neonx_options *opts, Content *content_ptr);
+
+/** Finaliza o programa e restaura o terminal. */
 void cleanup_and_exit(Content *content_ptr, int exit_code);
 
 #endif

@@ -4,9 +4,8 @@
 #include <stdbool.h>
 #include "msgs.h"
 #include "integrity.h"
-#include "monocypher.h" // Biblioteca de criptografia externa
+#include "monocypher.h"
 
-// Configuração de diretórios específicos de acordo com o sistema operacional
 #ifdef __linux__
 #include <unistd.h>
 #elif defined(__APPLE__)
@@ -16,13 +15,11 @@
 #include <windows.h>
 #endif
 
-// Chave pública (32 bytes) gravada diretamente no código-fonte (hardcoded).
-// É usada para validar a assinatura anexada no final do binário executável.
-
 static unsigned char active_public_key[32];
 static bool key_loaded = false;
 static bool using_official = false;
 
+/** Converte uma representação hexadecimal em dados binários. */
 static int hex2bin(uint8_t *bin, const uint8_t *hex, size_t hex_len) {
     if (hex_len % 2 != 0) return -1;
     for (size_t i = 0; i < hex_len / 2; i++) {
@@ -42,44 +39,30 @@ static int hex2bin(uint8_t *bin, const uint8_t *hex, size_t hex_len) {
     return 0;
 }
 
-static void load_active_key(void)
-{
+/** Carrega a chave pública ativa para verificação de assinatura. */
+static void load_active_key(void) {
     if (key_loaded) return;
 
-    const char *env_path = getenv("NEONX_KEY_FILE");
-    if (env_path) {
-        FILE *f = fopen(env_path, "rb");
-        if (f) {
-            if (fread(active_public_key, 1, 32, f) == 32) {
-                fclose(f);
-                key_loaded = true;
-                using_official = false; // Chave externa é considerada não oficial/desenvolvedor
-                return;
-            }
-            fclose(f);
-            fprintf(stderr, "%s", MSG(MSG_WARN_KEY_LOAD_FAIL));
-        }
-    }
-
-#ifdef GENERIC_PUBLIC_KEY
-    if (hex2bin(active_public_key, (const uint8_t*)GENERIC_PUBLIC_KEY, 64) == 0) {
+#ifdef GENERIC_NEONX_KEY
+    if (hex2bin(active_public_key, (const uint8_t*)GENERIC_NEONX_KEY, 64) == 0) {
         key_loaded = true;
         using_official = false;
         return;
     }
 #endif
 
-    // Default: usa a chave embutida no binário
     memcpy(active_public_key, NEONX_OFFICIAL_PUBLIC_KEY, 32);
     key_loaded = true;
     using_official = true;
 }
 
+/** Verifica se a chave pública oficial está em uso. */
 bool is_using_official_key(void) {
     load_active_key();
     return using_official;
 }
 
+/** Realiza a verificação de integridade do executável via assinatura EdDSA. */
 int check_integrity(void) {
     load_active_key();
     char exec_path[1024] = {0};
@@ -98,15 +81,21 @@ int check_integrity(void) {
     FILE *f = fopen(exec_path, "rb");
     if (!f) return 2;
 
-    fseek(f, 0, SEEK_END);
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return 2;
+    }
     long file_size = ftell(f);
     if (file_size < 128) {
         fclose(f);
-        return 1;
+        return (file_size < 0) ? 2 : 1;
     }
 
     uint8_t hex_signature[128];
-    fseek(f, -128, SEEK_END);
+    if (fseek(f, -128, SEEK_END) != 0) {
+        fclose(f);
+        return 2;
+    }
     if (fread(hex_signature, 1, 128, f) != 128) {
         fclose(f);
         return 2;
@@ -118,7 +107,10 @@ int check_integrity(void) {
         return 1;
     }
 
-    fseek(f, 0, SEEK_SET);
+    if (fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return 2;
+    }
     crypto_blake2b_ctx blake_ctx;
     crypto_blake2b_init(&blake_ctx, 64);
     
@@ -143,3 +135,4 @@ int check_integrity(void) {
     
     return 1;
 }
+

@@ -2,6 +2,17 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.1.5-STABLE] – 2026
+
+### Adicionado
+- **Aleatoriedade de Fase Aprimorada:** Nova função `neonx_random_phase()` que utiliza entropia real do sistema (`/dev/urandom` ou `BCryptGenRandom`) para gerar a fase inicial das animações.
+- **Alta Precisão Fracionária:** A fase inicial agora aproveita os 16 bits de precisão do sistema de ponto fixo, garantindo que cada execução (especialmente no modo estático `-S`) resulte em um gradiente visualmente único e imperceptivelmente variado.
+- **Proteção contra Overflows:** A nova lógica de fase aplica máscaras de bits (30 bits) para evitar estouros aritméticos durante cálculos de shaders complexos, mantendo a estabilidade.
+
+### Alterado
+- **Unificação de Flags de Fase:** As flags `-p` e `-P` agora são sinônimas e tratadas de forma consistente para definir uma fase manual (seed).
+- **Limpeza de Estruturas:** Removido o campo redundante `start_phase_fixed` da estrutura de opções, consolidando a lógica no motor de renderização.
+
 ## [2.1.4-STABLE] – 2026
 
 ### Corrigido
@@ -32,7 +43,7 @@ Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) e
 ## [2.1.1-STABLE] – 2026
 
 ### Adicionado
-- **Arquitetura Modular (NeonX Core):** O motor de renderização e a matemática de ponto fixo foram movidos para `src/neonx_core.c` e `src/neonx_core.h`, permitindo o uso do NeonX como uma biblioteca estática/dinâmica externa.
+- **Arquitetura Modular (NeonX Core):** O motor de renderização e a matemática de ponto fixo foram divididos em `src/math_fixed.c`, `src/shader_effects.c` e `src/render_core.c`, permitindo o uso do NeonX como uma biblioteca modular e segura.
 - **Suporte Robusto a WebAssembly (WASM):**
   - Implementação do bridge WASM em `src/main_wasm.c`.
   - Interface HTML interativa (`index.html`) para demonstração dos shaders no navegador.
