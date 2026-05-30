@@ -248,7 +248,7 @@ compile_tool() {
     if [[ -f "$INTERNAL_KEY" ]]; then
         local pub_key="${INTERNAL_KEY%.key}.pub"
         if [[ -f "$pub_key" ]]; then
-            local GENERIC_PUB_HEX=$("$TOOLS_DIR/keygen" "$INTERNAL_KEY" "$pub_key" --print-hex | tail -n 1 | tr -dc '0-9a-fA-F')
+            local GENERIC_PUB_HEX=$("$TOOLS_DIR/keygen" "$INTERNAL_KEY" "$pub_key" --print-hex | grep -o '0x[0-9A-Fa-f]\{2\}' | sed 's/0x//g' | tr -d '\n')
             SIG_MACRO="-DGENERIC_NEONX_KEY=\"$GENERIC_PUB_HEX\""
         fi
     fi

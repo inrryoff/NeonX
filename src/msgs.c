@@ -1,4 +1,5 @@
 #include "msgs.h"
+#include "style.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -10,1039 +11,1075 @@
 #endif
 
 static int idioma_atual = 1;
-static const char *lang_prefixes[13] = {
-    "pt", "en", "es", "zh", "ja", "ar", "ru", "bg", "el", "ko", "hi", "th", "km"
+static const char *lang_prefixes[19] = {
+    "pt", // 0: Português
+    "en", // 1: Inglês
+    "es", // 2: Espanhol
+    "fr", // 3: Francês
+    "de", // 4: Alemão
+    "it", // 5: Italiano
+    "ru", // 6: Russo
+    "zh", // 7: Chinês
+    "ja", // 8: Japonês
+    "ko", // 9: Coreano
+    "tr", // 10: Turco
+    "pl", // 11: Polonês
+    "id", // 12: Indonésio
+    "ar", // 13: Árabe
+    "bg", // 14: Búlgaro
+    "el", // 15: Grego
+    "hi", // 16: Hindi
+    "th", // 17: Tailandês
+    "km"  // 18: Khmer
 };
 
-static const char *mensagens[13][MSG_TOTAL] = {
-    // ---------------- PORTUGUÊS (0) ----------------
+// =========================================================================
+// MACROS DE LICENÇA (Evita inflar o tamanho do binário compilado)
+// =========================================================================
+// =========================================================================
+// MACROS DE LICENÇA (Com os novos estilos ANSI)
+// =========================================================================
+#define LICENSE_PT \
+    "LICENÇA DE USO - NEONX (C - VERSION)\n" \
+    "-----------------------------------------------------------------\n" \
+    "Copyright (c) 2026 @inrryoff - Licenciado sob condições especiais " LOGO_NEONX " LICENSE\n\n" \
+    "Pelo presente, fica concedida permissão a qualquer pessoa que obtenha uma cópia\n" \
+    "deste software para usá-lo gratuitamente, sujeito às seguintes condições:\n\n" \
+    MSG_LEGAL_TXT "1. ATRIBUIÇÃO (CRÉDITOS):" RESET "\n" \
+    "   O nome do autor original (@inrryoff) and os avisos de copyright devem ser\n" \
+    "   mantidos em todos os arquivos de código-fonte, cabeçalhos e na saída de\n" \
+    "   versão do binário compilado (ex: " BG_FOSCO " neonx --version " RESET ").\n\n" \
+    MSG_LEGAL_TXT "2. PROIBIÇÃO DE COMERCIALIZAÇÃO:" RESET "\n" \
+    "   É TERMINANTEMENTE PROIBIDA a venda, aluguel ou qualquer forma de\n" \
+    "   comercialização deste software, seja do código-fonte ou do binário\n" \
+    "   compilado, de forma isolada ou integrada a pacotes pagos.\n\n" \
+    MSG_LEGAL_TXT "3. DERIVAÇÕES E MODIFICAÇÕES:" RESET "\n" \
+    "   Alterações no código são permitidas para melhorias ou uso pessoal, desde que:\n" \
+    "   a) O trabalho derivado NÃO seja vendido.\n" \
+    "   b) A versão modificada seja mantida em repositório público (Open Source).\n" \
+    "   c) Os créditos ao autor original sejam mantidos de forma clara.\n\n" \
+    MSG_LEGAL_TXT "4. DISTRIBUIÇÃO EM MÓDULOS (MAGISK/KERNELSU):" RESET "\n" \
+    "   O uso deste binário em módulos de otimização é permitido e encorajado,\n" \
+    "   desde que o módulo seja distribuído gratuitamente.\n\n" \
+    MSG_CMD_DIM "O SOFTWARE É FORNECIDO 'COMO ESTÁ', SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU\n" \
+    "IMPLÍCITA. EM NENHUM EVENTO O AUTOR SERÁ RESPONSÁVEL POR QUALQUER RECLAMAÇÃO,\n" \
+    "DANOS OU OUTRA RESPONSABILIDADE RESULTANTE DO USO DESTE SOFTWARE." RESET "\n"
+
+#define LICENSE_EN \
+    "NEONX USE LICENSE (C - VERSION)\n" \
+    "-----------------------------------------------------------------\n" \
+    "Copyright (c) 2026 @inrryoff - Licensed under special conditions " LOGO_NEONX " LICENSE\n\n" \
+    "Permission is hereby granted, free of charge, to any person obtaining a copy\n" \
+    "of this software and associated documentation files, subject to the following:\n\n" \
+    MSG_LEGAL_TXT "1. ATTRIBUTION (CREDITS):" RESET "\n" \
+    "   The original author's name (@inrryoff) and copyright notices must be\n" \
+    "   kept in all source files, headers, and compiled binary version outputs\n" \
+    "   (e.g., " BG_FOSCO " neonx --version " RESET ").\n\n" \
+    MSG_LEGAL_TXT "2. PROHIBITION OF COMMERCIALIZATION:" RESET "\n" \
+    "   The sale, rental, or commercialization of this software is STRICTLY\n" \
+    "   PROHIBITED, whether standalone or integrated into paid packages.\n\n" \
+    MSG_LEGAL_TXT "3. DERIVATIONS AND MODIFICATIONS:" RESET "\n" \
+    "   Modifications are allowed for personal use or improvement, provided:\n" \
+    "   a) The derivative work is NOT sold.\n" \
+    "   b) The modified version is open-sourced in a public repository.\n" \
+    "   c) Original author credits are visibly maintained.\n\n" \
+    MSG_LEGAL_TXT "4. MODULE DISTRIBUTION (MAGISK/KERNELSU):" RESET "\n" \
+    "   Using this binary in optimization modules is allowed and encouraged,\n" \
+    "   provided the module is distributed for free.\n\n" \
+    MSG_CMD_DIM "THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND." RESET "\n"
+
+// =========================================================================
+// MATRIZ INTERNACIONAL (13 Idiomas)
+// Índices: 0:PT, 1:EN, 2:ES, 3:FR, 4:DE, 5:IT, 6:RU, 7:ZH, 8:JA, 9:KO, 10:TR, 11:PL, 12:ID
+// =========================================================================
+static const char *mensagens[19][MSG_TOTAL] = {
+    // ---------------- [0] PORTUGUÊS (PT) ----------------
     {
-        "Erro ao abrir arquivo",
-
-        // Versão
-        "Criador Original: ",
-        "Compilado por: ",
-        "Status: \033[1;32m'%s'\033[0m\n",
-        "Status: \033[1;33m'%s'\033[0m\n",
-        "Status: \033[1;31mMODIFICADO\033[0m\n",
-        "Status: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // Licença
-        "LICENÇA DE USO - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "Copyright (c) 2026 @inrryoff - Licenciado sob condições especiais NeonX LICENSE\n\n"
-        "Pelo presente, fica concedida permissão a qualquer pessoa que obtenha uma cópia\n"
-        "deste software para usá-lo gratuitamente, sujeito às seguintes condições:\n\n"
-        "1. ATRIBUIÇÃO (CRÉDITOS):\n"
-        "   O nome do autor original (@inrryoff) and os avisos de copyright devem ser\n"
-        "   mantidos em todos os arquivos de código-fonte, cabeçalhos e na saída de\n"
-        "   versão do binário compilado (ex: neonx --version).\n\n"
-        "2. PROIBIÇÃO DE COMERCIALIZAÇÃO:\n"
-        "   É TERMINANTEMENTE PROIBIDA a venda, aluguel ou qualquer forma de\n"
-        "   comercialização deste software, seja do código-fonte ou do binário\n"
-        "   compilado, de forma isolada ou integrada a pacotes pagos.\n\n"
-        "3. DERIVAÇÕES E MODIFICAÇÕES:\n"
-        "   Alterações no código são permitidas para melhorias ou uso pessoal, desde que:\n"
-        "   a) O trabalho derivado NÃO seja vendido.\n"
-        "   b) A versão modificada seja mantida em repositório público (Open Source).\n"
-        "   c) Os créditos ao autor original sejam mantidos de forma clara.\n\n"
-        "4. DISTRIBUIÇÃO EM MÓDULOS (MAGISK/KERNELSU):\n"
-        "   O uso deste binário em módulos de otimização é permitido e encorajado,\n"
-        "   desde que o módulo seja distribuído gratuitamente.\n\n"
-        "O SOFTWARE É FORNECIDO 'COMO ESTÁ', SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU\n"
-        "IMPLÍCITA. EM NENHUM EVENTO O AUTOR SERÁ RESPONSÁVEL POR QUALQUER RECLAMAÇÃO,\n"
-        "DANOS OU OUTRA RESPONSABILIDADE RESULTANTE DO USO DESTE SOFTWARE.\n",
-
-        // Ajuda
-        "NeonX",
-        "Uso: cat arquivo | neonx [opcoes]\n\n",
-        "-m [0-11]      Modos de animação\n",
-        "-s [valor]     Velocidade (0.2 padrao)\n",
-        "-f [valor]     Frequência (0.3 padrao)\n",
-        "-d [valor]     Duração (0: infinito)\n",
-        "-A [angulo]    Ângulo do gradiente (0-360 graus)\n",
-        "-p [valor]     Seeds fixas\n",
-        "-S             Modo estático\n",
-        "-c [largura]   Largura fixa do gradiente\n",
-        "-o [0-1]       Opacidade das bordas\n",
-        "-F [valor]     FPS (ex: 60, 90)\n",
-        "-L             Modo linha por linha (stream)\n",
-        "--preset [nome] Carregar preset (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    Modo quantizado perde qualidade visual\n",
-        "--spin         Gera códigos de cores ANSI puros para scripts externos\n",
-        "--lang [idioma] Selecione Português ou Inglês\n",
-        "--license      Licença de software\n",
-        "-v,--version   Versão do binário\n",
-        "-h,--help      Exibe esta ajuda\n",
-
-        //Erros
-        "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um valor numérico após ela.\033[0m\n",
-        "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um valor numérico, recebido: '%s'\033[0m\n",
-        "\033[1;31m[NeonX Erro 400]: O modo de animação (-m) deve ser um número inteiro.\033[0m\n",
-        "\033[1;33m[NeonX Info 416]: O modo de animação (-m) deve estar entre 0 e 11.\033[0m\n",
-        "\033[1;31m[NeonX Erro 400]: Opção inválida ou argumento solto '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX Erro 404]: Nenhum dado foi passado para o binário! \033[0m\n",
-        "\n\033[1;31m[NeonX Erro 413]: Arquivo muito grande. Use -L para o modo de streaming.\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: Não foi possível verificar a integridade, sistema restrito ou binário adulterado.\033[0m\n",
-        "\033[1;31m[NeonX Erro 403]: Falha ao abrir o próprio executável para verificação de integridade.\033[0m\n",
-        "\033[1;31m[NeonX Erro 403]: Erro de leitura do arquivo durante a verificação de integridade.\033[0m\n",
-        "\033[1;31m[NeonX Erro 403]: Memória insuficiente para verificar a integridade.\033[0m\n",
-        "\033[1;31m[NeonX Erro 403]: Assinatura inválida ou formato hexadecimal incorreto.\033[0m\n",
-        "\033[1;31m[NeonX Erro 403]: O arquivo é muito pequeno para conter a assinatura de integridade.\033[0m\n",
-        "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um número inteiro.\033[0m\n",
-        "\033[1;31m[NeonX Erro 400]: A opção '%s' requer um valor positivo.\033[0m\n",
-        "\033[1;31m[NeonX Erro 400]: A duração não pode ser negativa.\033[0m\n",
-        "\033[1;31m[NeonX Erro 206]: Não foi possível alocar memória (wcsdup).\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: Buffer truncado preventivamente para 32MB. A renderização pode ser corrompida.\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX Aviso]: Falha ao carregar chave customizada, usando chave embutida.\033[0m\n"
+        MSG_ERRO "Erro ao abrir arquivo\n" RESET,
+        "Criador Original: ", "Compilado por: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "MODIFICADO" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_PT,
+        LOGO_NEONX DIM ITALIC " - Embelezador de Terminal Avançado" RESET "\n",
+        "Uso: " BG_FOSCO " cat arquivo | neonx [opcoes] " RESET "\n\n",
+        "  -m [0-11]          Define o estilo da animação\n",
+        "  -s [valor]         Velocidade da transição " MSG_CMD_DIM "(Padrão: 0.2)" RESET "\n",
+        "  -f [valor]         Frequência da onda " MSG_CMD_DIM "(Padrão: 0.3)" RESET "\n",
+        "  -d [valor]         Duração em segundos " MSG_CMD_DIM "(0 = Infinito)" RESET "\n",
+        "  -A [graus]         Rotaciona o ângulo do gradiente " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [valor]         Define uma seed fixa " MSG_CMD_DIM "(Determinística)" RESET "\n",
+        "  -S                 Renderiza um quadro estático " MSG_CMD_DIM "(Sem animação)" RESET "\n",
+        "  -c [largura]       Força uma largura estática para o gradiente\n",
+        "  -o [0-1]           Ajusta a opacidade/suavidade das bordas\n",
+        "  -F [valor]         Trava a taxa de quadros " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n",
+        "  -L                 Processamento linha por linha " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [nome]    Carrega paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix)" RESET "\n",
+        "  --quantized        Quantização de cores " MSG_CMD_DIM "(Maior performance)" RESET "\n",
+        "  --spin             Gera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n",
+        "  --lang [id]        Sobrescreve o idioma " MSG_CMD_DIM "(ex: pt, en)" RESET "\n",
+        "  --license          Exibe os termos de licenciamento\n",
+        "  -v, --version      Mostra a versão e status do binário\n",
+        "  -h, --help         Exibe este painel de ajuda interativo\n",
+        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor numérico após ela.\n",
+        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor numérico. Recebido: '%s'\n",
+        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " O modo de animação (-m) deve ser um número inteiro.\n",
+        MSG_INFO "[ ℹ️ INFO 416 ]" RESET " O modo de animação (-m) deve estar entre 0 e 11.\n",
+        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " Opção inválida ou argumento solto '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ERRO 404 ]" RESET " Nenhum dado foi passado para o binário!\n",
+        "\n" MSG_ERRO "[ ❌ ERRO 413 ]" RESET " Arquivo muito grande. Use -L para o modo stream.\n",
+        MSG_AVISO "[ ⚠️ AVISO 403 ]" RESET " Integridade não verificada (sistema restrito/binário adulterado).\n",
+        MSG_ERRO "[ ❌ ERRO 403 ]" RESET " Falha ao abrir o executável para verificação de integridade.\n",
+        MSG_ERRO "[ ❌ ERRO 403 ]" RESET " Erro de leitura durante a verificação de integridade.\n",
+        MSG_ERRO "[ ❌ ERRO 403 ]" RESET " Memória insuficiente para verificar a integridade.\n",
+        MSG_ERRO "[ ❌ ERRO 403 ]" RESET " Assinatura inválida ou formato hexadecimal incorreto.\n",
+        MSG_ERRO "[ ❌ ERRO 403 ]" RESET " O arquivo é muito pequeno para conter a assinatura.\n",
+        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um número inteiro.\n",
+        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor positivo.\n",
+        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A duração não pode ser negativa.\n",
+        MSG_ERRO "[ ❌ ERRO 206 ]" RESET " Não foi possível alocar memória (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ AVISO 403 ]" RESET " Buffer truncado para 32MB. Renderização pode falhar.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ AVISO ]" RESET " Falha ao carregar chave customizada, usando embutida.\n"
     },
 
-    // ---------------- ENGLISH (1) ----------------
+    // ---------------- [1] INGLÊS (EN) ----------------
     {
-        "\033[1;31mError opening file\033[0m",
-
-        // Versão
-        "Original Creator: ",
-        "Compiled by: ",
-        "Status: \033[1;32m'%s'\033[0m\n",
-        "Status: \033[1;33m'%s'\033[0m\n",
-        "Status: \033[1;31mMODIFIED\033[0m\n",
-        "Status: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // Licença
-        "USAGE LICENSE - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "Copyright (c) 2026 @inrryoff - Licensed under special conditions NeonX LICENSE\n\n"
-        "Permission is hereby granted to any person obtaining a copy\n"
-        "of this software to use it free of charge, subject to the following conditions:\n\n"
-        "1. ATTRIBUTION (CREDITS):\n"
-        "   The original author's name (@inrryoff) and copyright notices must be\n"
-        "   kept in all source code files, headers, and in the version output\n"
-        "   of the compiled binary (e.g., neonx --version).\n\n"
-        "2. NO COMMERCIALIZATION:\n"
-        "   It is STRICTLY PROHIBITED to sell, rent, or commercialize this\n"
-        "   software in any form, whether source code or compiled binary,\n"
-        "   standalone or integrated into paid packages.\n\n"
-        "3. DERIVATIONS AND MODIFICATIONS:\n"
-        "   Code alterations are permitted for improvements or personal use, provided that:\n"
-        "   a) The derivative work is NOT sold.\n"
-        "   b) The modified version is kept in a public repository (Open Source).\n"
-        "   c) Credits to the original author are clearly maintained.\n\n"
-        "4. DISTRIBUTION IN MODULES (MAGISK/KERNELSU):\n"
-        "   Using this binary in optimization modules is permitted and encouraged,\n"
-        "   provided the module is distributed for free.\n\n"
-        "THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n"
-        "IMPLIED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR\n"
-        "OTHER LIABILITY ARISING FROM THE USE OF THIS SOFTWARE.\n",
-
-        // Ajuda
-        "NeonX",
-        "Usage: cat file | neonx [options]\n\n",
-        "-m [0-11]      Animation modes\n",
-        "-s [value]     Speed (0.2 default)\n",
-        "-f [value]     Frequency (0.3 default)\n",
-        "-d [value]     Duration (0: infinite)\n",
-        "-A [angle]     Gradient angle (0-360 degrees)\n",
-        "-p [value]     Fixed seeds\n",
-        "-S             Static mode\n",
-        "-c [width]     Fixed gradient width\n",
-        "-o [0-1]       Edge opacity\n",
-        "-F [value]     FPS (e.g., 60, 90)\n",
-        "-L             Line-by-line mode (stream)\n",
-        "--preset [name] Load preset (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    Using quantized mode may reduce visual quality.\n",
-        "--spin         Output raw ANSI color codes for external scripts\n",
-        "--lang [lang]  Select language (pt, en, es, zh)\n",
-        "--license      Software license\n",
-        "-v,--version   Binary version\n",
-        "-h,--help      Display this help\n",
-
-        // Erros
-        "\033[1;31m[NeonX Error 400]: The option '%s' requires a numeric value after it.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: The option '%s' requires a numeric value, received: '%s'\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: The animation mode (-m) must be an integer.\033[0m\n",
-        "\033[1;33m[NeonX Info 416]: The animation mode (-m) must be between 0 and 11.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: Invalid option or loose argument '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX Error 404]: No data was passed to the binary! \033[0m\n",
-        "\n\033[1;31m[NeonX Error 413]: File too large. Use -L for streaming mode.\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: Could not check integrity, restricted system or tampered binary.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: Failed to open own executable for integrity check.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: File read error during integrity check.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: Insufficient memory to verify integrity.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: Invalid signature or incorrect hexadecimal format.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: The file is too small to contain the integrity signature.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: The option '%s' requires an integer.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: The option '%s' requires a positive value.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: Duration cannot be negative.\033[0m\n",
-        "\033[1;31m[NeonX Error 206]: Could not allocate memory (wcsdup).\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: Buffer truncated to 32MB. Rendering may be corrupted.\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX Warning]: Failed to load custom key, using built-in fallback.\033[0m\n"
+        MSG_ERRO "Error opening file\n" RESET,
+        "Original Creator: ", "Compiled by: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "MODIFIED" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Advanced Terminal Beautifier" RESET "\n",
+        "Usage: " BG_FOSCO " cat file | neonx [options] " RESET "\n\n",
+        "  -m [0-11]          Defines the animation style\n",
+        "  -s [val]           Transition speed " MSG_CMD_DIM "(Default: 0.2)" RESET "\n",
+        "  -f [val]           Wave frequency " MSG_CMD_DIM "(Default: 0.3)" RESET "\n",
+        "  -d [val]           Duration in seconds " MSG_CMD_DIM "(0 = Infinite)" RESET "\n",
+        "  -A [deg]           Rotates the gradient angle " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [val]           Sets a fixed seed " MSG_CMD_DIM "(Deterministic)" RESET "\n",
+        "  -S                 Renders a static frame " MSG_CMD_DIM "(No animation)" RESET "\n",
+        "  -c [width]         Forces a static gradient width\n",
+        "  -o [0-1]           Adjusts edge opacity/smoothness\n",
+        "  -F [val]           Locks the framerate " MSG_CMD_DIM "(e.g., 60, 90)" RESET "\n",
+        "  -L                 Line-by-line processing " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [name]    Loads color palettes " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Color quantization " MSG_CMD_DIM "(Higher performance)" RESET "\n",
+        "  --spin             Generates pure ANSI codes " MSG_CMD_DIM "(For scripts)" RESET "\n",
+        "  --lang [id]        Overrides interface language " MSG_CMD_DIM "(e.g., pt, en)" RESET "\n",
+        "  --license          Displays software licensing terms\n",
+        "  -v, --version      Shows binary version and build status\n",
+        "  -h, --help         Displays this interactive help panel\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires a numeric value after it.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires a numeric value. Received: '%s'\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The animation mode (-m) must be an integer.\n",
+        MSG_INFO "[ ℹ️ INFO 416 ]" RESET " The animation mode (-m) must be between 0 and 11.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Invalid option or loose argument '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ERROR 404 ]" RESET " No data was passed to the binary!\n",
+        "\n" MSG_ERRO "[ ❌ ERROR 413 ]" RESET " File too large. Use -L for stream mode.\n",
+        MSG_AVISO "[ ⚠️ WARN 403 ]" RESET " Could not verify integrity (restricted system/tampered binary).\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Failed to open the executable for integrity verification.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " File reading error during integrity verification.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Insufficient memory to verify integrity.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Invalid signature or incorrect hexadecimal format.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " The file is too small to contain the signature.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires an integer.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires a positive value.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Duration cannot be negative.\n",
+        MSG_ERRO "[ ❌ ERROR 206 ]" RESET " Could not allocate memory (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ WARN 403 ]" RESET " Buffer truncated to 32MB. Rendering may corrupt.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ WARN ]" RESET " Failed to load custom key, using built-in key.\n"
     },
 
-    // ---------------- ESPANHOL (2) ----------------
+    // ---------------- [2] ESPANHOL (ES) ----------------
     {
-        "\033[1;31mError al abrir el archivo\033[0m",
-
-        // Versão
-        "Creador Original: ",
-        "Compilado por: ",
-        "Estado: \033[1;32m'%s'\033[0m\n",
-        "Estado: \033[1;33m'%s'\033[0m\n",
-        "Estado: \033[1;31mMODIFICADO\033[0m\n",
-        "Estado: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // Licença
-        "LICENCIA DE USO - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "Copyright (c) 2026 @inrryoff - Licenciado bajo condiciones especiales NeonX LICENSE\n\n"
-        "Por la presente se concede permiso a cualquier persona que obtenga una copia\n"
-        "de este software para utilizarlo de forma gratuita, sujeto a las siguientes condiciones:\n\n"
-        "1. ATRIBUCIÓN (CRÉDITOS):\n"
-        "   El nombre del autor original (@inrryoff) y los avisos de derechos de autor deben\n"
-        "   mantenerse en todos los archivos de código fuente, encabezados y en la salida de\n"
-        "   versión del binario compilado (ej: neonx --version).\n\n"
-        "2. PROHIBICIÓN DE COMERCIALIZACIÓN:\n"
-        "   Queda TERMINANTEMENTE PROHIBIDA la venta, alquiler o cualquier forma de\n"
-        "   comercialización de este software, ya sea del código fuente o del binario\n"
-        "   compilado, de forma aislada o integrada en paquetes de pago.\n\n"
-        "3. DERIVACIONES Y MODIFICACIONES:\n"
-        "   Se permiten modificaciones del código para mejoras o uso personal, siempre que:\n"
-        "   a) El trabajo derivado NO se venda.\n"
-        "   b) La versión modificada se mantenga en un repositorio público (Open Source).\n"
-        "   c) Los créditos al autor original se mantengan de forma clara.\n\n"
-        "4. DISTRIBUCIÓN EN MÓDULOS (MAGISK/KERNELSU):\n"
-        "   El uso de este binario en módulos de optimización está permitido y se fomenta,\n"
-        "   siempre que el módulo se distribuya de forma gratuita.\n\n"
-        "EL SOFTWARE SE PROPORCIONA 'TAL CUAL', SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O\n"
-        "IMPLÍCITA. EN NINGÚN CASO EL AUTOR SERÁ RESPONSABLE DE NINGUNA RECLAMACIÓN,\n"
-        "DAÑOS U OTRA RESPONSABILIDAD QUE SURJA DEL USO DE ESTE SOFTWARE.\n",
-
-        // Ajuda
-        "NeonX",
-        "Uso: cat archivo | neonx [opciones]\n\n",
-        "-m [0-11]      Modos de animación\n",
-        "-s [valor]     Velocidad (0.2 por defecto)\n",
-        "-f [valor]     Frecuencia (0.3 por defecto)\n",
-        "-d [valor]     Duración (0: infinito)\n",
-        "-A [angulo]    Ángulo del gradiente (0-360 grados)\n",
-        "-p [valor]     Seeds fijas\n",
-        "-S             Modo estático\n",
-        "-c [ancho]     Ancho fijo del gradiente\n",
-        "-o [0-1]       Opacidad de los bordes\n",
-        "-F [valor]     FPS (ej: 60, 90)\n",
-        "-L             Modo línea por línea (stream)\n",
-        "--preset [nom] Cargar preset (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    El modo cuantizado reduce la calidad visual\n",
-        "--spin         Genera códigos de color ANSI puros para scripts externos\n",
-        "--lang [idiom] Seleccione el idioma (pt, en, es, zh)\n",
-        "--license      Licencia de software\n",
-        "-v,--version   Versión del binario\n",
-        "-h,--help      Muestra esta ayuda\n",
-
-        // Erros
-        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico después de ella.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor numérico, recibido: '%s'\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: El modo de animación (-m) debe ser un número entero.\033[0m\n",
-        "\033[1;33m[NeonX Info 416]: El modo de animación (-m) debe estar entre 0 y 11.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: Opción inválida o argumento suelto '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX Error 404]: ¡No se pasaron datos al binario! \033[0m\n",
-        "\n\033[1;31m[NeonX Error 413]: Archivo demasiado grande. Use -L para modo streaming.\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: No se pudo verificar la integridad, sistema restringido o binario alterado.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: Error al abrir el propio ejecutable para la verificación de integridad.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: Error en la lectura del archivo durante la verificación de integridad.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: Memoria insuficiente para verificar la integridad.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: Firma inválida o formato hexadecimal incorrecto.\033[0m\n",
-        "\033[1;31m[NeonX Error 403]: El archivo es demasiado pequeño para contener la firma de integridad.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un número entero.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: La opción '%s' requiere un valor positivo.\033[0m\n",
-        "\033[1;31m[NeonX Error 400]: La duración no puede ser negativa.\033[0m\n",
-        "\033[1;31m[NeonX Error 206]: No se pudo asignar memoria (wcsdup).\033[0m\n",
-        "\033[1;33m[NeonX Info 403]: Buffer truncado a 32MB. La representación puede corromperse.\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX Aviso]: Error ao cargar la clave personalizada, usando fallback.\033[0m\n"
+        MSG_ERRO "Error al abrir el archivo\n" RESET,
+        "Creador Original: ", "Compilado por: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "MODIFICADO" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Embellecedor de Terminal Avanzado" RESET "\n",
+        "Uso: " BG_FOSCO " cat archivo | neonx [opciones] " RESET "\n\n",
+        "  -m [0-11]          Define el estilo de animación\n",
+        "  -s [val]           Velocidad de transición " MSG_CMD_DIM "(Por defecto: 0.2)" RESET "\n",
+        "  -f [val]           Frecuencia de onda " MSG_CMD_DIM "(Por defecto: 0.3)" RESET "\n",
+        "  -d [val]           Duración en segundos " MSG_CMD_DIM "(0 = Infinito)" RESET "\n",
+        "  -A [grados]        Rota el ángulo del gradiente " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [val]           Establece semilla fija " MSG_CMD_DIM "(Determinista)" RESET "\n",
+        "  -S                 Renderiza un cuadro estático " MSG_CMD_DIM "(Sin animación)" RESET "\n",
+        "  -c [ancho]         Fuerza un ancho de gradiente estático\n",
+        "  -o [0-1]           Ajusta la opacidad/suavidad de los bordes\n",
+        "  -F [val]           Bloquea los cuadros por segundo " MSG_CMD_DIM "(ej: 60, 90)" RESET "\n",
+        "  -L                 Procesamiento línea por línea " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [nom]     Carga paletas de colores " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Cuantización de colores " MSG_CMD_DIM "(Mayor rendimiento)" RESET "\n",
+        "  --spin             Genera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n",
+        "  --lang [id]        Sobrescribe el idioma " MSG_CMD_DIM "(ej: pt, en)" RESET "\n",
+        "  --license          Muestra los términos de licencia\n",
+        "  -v, --version      Muestra la versión y estado del binario\n",
+        "  -h, --help         Muestra este panel de ayuda interactivo\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un valor numérico.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un numérico. Recibido: '%s'\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " El modo de animación (-m) debe ser un entero.\n",
+        MSG_INFO "[ ℹ️ INFO 416 ]" RESET " El modo de animación (-m) debe estar entre 0 y 11.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opción inválida o argumento suelto '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ERROR 404 ]" RESET " ¡No se pasaron datos al binario!\n",
+        "\n" MSG_ERRO "[ ❌ ERROR 413 ]" RESET " Archivo muy grande. Usa -L para el modo stream.\n",
+        MSG_AVISO "[ ⚠️ AVISO 403 ]" RESET " No se pudo verificar integridad (sistema restringido).\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Fallo al abrir el ejecutable para verificar integridad.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Error de lectura durante la verificación de integridad.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Memoria insuficiente para verificar la integridad.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Firma inválida o formato hexadecimal incorrecto.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " El archivo es muy pequeño para contener la firma.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un número entero.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un valor positivo.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La duración no puede ser negativa.\n",
+        MSG_ERRO "[ ❌ ERROR 206 ]" RESET " No se pudo asignar memoria (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ AVISO 403 ]" RESET " Búfer truncado a 32MB. El renderizado puede corromperse.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ AVISO ]" RESET " Fallo al cargar clave personalizada, usando la integrada.\n"
     },
 
-    // ---------------- CHINÊS (3) ----------------
+    // ---------------- [3] FRANCÊS (FR) ----------------
     {
-        "打开文件失败",
-
-        // 核心版本信息
-        "原作者: ",
-        "编译者: ",
-        "状态: \033[1;32m'%s'\033[0m\n",
-        "状态: \033[1;33m'%s'\033[0m\n",
-        "状态: \033[1;31mMODIFIED\033[0m\n",
-        "状态: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // 许可证
-        "使用许可证 - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "Copyright (c) 2026 @inrryoff - 依据 NeonX LICENSE 特别条件授权\n\n"
-        "特此授权任何获得本软件副本的人员免费使用，但须符合以下条件:\n\n"
-        "1. 署名 (贡献人员):\n"
-        "   原作者姓名 (@inrryoff) 和版权声明必须保留在所有源代码文件、\n"
-        "   头文件以及编译后的二进制版本输出中 (例如: neonx --version)。\n\n"
-        "2. 禁止商业化:\n"
-        "   严禁出售、出租或以任何形式商业化本软件 (无论是源代码还是编译后的\n"
-        "   二进制文件)，无论是单独销售还是集成到付费包中。\n\n"
-        "3. 衍生作品与修改:\n"
-        "   允许修改代码用于改进或个人使用，前提是:\n"
-        "   a) 衍生作品不得销售。\n"
-        "   b) 修改后的版本必须保存在公共仓库中 (开源)。\n"
-        "   c) 必须清晰保留对原作者的署名。\n\n"
-        "4. 模块分发 (MAGISK/KERNELSU):\n"
-        "   允许并鼓励在优化模块中使用此二进制文件，前提是该模块必须免费分发。\n\n"
-        "本软件按“原样”提供，不提供任何明示或暗示的保证。在任何情况下，\n"
-        "作者均不对因使用本软件而产生的任何索赔、损害或其他责任负责。\n",
-
-        // 帮助信息
-        "NeonX",
-        "用法: cat 文件 | neonx [选项]\n\n",
-        "-m [0-11]      动画模式\n",
-        "-s [数值]     速度 (默认 0.2)\n",
-        "-f [数值]     频率 (默认 0.3)\n",
-        "-d [数值]     时长 (0: 无限)\n",
-        "-A [角度]    渐变角度 (0-360 度)\n",
-        "-p [数值]     固定种子\n",
-        "-S             静态模式\n",
-        "-c [宽度]     固定渐变宽度\n",
-        "-o [0-1]       边缘透明度\n",
-        "-F [数值]     FPS (例如: 60, 90)\n",
-        "-L             逐行模式 (流式传输)\n",
-        "--preset [名称] 加载预设 (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    量化模式会降低视觉质量\n",
-        "--spin         为外部脚本生成纯 ANSI 颜色代码\n",
-        "--lang [语言] 选择葡萄牙语或英语\n",
-        "--license      软件许可证\n",
-        "-v,--version   二进制文件版本\n",
-        "-h,--help      显示此帮助信息\n",
-
-        // 错误与通知
-        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 后面需要一个数值。\033[0m\n",
-        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个数值，收到: '%s'\033[0m\n",
-        "\033[1;31m[NeonX 错误 400]: 动画模式 (-m) 必须是整数。\033[0m\n",
-        "\033[1;33m[NeonX 信息 416]: 动画模式 (-m) 必须介于 0 和 11 之间。\033[0m\n",
-        "\033[1;31m[NeonX 错误 400]: 无效选项或孤立参数 '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX 错误 404]: 未向二进制文件传递任何数据！\033[0m\n",
-        "\n\033[1;31m[NeonX 错误 413]: 文件过大。请使用 -L 进行流式传输模式。\033[0m\n",
-        "\033[1;33m[NeonX 信息 403]: 无法验证完整性，系统受限或二进制文件已被篡改。\033[0m\n",
-        "\033[1;31m[NeonX 错误 403]: 无法打开可执行文件本身以进行完整性检查。\033[0m\n",
-        "\033[1;31m[NeonX 错误 403]: 完整性检查期间读取文件错误。\033[0m\n",
-        "\033[1;31m[NeonX 错误 403]: 内存不足，无法验证完整性。\033[0m\n",
-        "\033[1;31m[NeonX 错误 403]: 签名无效或十六进制格式错误。\033[0m\n",
-        "\033[1;31m[NeonX 错误 403]: 文件太小，无法包含完整性签名。\033[0m\n",
-        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个整数。\033[0m\n",
-        "\033[1;31m[NeonX 错误 400]: 选项 '%s' 需要一个正值。\033[0m\n",
-        "\033[1;31m[NeonX 错误 400]: 时长不能为负数。\033[0m\n",
-        "\033[1;31m[NeonX 错误 206]: 无法分配内存 (wcsdup)。\033[0m\n",
-        "\033[1;33m[NeonX 信息 403]: 缓冲区已自动截断至 32MB。渲染可能会损坏。\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX 警告]: 加载自定义密钥失败，正在使用内置密钥。\033[0m\n"
+        MSG_ERRO "Erreur d'ouverture du fichier\n" RESET,
+        "Créateur Original : ", "Compilé par : ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "MODIFIÉ" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Embellisseur de Terminal Avancé" RESET "\n",
+        "Utilisation: " BG_FOSCO " cat fichier | neonx [options] " RESET "\n\n",
+        "  -m [0-11]          Définit le style d'animation\n",
+        "  -s [val]           Vitesse de transition " MSG_CMD_DIM "(Défaut: 0.2)" RESET "\n",
+        "  -f [val]           Fréquence de l'onde " MSG_CMD_DIM "(Défaut: 0.3)" RESET "\n",
+        "  -d [val]           Durée en secondes " MSG_CMD_DIM "(0 = Infini)" RESET "\n",
+        "  -A [deg]           Fait pivoter l'angle du dégradé " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [val]           Définit une graine fixe " MSG_CMD_DIM "(Déterministe)" RESET "\n",
+        "  -S                 Affiche une image statique " MSG_CMD_DIM "(Sans animation)" RESET "\n",
+        "  -c [largeur]       Force une largeur de dégradé statique\n",
+        "  -o [0-1]           Ajuste l'opacité/douceur des bords\n",
+        "  -F [val]           Verrouille le framerate " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n",
+        "  -L                 Traitement ligne par ligne " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [nom]     Charge des palettes de couleurs " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Quantification des couleurs " MSG_CMD_DIM "(Hautes performances)" RESET "\n",
+        "  --spin             Génère des codes ANSI purs " MSG_CMD_DIM "(Pour scripts)" RESET "\n",
+        "  --lang [id]        Remplace la langue de l'interface " MSG_CMD_DIM "(ex: pt, en)" RESET "\n",
+        "  --license          Affiche les conditions de licence\n",
+        "  -v, --version      Affiche la version et l'état du binaire\n",
+        "  -h, --help         Affiche ce panneau d'aide interactif\n",
+        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite une valeur numérique.\n",
+        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite un nombre. Reçu : '%s'\n",
+        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " Le mode d'animation (-m) doit être un entier.\n",
+        MSG_INFO "[ ℹ️ INFO 416 ]" RESET " Le mode d'animation (-m) doit être entre 0 et 11.\n",
+        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " Option invalide ou argument isolé '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ERREUR 404 ]" RESET " Aucune donnée n'a été transmise au binaire !\n",
+        "\n" MSG_ERRO "[ ❌ ERREUR 413 ]" RESET " Fichier trop grand. Utilisez -L pour le mode stream.\n",
+        MSG_AVISO "[ ⚠️ AVERT 403 ]" RESET " Impossible de vérifier l'intégrité (système restreint).\n",
+        MSG_ERRO "[ ❌ ERREUR 403 ]" RESET " Échec d'ouverture de l'exécutable pour vérification.\n",
+        MSG_ERRO "[ ❌ ERREUR 403 ]" RESET " Erreur de lecture lors de la vérification de l'intégrité.\n",
+        MSG_ERRO "[ ❌ ERREUR 403 ]" RESET " Mémoire insuffisante pour vérifier l'intégrité.\n",
+        MSG_ERRO "[ ❌ ERREUR 403 ]" RESET " Signature invalide ou format hexadécimal incorrect.\n",
+        MSG_ERRO "[ ❌ ERREUR 403 ]" RESET " Le fichier est trop petit pour contenir la signature.\n",
+        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite un entier.\n",
+        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite une valeur positive.\n",
+        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " La durée ne peut pas être négative.\n",
+        MSG_ERRO "[ ❌ ERREUR 206 ]" RESET " Impossible d'allouer la mémoire (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ AVERT 403 ]" RESET " Tampon tronqué à 32Mo. Le rendu peut être corrompu.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ AVERT ]" RESET " Échec du chargement de la clé, utilisation de celle par défaut.\n"
     },
 
-
-    // ---------------- JAPONÊS (4) ----------------
+    // ---------------- [4] ALEMÃO (DE) ----------------
     {
-        "ファイルを開けませんでした",
-
-        // Versão
-        "オリジナル作者: ",
-        "コンパイル: ",
-        "ステータス: \033[1;32m'%s'\033[0m\n",
-        "ステータス: \033[1;33m'%s'\033[0m\n",
-        "ステータス: \033[1;31mMODIFIED\033[0m\n",
-        "ステータス: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // Licença
-        "使用ライセンス - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "Copyright (c) 2026 @inrryoff - NeonXライセンス特別条件の下でライセンスされます\n\n"
-        "本ソフトウェアのコピーを入手するすべての人は、以下の条件に従い、無料で使用する許可が与えられます。\n\n"
-        "1. 帰属（クレジット）:\n"
-        "   原作者の名前（@inrryoff）および著作権表示は、すべてのソースコードファイル、ヘッダー、\n"
-        "   コンパイル済みバイナリのバージョン出力（例: neonx --version）に保持されなければなりません。\n\n"
-        "2. 営利目的の禁止:\n"
-        "   ソースコードまたはコンパイル済みバイナリを問わず、本ソフトウェアを販売、賃貸、または\n"
-        "   商用化することは固く禁じられています。\n\n"
-        "3. 派生および変更:\n"
-        "   改善や個人使用のためのコード変更は許可されています。ただし、以下の条件を満たす必要があります:\n"
-        "   a) 派生作品を販売しないこと。\n"
-        "   b) 変更バージョンを公開リポジトリ（オープンソース）に維持すること。\n"
-        "   c) 原作者へのクレジットを明確に維持すること。\n\n"
-        "4. モジュールでの配布（MAGISK/KERNELSU）:\n"
-        "   最適化モジュールでの本バイナリの使用は、モジュールが無料で配布される限り許可され推奨されます。\n\n"
-        "本ソフトウェアは「現状のまま」提供され、明示または黙示を問わずいかなる保証もありません。\n"
-        "本ソフトウェアの使用に起因するいかなる請求、損害、その他の責任についても、著者は一切の責任を負いません。\n",
-
-        // Ajuda
-        "NeonX",
-        "使用法: cat ファイル | neonx [オプション]\n\n",
-        "-m [0-11]      アニメーションモード\n",
-        "-s [値]        速度（デフォルト 0.2）\n",
-        "-f [値]        周波数（デフォルト 0.3）\n",
-        "-d [値]        持続時間（0: 無限）\n",
-        "-A [角度]      グラデーション角度（0-360度）\n",
-        "-p [値]        固定シード\n",
-        "-S             静的モード\n",
-        "-c [幅]        固定グラデーション幅\n",
-        "-o [0-1]       エッジ不透明度\n",
-        "-F [値]        FPS（例: 60, 90）\n",
-        "-L             行ごとモード（ストリーム）\n",
-        "--preset [名前] プリセットをロード（cyberpunk, retro, matrix, sunset）\n",
-        "--quantized    量子化モード（画質が低下することがあります）\n",
-        "--spin         外部スクリプト用の生のANSIカラーコードを出力\n",
-        "--lang [言語]  言語を選択（pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km）\n",
-        "--license      ソフトウェアライセンス\n",
-        "-v,--version   バイナリバージョン\n",
-        "-h,--help      このヘルプを表示\n",
-
-        // エラーメッセージ
-        "\033[1;31m[NeonX エラー 400]: オプション '%s' には数値が必要です。\033[0m\n",
-        "\033[1;31m[NeonX エラー 400]: オプション '%s' には数値が必要です（受信: '%s'）。\033[0m\n",
-        "\033[1;31m[NeonX エラー 400]: アニメーションモード (-m) は整数でなければなりません。\033[0m\n",
-        "\033[1;33m[NeonX 情報 416]: アニメーションモード (-m) は 0 から 11 の間でなければなりません。\033[0m\n",
-        "\033[1;31m[NeonX エラー 400]: 無効なオプションまたは孤立した引数 '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX エラー 404]: バイナリにデータが渡されていません！ \033[0m\n",
-        "\n\033[1;31m[NeonX エラー 413]: ファイルが大きすぎます。ストリーミングモードには -L を使用してください。\033[0m\n",
-        "\033[1;33m[NeonX 情報 403]: 整合性を確認できません。システムが制限されているか、バイナリが改ざんされています。\033[0m\n",
-        "\033[1;31m[NeonX エラー 403]: 整合性チェックのために自身の実行ファイルを開けませんでした。\033[0m\n",
-        "\033[1;31m[NeonX エラー 403]: 整合性チェック中にファイル読み取りエラーが発生しました。\033[0m\n",
-        "\033[1;31m[NeonX エラー 403]: 整合性を検証するにはメモリが不足しています。\033[0m\n",
-        "\033[1;31m[NeonX エラー 403]: 署名が無効であるか、16進数形式が正しくありません。\033[0m\n",
-        "\033[1;31m[NeonX エラー 403]: ファイルが小さすぎて整合性署名を格納できません。\033[0m\n",
-        "\033[1;31m[NeonX エラー 400]: オプション '%s' には整数が必要です。\033[0m\n",
-        "\033[1;31m[NeonX エラー 400]: オプション '%s' には正の値が必要です。\033[0m\n",
-        "\033[1;31m[NeonX エラー 400]: 持続時間は負にできません。\033[0m\n",
-        "\033[1;31m[NeonX エラー 206]: メモリを割り当てられませんでした（wcsdup）。\033[0m\n",
-        "\033[1;33m[NeonX 情報 403]: バッファーは予防的に32MBに切り詰められました。レンダリングが破損する可能性があります。\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX 警告]: カスタムキーの読み込みに失敗しました。組み込みフォールバックを使用します。\033[0m\n"
+        MSG_ERRO "Fehler beim Öffnen der Datei\n" RESET,
+        "Originalentwickler: ", "Kompiliert von: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "MODIFIZIERT" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Erweiterter Terminal-Verschönerer" RESET "\n",
+        "Verwendung: " BG_FOSCO " cat datei | neonx [optionen] " RESET "\n\n",
+        "  -m [0-11]          Legt den Animationsstil fest\n",
+        "  -s [Wert]          Übergangsgeschwindigkeit " MSG_CMD_DIM "(Standard: 0.2)" RESET "\n",
+        "  -f [Wert]          Wellenfrequenz " MSG_CMD_DIM "(Standard: 0.3)" RESET "\n",
+        "  -d [Wert]          Dauer in Sekunden " MSG_CMD_DIM "(0 = Unendlich)" RESET "\n",
+        "  -A [Grad]          Dreht den Gradientenwinkel " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [Wert]          Legt festen Seed fest " MSG_CMD_DIM "(Deterministisch)" RESET "\n",
+        "  -S                 Rendert ein statisches Bild " MSG_CMD_DIM "(Keine Animation)" RESET "\n",
+        "  -c [Breite]        Erzwingt statische Gradientenbreite\n",
+        "  -o [0-1]         Passt die Randopazität/Glätte an\n",
+        "  -F [Wert]          Sperrt die Bildrate " MSG_CMD_DIM "(z.B. 60, 90)" RESET "\n",
+        "  -L                 Zeilenweise Verarbeitung " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [Name]    Lädt Farbpaletten " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Farbquantisierung " MSG_CMD_DIM "(Höhere Leistung)" RESET "\n",
+        "  --spin             Generiert reine ANSI-Codes " MSG_CMD_DIM "(Für Skripte)" RESET "\n",
+        "  --lang [id]        Überschreibt die Sprache " MSG_CMD_DIM "(z.B. pt, en)" RESET "\n",
+        "  --license          Zeigt Lizenzbedingungen an\n",
+        "  -v, --version      Zeigt Binärversion und Build-Status\n",
+        "  -h, --help         Zeigt dieses interaktive Hilfepanel\n",
+        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Die Option '%s' erfordert einen numerischen Wert.\n",
+        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Option '%s' erfordert eine Zahl. Erhalten: '%s'\n",
+        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Der Animationsmodus (-m) muss eine Ganzzahl sein.\n",
+        MSG_INFO "[ ℹ️ INFO 416 ]" RESET " Der Animationsmodus (-m) muss zwischen 0 und 11 liegen.\n",
+        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Ungültige Option oder loses Argument '%s'\n",
+        "\n" MSG_ERRO "[ ❌ FEHLER 404 ]" RESET " Es wurden keine Daten an das Binary übergeben!\n",
+        "\n" MSG_ERRO "[ ❌ FEHLER 413 ]" RESET " Datei zu groß. Verwende -L für den Stream-Modus.\n",
+        MSG_AVISO "[ ⚠️ WARNUNG 403 ]" RESET " Integrität konnte nicht geprüft werden (eingeschränktes System).\n",
+        MSG_ERRO "[ ❌ FEHLER 403 ]" RESET " Ausführbare Datei konnte nicht zur Prüfung geöffnet werden.\n",
+        MSG_ERRO "[ ❌ FEHLER 403 ]" RESET " Lesefehler bei der Integritätsprüfung.\n",
+        MSG_ERRO "[ ❌ FEHLER 403 ]" RESET " Unzureichender Speicher für die Integritätsprüfung.\n",
+        MSG_ERRO "[ ❌ FEHLER 403 ]" RESET " Ungültige Signatur oder falsches Hex-Format.\n",
+        MSG_ERRO "[ ❌ FEHLER 403 ]" RESET " Die Datei ist zu klein, um die Signatur zu enthalten.\n",
+        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Die Option '%s' erfordert eine Ganzzahl.\n",
+        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Die Option '%s' erfordert einen positiven Wert.\n",
+        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Die Dauer darf nicht negativ sein.\n",
+        MSG_ERRO "[ ❌ FEHLER 206 ]" RESET " Speicher konnte nicht zugewiesen werden (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ WARNUNG 403 ]" RESET " Puffer auf 32 MB begrenzt. Rendering könnte fehlschlagen.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ WARNUNG ]" RESET " Benutzerdefinierter Schlüssel fehlgeschlagen, verwende internen.\n"
     },
 
-    // ---------------- ÁRABE (5) ----------------
+    // ---------------- [5] ITALIANO (IT) ----------------
     {
-        "خطأ في فتح الملف",
-
-        // الإصدار
-        "المنشئ الأصلي: ",
-        "تم تجميعه بواسطة: ",
-        "الحالة: \033[1;32m'%s'\033[0m\n",
-        "الحالة: \033[1;33m'%s'\033[0m\n",
-        "الحالة: \033[1;31mMODIFIED\033[0m\n",
-        "الحالة: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // الترخيص
-        "رخصة الاستخدام - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "حقوق الطبع والنشر (c) 2026 @inrryoff - مرخص بموجب شروط خاصة NeonX LICENSE\n\n"
-        "بموجب هذا، يُمنح أي شخص يحصل على نسخة من هذا البرنامج الإذن باستخدامه مجانًا، بشرط الالتزام بالشروط التالية:\n\n"
-        "1. الإسناد (الإشادة):\n"
-        "   يجب الاحتفاظ باسم المؤلف الأصلي (@inrryoff) وإشعارات حقوق الطبع والنشر في جميع ملفات المصدر، والرؤوس،\n"
-        "   وإصدار الملف الثنائي المترجم (مثل neonx --version).\n\n"
-        "2. حظر التسويق:\n"
-        "   يُحظر تمامًا بيع أو تأجير أو تسويق هذا البرنامج بأي شكل، سواء كان كود المصدر أو الملف الثنائي المترجم،\n"
-        "   بشكل منفرد أو مدمج في حزم مدفوعة.\n\n"
-        "3. الاشتقاقات والتعديلات:\n"
-        "   يُسمح بتغييرات الكود لأغراض التحسين أو الاستخدام الشخصي، بشرط:\n"
-        "   أ) عدم بيع العمل المشتق.\n"
-        "   ب) الاحتفاظ بالنسخة المعدلة في مستودع عام (مفتوح المصدر).\n"
-        "   ج) الحفاظ على إشادة المؤلف الأصلي بشكل واضح.\n\n"
-        "4. التوزيع في الوحدات (MAGISK/KERNELSU):\n"
-        "   يُسمح ويُشجع باستخدام هذا الملف الثنائي في وحدات التحسين، بشرط توزيع الوحدة مجانًا.\n\n"
-        "يتم توفير البرنامج 'كما هو'، دون أي ضمان من أي نوع، صريحًا أو ضمنيًا.\n"
-        "في أي حال، لن يكون المؤلف مسؤولاً عن أي مطالبات أو أضرار أو مسؤوليات أخرى ناتجة عن استخدام هذا البرنامج.\n",
-
-        // المساعدة
-        "NeonX",
-        "الاستخدام: cat ملف | neonx [خيارات]\n\n",
-        "-m [0-11]      أوضاع الرسوم المتحركة\n",
-        "-s [قيمة]     السرعة (الافتراضي 0.2)\n",
-        "-f [قيمة]     التردد (الافتراضي 0.3)\n",
-        "-d [قيمة]     المدة (0: غير محدود)\n",
-        "-A [زاوية]    زاوية التدرج (0-360 درجة)\n",
-        "-p [قيمة]     البذور الثابتة\n",
-        "-S             الوضع الثابت\n",
-        "-c [عرض]      عرض التدرج الثابت\n",
-        "-o [0-1]      شفافية الحافة\n",
-        "-F [قيمة]     معدل الإطارات (مثال: 60, 90)\n",
-        "-L             وضع سطر بسطر (تدفق)\n",
-        "--preset [اسم] تحميل إعداد مسبق (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    الوضع الكمي قد يقلل الجودة البصرية\n",
-        "--spin         إخراج رموز ألوان ANSI الخام للنصوص الخارجية\n",
-        "--lang [لغة]  اختر اللغة (pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km)\n",
-        "--license      ترخيص البرنامج\n",
-        "-v,--version   إصدار الملف الثنائي\n",
-        "-h,--help      عرض هذه المساعدة\n",
-
-        // رسائل الخطأ
-        "\033[1;31m[NeonX خطأ 400]: الخيار '%s' يتطلب قيمة رقمية بعده.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 400]: الخيار '%s' يتطلب قيمة رقمية، المستلم: '%s'\033[0m\n",
-        "\033[1;31m[NeonX خطأ 400]: وضع الرسوم المتحركة (-m) يجب أن يكون عددًا صحيحًا.\033[0m\n",
-        "\033[1;33m[NeonX معلومات 416]: وضع الرسوم المتحركة (-m) يجب أن يكون بين 0 و 11.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 400]: خيار غير صالح أو وسيطة منفردة '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX خطأ 404]: لم يتم تمرير أي بيانات إلى الملف الثنائي! \033[0m\n",
-        "\n\033[1;31m[NeonX خطأ 413]: الملف كبير جدًا. استخدم -L لوضع التدفق.\033[0m\n",
-        "\033[1;33m[NeonX معلومات 403]: لا يمكن التحقق من السلامة، نظام مقيد أو ملف ثنائي معدل.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 403]: فشل في فتح الملف التنفيذي الخاص للتحقق من السلامة.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 403]: خطأ في قراءة الملف أثناء التحقق من السلامة.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 403]: ذاكرة غير كافية للتحقق من السلامة.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 403]: توقيع غير صالح أو تنسيق سداسي عشري غير صحيح.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 403]: الملف صغير جدًا بحيث لا يمكنه احتواء توقيع السلامة.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 400]: الخيار '%s' يتطلب عددًا صحيحًا.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 400]: الخيار '%s' يتطلب قيمة موجبة.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 400]: لا يمكن أن تكون المدة سالبة.\033[0m\n",
-        "\033[1;31m[NeonX خطأ 206]: تعذر تخصيص الذاكرة (wcsdup).\033[0m\n",
-        "\033[1;33m[NeonX معلومات 403]: تم اقتطاع المخزن المؤقت إلى 32 ميجابايت كإجراء وقائي. قد يكون العرض تالفًا.\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX تحذير]: فشل تحميل المفتاح المخصص، باستخدام الاحتياطي المدمج.\033[0m\n"
+        MSG_ERRO "Errore durante l'apertura del file\n" RESET,
+        "Creatore Originale: ", "Compilato da: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "MODIFICATO" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Abbellitore di Terminale Avanzato" RESET "\n",
+        "Uso: " BG_FOSCO " cat file | neonx [opzioni] " RESET "\n\n",
+        "  -m [0-11]          Definisce lo stile dell'animazione\n",
+        "  -s [val]           Velocità di transizione " MSG_CMD_DIM "(Predefinito: 0.2)" RESET "\n",
+        "  -f [val]           Frequenza dell'onda " MSG_CMD_DIM "(Predefinito: 0.3)" RESET "\n",
+        "  -d [val]           Durata in secondi " MSG_CMD_DIM "(0 = Infinito)" RESET "\n",
+        "  -A [gradi]         Ruota l'angolo del gradiente " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [val]           Imposta un seed fisso " MSG_CMD_DIM "(Deterministico)" RESET "\n",
+        "  -S                 Mostra un frame statico " MSG_CMD_DIM "(Senza animazione)" RESET "\n",
+        "  -c [larg]          Forza una larghezza statica del gradiente\n",
+        "  -o [0-1]           Regola l'opacità/morbidezza dei bordi\n",
+        "  -F [val]           Blocca il framerate " MSG_CMD_DIM "(es: 60, 90)" RESET "\n",
+        "  -L                 Elaborazione riga per riga " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [nome]    Carica le tavolozze di colori " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Quantizzazione colore " MSG_CMD_DIM "(Maggiori prestazioni)" RESET "\n",
+        "  --spin             Genera codici ANSI puri " MSG_CMD_DIM "(Per script)" RESET "\n",
+        "  --lang [id]        Sovrascrive la lingua " MSG_CMD_DIM "(es: pt, en)" RESET "\n",
+        "  --license          Mostra i termini di licenza del software\n",
+        "  -v, --version      Mostra versione binaria e stato della build\n",
+        "  -h, --help         Mostra questo pannello di aiuto\n",
+        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un valore numerico.\n",
+        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un numero. Ricevuto: '%s'\n",
+        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " La modalità di animazione (-m) deve essere un intero.\n",
+        MSG_INFO "[ ℹ️ INFO 416 ]" RESET " La modalità di animazione (-m) deve essere compresa tra 0 e 11.\n",
+        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " Opzione non valida o argomento sciolto '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ERRORE 404 ]" RESET " Nessun dato passato al binario!\n",
+        "\n" MSG_ERRO "[ ❌ ERRORE 413 ]" RESET " File troppo grande. Usa -L per la modalità stream.\n",
+        MSG_AVISO "[ ⚠️ AVVISO 403 ]" RESET " Impossibile verificare l'integrità (sistema limitato).\n",
+        MSG_ERRO "[ ❌ ERRORE 403 ]" RESET " Impossibile aprire l'eseguibile per la verifica dell'integrità.\n",
+        MSG_ERRO "[ ❌ ERRORE 403 ]" RESET " Errore di lettura durante la verifica dell'integrità.\n",
+        MSG_ERRO "[ ❌ ERRORE 403 ]" RESET " Memoria insufficiente per verificare l'integrità.\n",
+        MSG_ERRO "[ ❌ ERRORE 403 ]" RESET " Firma non valida o formato esadecimale errato.\n",
+        MSG_ERRO "[ ❌ ERRORE 403 ]" RESET " Il file è troppo piccolo per contenere la firma.\n",
+        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un numero intero.\n",
+        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un valore positivo.\n",
+        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " La durata non può essere negativa.\n",
+        MSG_ERRO "[ ❌ ERRORE 206 ]" RESET " Impossibile allocare memoria (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ AVVISO 403 ]" RESET " Buffer troncato a 32MB. Il rendering potrebbe corrompersi.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ AVVISO ]" RESET " Impossibile caricare la chiave, utilizzo quella integrata.\n"
     },
 
-    // ---------------- RUSSO (6) ----------------
+    // ---------------- [6] RUSSO (RU) ----------------
     {
-        "Ошибка открытия файла",
-
-        // Версия
-        "Оригинальный автор: ",
-        "Скомпилировано: ",
-        "Статус: \033[1;32m'%s'\033[0m\n",
-        "Статус: \033[1;33m'%s'\033[0m\n",
-        "Статус: \033[1;31mMODIFIED\033[0m\n",
-        "Статус: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // Лицензия
-        "ЛИЦЕНЗИЯ НА ИСПОЛЬЗОВАНИЕ - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "Copyright (c) 2026 @inrryoff - Лицензировано на особых условиях NeonX LICENSE\n\n"
-        "Настоящим предоставляется разрешение любому лицу, получившему копию данного программного обеспечения, использовать его бесплатно при соблюдении следующих условий:\n\n"
-        "1. АТРИБУЦИЯ (БЛАГОДАРНОСТЬ):\n"
-        "   Имя оригинального автора (@inrryoff) и уведомления об авторских правах должны сохраняться во всех файлах исходного кода, заголовках и выводе версии скомпилированного бинарного файла (например, neonx --version).\n\n"
-        "2. ЗАПРЕТ НА КОММЕРЦИАЛИЗАЦИЮ:\n"
-        "   СТРОГО ЗАПРЕЩАЕТСЯ продажа, аренда или любая форма коммерциализации данного программного обеспечения, будь то исходный код или скомпилированный бинарный файл, отдельно или в составе платных пакетов.\n\n"
-        "3. ПРОИЗВОДНЫЕ И ИЗМЕНЕНИЯ:\n"
-        "   Изменения кода разрешены для улучшений или личного использования при условии:\n"
-        "   a) Производная работа НЕ продаётся.\n"
-        "   b) Изменённая версия сохраняется в открытом репозитории (Open Source).\n"
-        "   c) Благодарность оригинальному автору сохраняется чётко.\n\n"
-        "4. РАСПРОСТРАНЕНИЕ В МОДУЛЯХ (MAGISK/KERNELSU):\n"
-        "   Использование данного бинарного файла в оптимизационных модулях разрешено и поощряется при условии бесплатного распространения модуля.\n\n"
-        "ПРОГРАММНОЕ ОБЕСПЕЧЕНИЕ ПРЕДОСТАВЛЯЕТСЯ «КАК ЕСТЬ» БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ, ЯВНЫХ ИЛИ ПОДРАЗУМЕВАЕМЫХ.\n"
-        "НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ АВТОР НЕ НЕСЁТ ОТВЕТСТВЕННОСТИ ЗА КАКИЕ-ЛИБО ПРЕТЕНЗИИ, УБЫТКИ ИЛИ ИНУЮ ОТВЕТСТВЕННОСТЬ, ВОЗНИКШИЕ В РЕЗУЛЬТАТЕ ИСПОЛЬЗОВАНИЯ ДАННОГО ПРОГРАММНОГО ОБЕСПЕЧЕНИЯ.\n",
-
-        // Справка
-        "NeonX",
-        "Использование: cat файл | neonx [опции]\n\n",
-        "-m [0-11]      Режимы анимации\n",
-        "-s [значение]  Скорость (по умолчанию 0.2)\n",
-        "-f [значение]  Частота (по умолчанию 0.3)\n",
-        "-d [значение]  Длительность (0: бесконечно)\n",
-        "-A [угол]      Угол градиента (0-360 градусов)\n",
-        "-p [значение]  Фиксированные семена\n",
-        "-S             Статический режим\n",
-        "-c [ширина]    Фиксированная ширина градиента\n",
-        "-o [0-1]       Прозрачность краёв\n",
-        "-F [значение]  FPS (например, 60, 90)\n",
-        "-L             Построчный режим (поток)\n",
-        "--preset [имя] Загрузить пресет (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    Квантованный режим может ухудшить визуальное качество\n",
-        "--spin         Вывод сырых ANSI-кодов цветов для внешних скриптов\n",
-        "--lang [язык]  Выберите язык (pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km)\n",
-        "--license      Лицензия программного обеспечения\n",
-        "-v,--version   Версия бинарного файла\n",
-        "-h,--help      Показать эту справку\n",
-
-        // Сообщения об ошибках
-        "\033[1;31m[NeonX Ошибка 400]: Опция '%s' требует числового значения после себя.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 400]: Опция '%s' требует числового значения, получено: '%s'\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 400]: Режим анимации (-m) должен быть целым числом.\033[0m\n",
-        "\033[1;33m[NeonX Инфо 416]: Режим анимации (-m) должен быть от 0 до 11.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 400]: Неверная опция или отдельный аргумент '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX Ошибка 404]: В бинарный файл не передано никаких данных! \033[0m\n",
-        "\n\033[1;31m[NeonX Ошибка 413]: Файл слишком большой. Используйте -L для потокового режима.\033[0m\n",
-        "\033[1;33m[NeonX Инфо 403]: Не удалось проверить целостность: ограниченная система или изменённый бинарный файл.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 403]: Не удалось открыть собственный исполняемый файл для проверки целостности.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 403]: Ошибка чтения файла во время проверки целостности.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 403]: Недостаточно памяти для проверки целостности.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 403]: Неверная подпись или неправильный шестнадцатеричный формат.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 403]: Файл слишком мал, чтобы содержать подпись целостности.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 400]: Опция '%s' требует целого числа.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 400]: Опция '%s' требует положительного значения.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 400]: Длительность не может быть отрицательной.\033[0m\n",
-        "\033[1;31m[NeonX Ошибка 206]: Не удалось выделить память (wcsdup).\033[0m\n",
-        "\033[1;33m[NeonX Инфо 403]: Буфер профилактически урезан до 32 МБ. Рендеринг может быть повреждён.\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX Предупреждение]: Не удалось загрузить пользовательский ключ, используется встроенный запасной.\033[0m\n"
+        MSG_ERRO "Ошибка при открытии файла\n" RESET,
+        "Оригинальный создатель: ", "Скомпилировано: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "ИЗМЕНЕНО" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Расширенный украшатель терминала" RESET "\n",
+        "Использование: " BG_FOSCO " cat файл | neonx [опции] " RESET "\n\n",
+        "  -m [0-11]          Определяет стиль анимации\n",
+        "  -s [знач]          Скорость перехода " MSG_CMD_DIM "(По умолч: 0.2)" RESET "\n",
+        "  -f [знач]          Частота волны " MSG_CMD_DIM "(По умолч: 0.3)" RESET "\n",
+        "  -d [знач]          Продолжительность в секундах " MSG_CMD_DIM "(0 = Бесконечно)" RESET "\n",
+        "  -A [угол]          Поворачивает угол градиента " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [знач]          Устанавливает фиксированный сид " MSG_CMD_DIM "(Детерминировано)" RESET "\n",
+        "  -S                 Рендерит статический кадр " MSG_CMD_DIM "(Без анимации)" RESET "\n",
+        "  -c [ширина]        Принудительная ширина градиента\n",
+        "  -o [0-1]           Настройка непрозрачности/гладкости краев\n",
+        "  -F [знач]          Блокирует частоту кадров " MSG_CMD_DIM "(напр: 60, 90)" RESET "\n",
+        "  -L                 Построчная обработка " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [имя]     Загружает цветовые палитры " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Квантование цвета " MSG_CMD_DIM "(Высокая производительность)" RESET "\n",
+        "  --spin             Генерирует чистые коды ANSI " MSG_CMD_DIM "(Для скриптов)" RESET "\n",
+        "  --lang [id]        Переопределяет язык " MSG_CMD_DIM "(напр: pt, en)" RESET "\n",
+        "  --license          Показывает условия лицензирования\n",
+        "  -v, --version      Показывает версию и статус сборки\n",
+        "  -h, --help         Показывает эту панель помощи\n",
+        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует числового значения.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует числа. Получено: '%s'\n",
+        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Режим анимации (-m) должен быть целым числом.\n",
+        MSG_INFO "[ ℹ️ ИНФО 416 ]" RESET " Режим анимации (-m) должен быть от 0 до 11.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Неверная опция или аргумент '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ОШИБКА 404 ]" RESET " Данные не переданы в бинарник!\n",
+        "\n" MSG_ERRO "[ ❌ ОШИБКА 413 ]" RESET " Файл слишком большой. Используйте -L для stream.\n",
+        MSG_AVISO "[ ⚠️ ПРЕДУПР 403 ]" RESET " Не удалось проверить целостность (система ограничена).\n",
+        MSG_ERRO "[ ❌ ОШИБКА 403 ]" RESET " Ошибка открытия исполняемого файла для проверки целостности.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 403 ]" RESET " Ошибка чтения при проверке целостности.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 403 ]" RESET " Недостаточно памяти для проверки целостности.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 403 ]" RESET " Неверная подпись или неправильный hex-формат.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 403 ]" RESET " Файл слишком мал для хранения подписи.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует целого числа.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует положительного значения.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Продолжительность не может быть отрицательной.\n",
+        MSG_ERRO "[ ❌ ОШИБКА 206 ]" RESET " Не удалось выделить память (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ ПРЕДУПР 403 ]" RESET " Буфер усечен до 32 МБ. Рендеринг может быть поврежден.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ ПРЕДУПР ]" RESET " Ошибка загрузки ключа, используется встроенный.\n"
     },
 
-    // ---------------- BÚLGARO (7) ----------------
+    // ---------------- [7] CHINÊS (ZH) ----------------
     {
-        "Грешка при отваряне на файл",
-
-        // Версия
-        "Оригинален създател: ",
-        "Компилиран от: ",
-        "Статус: \033[1;32m'%s'\033[0m\n",
-        "Статус: \033[1;33m'%s'\033[0m\n",
-        "Статус: \033[1;31mMODIFIED\033[0m\n",
-        "Статус: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // Лиценз
-        "ЛИЦЕНЗ ЗА ИЗПОЛЗВАНЕ - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "Copyright (c) 2026 @inrryoff - Лицензирано при специални условия NeonX LICENSE\n\n"
-        "С настоящето се дава разрешение на всяко лице, получило копие от този софтуер, да го използва безплатно, при спазване на следните условия:\n\n"
-        "1. ПРИПИСВАНЕ (КРЕДИТИ):\n"
-        "   Името на оригиналния автор (@inrryoff) и известията за авторски права трябва да се съхраняват във всички файлове с изходен код, заглавни файлове и в изхода за версия на компилирания двоичен файл (напр. neonx --version).\n\n"
-        "2. ЗАБРАНА ЗА ТЪРГОВСКА УПОТРЕБА:\n"
-        "   СТРОГО ЗАБРАНЯВА се продажбата, наемането или всякаква форма на търговия с този софтуер, независимо дали като изходен код или компилиран двоичен файл, самостоятелно или интегриран в платени пакети.\n\n"
-        "3. ПРОИЗВОДНИ И МОДИФИКАЦИИ:\n"
-        "   Позволяват се промени в кода за подобрения или лична употреба, при условие че:\n"
-        "   a) Производното произведение НЕ се продава.\n"
-        "   б) Модифицираната версия се поддържа в публично хранилище (отворен код).\n"
-        "   в) Кредитите към оригиналния автор се поддържат ясни.\n\n"
-        "4. РАЗПРОСТРАНЕНИЕ В МОДУЛИ (MAGISK/KERNELSU):\n"
-        "   Използването на този двоичен файл в оптимизационни модули е разрешено и насърчавано, при условие че модулът се разпространява безплатно.\n\n"
-        "СОФТУЕРЪТ СЕ ПРЕДОСТАВЯ 'КАКТО Е', БЕЗ ГАРАНЦИЯ ОТ КАКЪВТО И ДА Е ВИД, ИЗРИЧНА ИЛИ ПОДРАЗБИРАНА.\n"
-        "ПРИ НИКАКВИ ОБСТОЯТЕЛСТВА АВТОРЪТ НЕ НОСИ ОТГОВОРНОСТ ЗА КАКВИТО И ДА Е ИСКОВЕ, ЩЕТИ ИЛИ ДРУГА ОТГОВОРНОСТ, ПРОИЗТИЧАЩИ ОТ ИЗПОЛЗВАНЕТО НА ТОЗИ СОФТУЕР.\n",
-
-        // Помощ
-        "NeonX",
-        "Употреба: cat файл | neonx [опции]\n\n",
-        "-m [0-11]      Режими на анимация\n",
-        "-s [стойност]  Скорост (по подразбиране 0.2)\n",
-        "-f [стойност]  Честота (по подразбиране 0.3)\n",
-        "-d [стойност]  Продължителност (0: безкрайно)\n",
-        "-A [ъгъл]      Ъгъл на градиента (0-360 градуса)\n",
-        "-p [стойност]  Фиксирани начални стойности\n",
-        "-S             Статичен режим\n",
-        "-c [ширина]    Фиксирана ширина на градиента\n",
-        "-o [0-1]       Прозрачност на ръбовете\n",
-        "-F [стойност]  Кадри в секунда (напр. 60, 90)\n",
-        "-L             Режим ред по ред (поток)\n",
-        "--preset [име] Зареждане на предварителна настройка (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    Квантовият режим може да намали визуалното качество\n",
-        "--spin         Извеждане на сурови ANSI цветови кодове за външни скриптове\n",
-        "--lang [език]  Изберете език (pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km)\n",
-        "--license      Лиценз на софтуера\n",
-        "-v,--version   Версия на двоичния файл\n",
-        "-h,--help      Показване на тази помощ\n",
-
-        // Съобщения за грешки
-        "\033[1;31m[NeonX Грешка 400]: Опцията '%s' изисква числова стойност след нея.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 400]: Опцията '%s' изисква числова стойност, получено: '%s'\033[0m\n",
-        "\033[1;31m[NeonX Грешка 400]: Режимът на анимация (-m) трябва да бъде цяло число.\033[0m\n",
-        "\033[1;33m[NeonX Инфо 416]: Режимът на анимация (-m) трябва да бъде между 0 и 11.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 400]: Невалидна опция или изолиран аргумент '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX Грешка 404]: Не бяха предадени данни на двоичния файл! \033[0m\n",
-        "\n\033[1;31m[NeonX Грешка 413]: Файлът е твърде голям. Използвайте -L за потоков режим.\033[0m\n",
-        "\033[1;33m[NeonX Инфо 403]: Не може да се провери целостта, ограничена система или променен двоичен файл.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 403]: Неуспех при отваряне на собствения изпълним файл за проверка на целостта.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 403]: Грешка при четене на файл по време на проверка на целостта.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 403]: Недостатъчно памет за проверка на целостта.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 403]: Невалиден подпис или неправилен шестнадесетичен формат.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 403]: Файлът е твърде малък, за да съдържа подписа за цялост.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 400]: Опцията '%s' изисква цяло число.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 400]: Опцията '%s' изисква положителна стойност.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 400]: Продължителността не може да бъде отрицателна.\033[0m\n",
-        "\033[1;31m[NeonX Грешка 206]: Неуспешно разпределяне на памет (wcsdup).\033[0m\n",
-        "\033[1;33m[NeonX Инфо 403]: Буферът беше превантивно съкратен до 32 MB. Рендирането може да бъде повредено.\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX Предупреждение]: Неуспех при зареждане на потребителския ключ, използва се вграден резервен.\033[0m\n"
+        MSG_ERRO "打开文件时出错\n" RESET,
+        "原作者: ", "编译者: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "已修改" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - 高级终端美化器" RESET "\n",
+        "用法: " BG_FOSCO " cat 文件 | neonx [选项] " RESET "\n\n",
+        "  -m [0-11]          定义动画样式\n",
+        "  -s [值]            过渡速度 " MSG_CMD_DIM "(默认: 0.2)" RESET "\n",
+        "  -f [值]            波浪频率 " MSG_CMD_DIM "(默认: 0.3)" RESET "\n",
+        "  -d [值]            持续时间(秒) " MSG_CMD_DIM "(0 = 无限)" RESET "\n",
+        "  -A [角度]          旋转渐变角度 " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [值]            设置固定种子 " MSG_CMD_DIM "(确定性生成)" RESET "\n",
+        "  -S                 渲染静态帧 " MSG_CMD_DIM "(无动画)" RESET "\n",
+        "  -c [宽度]          强制静态渐变宽度\n",
+        "  -o [0-1]           调整边缘不透明度/平滑度\n",
+        "  -F [值]            锁定帧率 " MSG_CMD_DIM "(例如: 60, 90)" RESET "\n",
+        "  -L                 逐行处理模式 " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [名称]    加载调色板 " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        颜色量化模式 " MSG_CMD_DIM "(更高性能)" RESET "\n",
+        "  --spin             生成纯 ANSI 代码 " MSG_CMD_DIM "(用于外部脚本)" RESET "\n",
+        "  --lang [id]        覆盖界面语言 " MSG_CMD_DIM "(例如: pt, en)" RESET "\n",
+        "  --license          显示软件许可条款\n",
+        "  -v, --version      显示二进制版本和构建状态\n",
+        "  -h, --help         显示此交互式帮助面板\n",
+        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 后需要一个数值。\n",
+        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 需要一个数值。收到: '%s'\n",
+        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 动画模式 (-m) 必须是一个整数。\n",
+        MSG_INFO "[ ℹ️ 信息 416 ]" RESET " 动画模式 (-m) 必须在 0 到 11 之间。\n",
+        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 无效选项或独立参数 '%s'\n",
+        "\n" MSG_ERRO "[ ❌ 错误 404 ]" RESET " 没有向二进制传递任何数据！\n",
+        "\n" MSG_ERRO "[ ❌ 错误 413 ]" RESET " 文件太大。请使用 -L 进行流模式。\n",
+        MSG_AVISO "[ ⚠️ 警告 403 ]" RESET " 无法验证完整性（受限系统或被篡改的二进制）。\n",
+        MSG_ERRO "[ ❌ 错误 403 ]" RESET " 无法打开可执行文件本身以进行完整性验证。\n",
+        MSG_ERRO "[ ❌ 错误 403 ]" RESET " 完整性验证期间文件读取错误。\n",
+        MSG_ERRO "[ ❌ 错误 403 ]" RESET " 内存不足，无法验证完整性。\n",
+        MSG_ERRO "[ ❌ 错误 403 ]" RESET " 签名无效或十六进制格式不正确。\n",
+        MSG_ERRO "[ ❌ 错误 403 ]" RESET " 文件太小，无法包含完整性签名。\n",
+        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 需要一个整数。\n",
+        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 需要一个正值。\n",
+        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 持续时间不能为负数。\n",
+        MSG_ERRO "[ ❌ 错误 206 ]" RESET " 无法分配内存 (wcsdup)。\n",
+        MSG_AVISO "[ ⚠️ 警告 403 ]" RESET " 缓冲区已被预防性截断至 32MB。渲染可能会损坏。\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ 警告 ]" RESET " 加载自定义密钥失败，使用内置密钥。\n"
     },
 
-    // ---------------- GREGO (8) ----------------
+    // ---------------- [8] JAPONÊS (JA) ----------------
     {
-        "Σφάλμα ανοίγματος αρχείου",
-
-        // Έκδοση
-        "Αρχικός Δημιουργός: ",
-        "Μεταγλωττίστηκε από: ",
-        "Κατάσταση: \033[1;32m'%s'\033[0m\n",
-        "Κατάσταση: \033[1;33m'%s'\033[0m\n",
-        "Κατάσταση: \033[1;31mMODIFIED\033[0m\n",
-        "Κατάσταση: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // Άδεια χρήσης
-        "ΑΔΕΙΑ ΧΡΗΣΗΣ - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "Πνευματικά δικαιώματα (c) 2026 @inrryoff - Αδειοδοτείται υπό ειδικούς όρους NeonX LICENSE\n\n"
-        "Με το παρόν, χορηγείται άδεια σε οποιοδήποτε άτομο αποκτά αντίγραφο αυτού του λογισμικού να το χρησιμοποιεί δωρεάν, υπό τις ακόλουθες προϋποθέσεις:\n\n"
-        "1. ΑΠΟΔΟΣΗ (ΠΙΣΤΩΣΕΙΣ):\n"
-        "   Το όνομα του αρχικού δημιουργού (@inrryoff) και οι ειδοποιήσεις πνευματικών δικαιωμάτων πρέπει να διατηρούνται σε όλα τα αρχεία πηγαίου κώδικα, κεφαλίδες και στην έξοδο έκδοσης του μεταγλωττισμένου δυαδικού αρχείου (π.χ. neonx --version).\n\n"
-        "2. ΑΠΑΓΟΡΕΥΣΗ ΕΜΠΟΡΕΥΜΑΤΟΠΟΙΗΣΗΣ:\n"
-        "   ΑΠΑΓΟΡΕΥΕΤΑΙ ΑΥΣΤΗΡΑ η πώληση, ενοικίαση ή οποιαδήποτε μορφή εμπορευματοποίησης αυτού του λογισμικού, είτε ως πηγαίος κώδικας είτε ως μεταγλωττισμένο δυαδικό αρχείο, αυτόνομα ή ενσωματωμένο σε πληρωμένα πακέτα.\n\n"
-        "3. ΠΑΡΑΓΩΓΑ ΚΑΙ ΤΡΟΠΟΠΟΙΗΣΕΙΣ:\n"
-        "   Επιτρέπονται αλλαγές κώδικα για βελτιώσεις ή προσωπική χρήση, υπό την προϋπόθεση ότι:\n"
-        "   α) Το παράγωγο έργο ΔΕΝ πωλείται.\n"
-        "   β) Η τροποποιημένη έκδοση διατηρείται σε δημόσιο αποθετήριο (Ανοιχτού Κώδικα).\n"
-        "   γ) Οι πιστώσεις στον αρχικό δημιουργό διατηρούνται σαφείς.\n\n"
-        "4. ΔΙΑΝΟΜΗ ΣΕ ΛΕΙΤΟΥΡΓΙΚΕΣ ΜΟΝΑΔΕΣ (MAGISK/KERNELSU):\n"
-        "   Η χρήση αυτού του δυαδικού αρχείου σε μονάδες βελτιστοποίησης επιτρέπεται και ενθαρρύνεται, υπό την προϋπόθεση ότι η μονάδα διανέμεται δωρεάν.\n\n"
-        "ΤΟ ΛΟΓΙΣΜΙΚΟ ΠΑΡΕΧΕΤΑΙ 'ΩΣ ΕΧΕΙ', ΧΩΡΙΣ ΚΑΜΙΑ ΕΓΓΥΗΣΗ, ΡΗΤΗ Ή ΣΙΩΠΗΡΗ.\n"
-        "ΣΕ ΚΑΜΙΑ ΠΕΡΙΠΤΩΣΗ Ο ΔΗΜΙΟΥΡΓΟΣ ΔΕΝ ΦΕΡΕΙ ΕΥΘΥΝΗ ΓΙΑ ΟΠΟΙΑΔΗΠΟΤΕ ΑΞΙΩΣΗ, ΖΗΜΙΑ Ή ΑΛΛΗ ΕΥΘΥΝΗ ΠΟΥ ΠΡΟΚΥΠΤΕΙ ΑΠΟ ΤΗ ΧΡΗΣΗ ΑΥΤΟΥ ΤΟΥ ΛΟΓΙΣΜΙΚΟΥ.\n",
-
-        // Βοήθεια
-        "NeonX",
-        "Χρήση: cat αρχείο | neonx [επιλογές]\n\n",
-        "-m [0-11]      Λειτουργίες κινούμενων σχεδίων\n",
-        "-s [τιμή]     Ταχύτητα (προεπιλογή 0.2)\n",
-        "-f [τιμή]     Συχνότητα (προεπιλογή 0.3)\n",
-        "-d [τιμή]     Διάρκεια (0: άπειρη)\n",
-        "-A [γωνία]    Γωνία διαβάθμισης (0-360 μοίρες)\n",
-        "-p [τιμή]     Σταθεροί σπόροι\n",
-        "-S             Στατική λειτουργία\n",
-        "-c [πλάτος]   Σταθερό πλάτος διαβάθμισης\n",
-        "-o [0-1]      Αδιαφάνεια άκρων\n",
-        "-F [τιμή]     FPS (π.χ. 60, 90)\n",
-        "-L             Λειτουργία γραμμή προς γραμμή (ροή)\n",
-        "--preset [όνομα] Φόρτωση προεπιλογής (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    Η κβαντισμένη λειτουργία μπορεί να μειώσει την οπτική ποιότητα\n",
-        "--spin         Έξοδος ακατέργαστων κωδίκων χρώματος ANSI για εξωτερικά σενάρια\n",
-        "--lang [γλώσσα] Επιλέξτε γλώσσα (pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km)\n",
-        "--license      Άδεια χρήσης λογισμικού\n",
-        "-v,--version   Έκδοση δυαδικού αρχείου\n",
-        "-h,--help      Εμφάνιση αυτής της βοήθειας\n",
-
-        // Μηνύματα σφάλματος
-        "\033[1;31m[NeonX Σφάλμα 400]: Η επιλογή '%s' απαιτεί μια αριθμητική τιμή μετά από αυτήν.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 400]: Η επιλογή '%s' απαιτεί μια αριθμητική τιμή, ελήφθη: '%s'\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 400]: Η λειτουργία κινούμενων σχεδίων (-m) πρέπει να είναι ακέραιος αριθμός.\033[0m\n",
-        "\033[1;33m[NeonX Πληροφορία 416]: Η λειτουργία κινούμενων σχεδίων (-m) πρέπει να είναι μεταξύ 0 και 11.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 400]: Μη έγκυρη επιλογή ή μεμονωμένο όρισμα '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX Σφάλμα 404]: Δεν μεταβιβάστηκαν δεδομένα στο δυαδικό αρχείο! \033[0m\n",
-        "\n\033[1;31m[NeonX Σφάλμα 413]: Το αρχείο είναι πολύ μεγάλο. Χρησιμοποιήστε -L για λειτουργία ροής.\033[0m\n",
-        "\033[1;33m[NeonX Πληροφορία 403]: Δεν ήταν δυνατή η επαλήθευση ακεραιότητας, περιορισμένο σύστημα ή παραβιασμένο δυαδικό αρχείο.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 403]: Αποτυχία ανοίγματος του δικού του εκτελέσιμου αρχείου για έλεγχο ακεραιότητας.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 403]: Σφάλμα ανάγνωσης αρχείου κατά τον έλεγχο ακεραιότητας.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 403]: Ανεπαρκής μνήμη για επαλήθευση ακεραιότητας.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 403]: Μη έγκυρη υπογραφή ή εσφαλμένη δεκαεξαδική μορφή.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 403]: Το αρχείο είναι πολύ μικρό για να περιέχει την υπογραφή ακεραιότητας.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 400]: Η επιλογή '%s' απαιτεί έναν ακέραιο αριθμό.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 400]: Η επιλογή '%s' απαιτεί μια θετική τιμή.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 400]: Η διάρκεια δεν μπορεί να είναι αρνητική.\033[0m\n",
-        "\033[1;31m[NeonX Σφάλμα 206]: Αδυναμία εκχώρησης μνήμης (wcsdup).\033[0m\n",
-        "\033[1;33m[NeonX Πληροφορία 403]: Το buffer περικόπηκε προληπτικά στα 32 MB. Η απόδοση ενδέχεται να καταστραφεί.\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX Προειδοποίηση]: Αποτυχία φόρτωσης προσαρμοσμένου κλειδιού, χρήση ενσωματωμένου εφεδρικού.\033[0m\n"
+        MSG_ERRO "ファイルを開く際にエラーが発生しました\n" RESET,
+        "オリジナルの作成者: ", "コンパイル: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "変更済み" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - 高度なターミナル装飾ツール" RESET "\n",
+        "使用方法: " BG_FOSCO " cat ファイル | neonx [オプション] " RESET "\n\n",
+        "  -m [0-11]          アニメーションスタイルを定義\n",
+        "  -s [値]            トランジション速度 " MSG_CMD_DIM "(デフォルト: 0.2)" RESET "\n",
+        "  -f [値]            波の周波数 " MSG_CMD_DIM "(デフォルト: 0.3)" RESET "\n",
+        "  -d [値]            継続時間(秒) " MSG_CMD_DIM "(0 = 無限)" RESET "\n",
+        "  -A [角度]          グラデーションの角度を回転 " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [値]            固定シードを設定 " MSG_CMD_DIM "(決定論的)" RESET "\n",
+        "  -S                 静的フレームをレンダリング " MSG_CMD_DIM "(アニメーションなし)" RESET "\n",
+        "  -c [幅]            静的グラデーションの幅を強制\n",
+        "  -o [0-1]           エッジの不透明度/滑らかさを調整\n",
+        "  -F [値]            フレームレートをロック " MSG_CMD_DIM "(例: 60, 90)" RESET "\n",
+        "  -L                 行ごとの処理 " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [名前]    カラーパレットをロード " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        カラー量子化 " MSG_CMD_DIM "(高パフォーマンス)" RESET "\n",
+        "  --spin             純粋な ANSI コードを生成 " MSG_CMD_DIM "(スクリプト用)" RESET "\n",
+        "  --lang [id]        言語を上書き " MSG_CMD_DIM "(例: pt, en)" RESET "\n",
+        "  --license          ソフトウェアのライセンス条項を表示\n",
+        "  -v, --version      バイナリのバージョンとビルド状態を表示\n",
+        "  -h, --help         このインタラクティブなヘルプを表示\n",
+        MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には数値が必要です。\n",
+        MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には数値が必要です。受信: '%s'\n",
+        MSG_ERRO "[ ❌ エラー 400 ]" RESET " アニメーションモード (-m) は整数である必要があります。\n",
+        MSG_INFO "[ ℹ️ 情報 416 ]" RESET " アニメーションモード (-m) は0から11の間である必要があります。\n",
+        MSG_ERRO "[ ❌ エラー 400 ]" RESET " 無効なオプションまたは独立した引数 '%s'\n",
+        "\n" MSG_ERRO "[ ❌ エラー 404 ]" RESET " バイナリにデータが渡されていません！\n",
+        "\n" MSG_ERRO "[ ❌ エラー 413 ]" RESET " ファイルが大きすぎます。ストリームモードには -L を使用してください。\n",
+        MSG_AVISO "[ ⚠️ 警告 403 ]" RESET " 整合性を確認できませんでした（制限されたシステム）。\n",
+        MSG_ERRO "[ ❌ エラー 403 ]" RESET " 整合性確認のために実行可能ファイルを開くのに失敗しました。\n",
+        MSG_ERRO "[ ❌ エラー 403 ]" RESET " 整合性確認中のファイル読み取りエラー。\n",
+        MSG_ERRO "[ ❌ エラー 403 ]" RESET " 整合性を確認するためのメモリが不足しています。\n",
+        MSG_ERRO "[ ❌ エラー 403 ]" RESET " 無効な署名または不正な16進数フォーマット。\n",
+        MSG_ERRO "[ ❌ エラー 403 ]" RESET " ファイルが小さすぎて署名が含まれていません。\n",
+        MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には整数が必要です。\n",
+        MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には正の値が必要です。\n",
+        MSG_ERRO "[ ❌ エラー 400 ]" RESET " 期間は負にすることはできません。\n",
+        MSG_ERRO "[ ❌ エラー 206 ]" RESET " メモリを割り当てることができませんでした (wcsdup)。\n",
+        MSG_AVISO "[ ⚠️ 警告 403 ]" RESET " バッファは32MBに切り捨てられました。レンダリングが破損する可能性があります。\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ 警告 ]" RESET " カスタムキーの読み込みに失敗しました。組み込みキーを使用します。\n"
     },
 
-    // ---------------- COREANO (9) ----------------
+    // ---------------- [9] COREANO (KO) ----------------
     {
-        "파일 열기 오류",
-
-        // 버전
-        "원본 작성자: ",
-        "컴파일: %s\n",
-        "상태: \033[1;32m'%s'\033[0m\n",
-        "상태: \033[1;33m'%s'\033[0m\n",
-        "상태: \033[1;31mMODIFIED\033[0m\n",
-        "상태: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // 라이선스
-        "사용 라이선스 - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "저작권 (c) 2026 @inrryoff - NeonX LICENSE 특수 조건에 따라 라이선스됨\n\n"
-        "이 소프트웨어의 사본을 얻는 모든 사람은 다음 조건에 따라 무료로 사용할 수 있는 권한이 부여됩니다.\n\n"
-        "1. 저작자 표시 (크레딧):\n"
-        "   원본 작성자의 이름(@inrryoff)과 저작권 표시는 모든 소스 코드 파일, 헤더 및 컴파일된 바이너리의 버전 출력(예: neonx --version)에 유지되어야 합니다.\n\n"
-        "2. 상업화 금지:\n"
-        "   소스 코드 또는 컴파일된 바이너리 형태를 막론하고, 이 소프트웨어를 판매, 임대 또는 상업화하는 것은 엄격히 금지됩니다.\n\n"
-        "3. 파생 및 수정:\n"
-        "   개선 또는 개인적 사용을 위한 코드 변경이 허용됩니다. 단, 다음 조건을 충족해야 합니다:\n"
-        "   a) 파생 저작물을 판매하지 않습니다.\n"
-        "   b) 수정된 버전은 공개 저장소(오픈 소스)에 유지됩니다.\n"
-        "   c) 원본 작성자에 대한 크레딧이 명확하게 유지됩니다.\n\n"
-        "4. 모듈 배포 (MAGISK/KERNELSU):\n"
-        "   이 바이너리를 최적화 모듈에서 사용하는 것은 모듈이 무료로 배포되는 한 허용되며 권장됩니다.\n\n"
-        "이 소프트웨어는 '있는 그대로' 제공되며, 명시적이거나 묵시적인 어떠한 보증도 없습니다.\n"
-        "어떠한 경우에도 저자는 이 소프트웨어 사용으로 인해 발생하는 청구, 손해 또는 기타 책임에 대해 책임을 지지 않습니다.\n",
-
-        // 도움말
-        "NeonX",
-        "사용법: cat 파일 | neonx [옵션]\n\n",
-        "-m [0-11]      애니메이션 모드\n",
-        "-s [값]        속도 (기본값 0.2)\n",
-        "-f [값]        주파수 (기본값 0.3)\n",
-        "-d [값]        지속 시간 (0: 무한)\n",
-        "-A [각도]      그라데이션 각도 (0-360도)\n",
-        "-p [값]        고정 시드\n",
-        "-S             정적 모드\n",
-        "-c [너비]      고정 그라데이션 너비\n",
-        "-o [0-1]       가장자리 불투명도\n",
-        "-F [값]        FPS (예: 60, 90)\n",
-        "-L             줄 단위 모드 (스트림)\n",
-        "--preset [이름] 프리셋 로드 (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    양자화 모드는 시각적 품질을 저하시킬 수 있습니다\n",
-        "--spin         외부 스크립트용 원시 ANSI 색상 코드 출력\n",
-        "--lang [언어]  언어 선택 (pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km)\n",
-        "--license      소프트웨어 라이선스\n",
-        "-v,--version   바이너리 버전\n",
-        "-h,--help      이 도움말 표시\n",
-
-        // 오류 메시지
-        "\033[1;31m[NeonX 오류 400]: '%s' 옵션 뒤에는 숫자 값이 필요합니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 400]: '%s' 옵션에는 숫자 값이 필요합니다. 받은 값: '%s'\033[0m\n",
-        "\033[1;31m[NeonX 오류 400]: 애니메이션 모드 (-m)는 정수여야 합니다.\033[0m\n",
-        "\033[1;33m[NeonX 정보 416]: 애니메이션 모드 (-m)는 0과 11 사이여야 합니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 400]: 잘못된 옵션이나 분리된 인수 '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX 오류 404]: 바이너리에 데이터가 전달되지 않았습니다! \033[0m\n",
-        "\n\033[1;31m[NeonX 오류 413]: 파일이 너무 큽니다. 스트리밍 모드에는 -L을 사용하세요.\033[0m\n",
-        "\033[1;33m[NeonX 정보 403]: 무결성을 확인할 수 없습니다. 시스템이 제한되었거나 바이너리가 변조되었습니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 403]: 무결성 검사를 위해 자신의 실행 파일을 열지 못했습니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 403]: 무결성 검사 중 파일 읽기 오류가 발생했습니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 403]: 무결성을 검증하기에 메모리가 부족합니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 403]: 서명이 잘못되었거나 16진수 형식이 올바르지 않습니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 403]: 파일이 너무 작아 무결성 서명을 포함할 수 없습니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 400]: '%s' 옵션에는 정수가 필요합니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 400]: '%s' 옵션에는 양수 값이 필요합니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 400]: 지속 시간은 음수가 될 수 없습니다.\033[0m\n",
-        "\033[1;31m[NeonX 오류 206]: 메모리를 할당할 수 없습니다 (wcsdup).\033[0m\n",
-        "\033[1;33m[NeonX 정보 403]: 버퍼가 예방적으로 32MB로 잘렸습니다. 렌더링이 손상될 수 있습니다.\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX 경고]: 사용자 지정 키를 로드하지 못했습니다. 내장된 대체 키를 사용합니다.\033[0m\n"
+        MSG_ERRO "파일 열기 오류\n" RESET,
+        "원본 제작자: ", "컴파일러: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "수정됨" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - 고급 터미널 뷰티파이어" RESET "\n",
+        "사용법: " BG_FOSCO " cat 파일 | neonx [옵션] " RESET "\n\n",
+        "  -m [0-11]          애니메이션 스타일 정의\n",
+        "  -s [값]            전환 속도 " MSG_CMD_DIM "(기본값: 0.2)" RESET "\n",
+        "  -f [값]            파동 주파수 " MSG_CMD_DIM "(기본값: 0.3)" RESET "\n",
+        "  -d [값]            지속 시간(초) " MSG_CMD_DIM "(0 = 무한)" RESET "\n",
+        "  -A [각도]          그라디언트 각도 회전 " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [값]            고정 시드 설정 " MSG_CMD_DIM "(결정론적)" RESET "\n",
+        "  -S                 정적 프레임 렌더링 " MSG_CMD_DIM "(애니메이션 없음)" RESET "\n",
+        "  -c [너비]          정적 그라디언트 너비 강제 적용\n",
+        "  -o [0-1]           가장자리 불투명도/부드러움 조정\n",
+        "  -F [값]            프레임 속도 고정 " MSG_CMD_DIM "(예: 60, 90)" RESET "\n",
+        "  -L                 한 줄씩 처리 " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [이름]    색상 팔레트 로드 " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        색상 양자화 " MSG_CMD_DIM "(고성능 모드)" RESET "\n",
+        "  --spin             순수 ANSI 코드 생성 " MSG_CMD_DIM "(스크립트용)" RESET "\n",
+        "  --lang [id]        인터페이스 언어 재정의 " MSG_CMD_DIM "(예: pt, en)" RESET "\n",
+        "  --license          소프트웨어 라이선스 조항 표시\n",
+        "  -v, --version      바이너리 버전 및 빌드 상태 표시\n",
+        "  -h, --help         이 대화형 도움말 패널 표시\n",
+        MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션 뒤에 숫자 값이 필요합니다.\n",
+        MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션에 숫자가 필요합니다. 수신됨: '%s'\n",
+        MSG_ERRO "[ ❌ 오류 400 ]" RESET " 애니메이션 모드(-m)는 정수여야 합니다.\n",
+        MSG_INFO "[ ℹ️ 정보 416 ]" RESET " 애니메이션 모드(-m)는 0에서 11 사이여야 합니다.\n",
+        MSG_ERRO "[ ❌ 오류 400 ]" RESET " 잘못된 옵션 또는 독립된 인수 '%s'\n",
+        "\n" MSG_ERRO "[ ❌ 오류 404 ]" RESET " 바이너리에 전달된 데이터가 없습니다!\n",
+        "\n" MSG_ERRO "[ ❌ 오류 413 ]" RESET " 파일이 너무 큽니다. 스트림 모드에는 -L을 사용하세요.\n",
+        MSG_AVISO "[ ⚠️ 경고 403 ]" RESET " 무결성을 확인할 수 없습니다 (제한된 시스템).\n",
+        MSG_ERRO "[ ❌ 오류 403 ]" RESET " 무결성 검증을 위해 실행 파일을 여는 데 실패했습니다.\n",
+        MSG_ERRO "[ ❌ 오류 403 ]" RESET " 무결성 검증 중 파일 읽기 오류.\n",
+        MSG_ERRO "[ ❌ 오류 403 ]" RESET " 무결성을 확인할 메모리가 부족합니다.\n",
+        MSG_ERRO "[ ❌ 오류 403 ]" RESET " 잘못된 서명 또는 잘못된 16진수 형식.\n",
+        MSG_ERRO "[ ❌ 오류 403 ]" RESET " 파일이 서명을 포함하기에 너무 작습니다.\n",
+        MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션에는 정수가 필요합니다.\n",
+        MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션에는 양수 값이 필요합니다.\n",
+        MSG_ERRO "[ ❌ 오류 400 ]" RESET " 기간은 음수일 수 없습니다.\n",
+        MSG_ERRO "[ ❌ 오류 206 ]" RESET " 메모리를 할당할 수 없습니다 (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ 경고 403 ]" RESET " 버퍼가 32MB로 잘렸습니다. 렌더링이 손상될 수 있습니다.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ 경고 ]" RESET " 사용자 지정 키를 로드하지 못했습니다. 기본 키를 사용합니다.\n"
     },
 
-    // ---------------- HINDI (10) ----------------
+    // ---------------- [10] TURCO (TR) ----------------
     {
-        "फ़ाइल खोलने में त्रुटि",
-
-        // संस्करण
-        "मूल निर्माता: ",
-        "द्वारा संकलित: ",
-        "स्थिति: \033[1;32m'%s'\033[0m\n",
-        "स्थिति: \033[1;33m'%s'\033[0m\n",
-        "स्थिति: \033[1;31mMODIFIED\033[0m\n",
-        "स्थिति: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // लाइसेंस
-        "उपयोग लाइसेंस - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "कॉपीराइट (c) 2026 @inrryoff - NeonX LICENSE विशेष शर्तों के तहत लाइसेंसीकृत\n\n"
-        "इस सॉफ़्टवेयर की एक प्रति प्राप्त करने वाले किसी भी व्यक्ति को, निम्नलिखित शर्तों के अधीन, इसे निःशुल्क उपयोग करने की अनुमति दी जाती है:\n\n"
-        "1. श्रेय (क्रेडिट):\n"
-        "   मूल लेखक का नाम (@inrryoff) और कॉपीराइट सूचनाएँ सभी स्रोत कोड फ़ाइलों, हेडरों और संकलित बाइनरी के संस्करण आउटपुट (जैसे neonx --version) में बनाए रखी जानी चाहिए।\n\n"
-        "2. व्यावसायीकरण का निषेध:\n"
-        "   इस सॉफ़्टवेयर को बेचना, किराए पर देना या किसी भी रूप में व्यावसायीकरण करना सख्त वर्जित है, चाहे वह स्रोत कोड हो या संकलित बाइनरी, अकेले या भुगतान पैकेजों में एकीकृत।\n\n"
-        "3. व्युत्पन्न और संशोधन:\n"
-        "   सुधार या व्यक्तिगत उपयोग के लिए कोड बदलने की अनुमति है, बशर्ते कि:\n"
-        "   a) व्युत्पन्न कार्य बेचा न जाए।\n"
-        "   b) संशोधित संस्करण को सार्वजनिक भंडार (ओपन सोर्स) में रखा जाए।\n"
-        "   c) मूल लेखक को स्पष्ट रूप से श्रेय दिया जाए।\n\n"
-        "4. मॉड्यूल में वितरण (MAGISK/KERNELSU):\n"
-        "   इस बाइनरी को ऑप्टिमाइज़ेशन मॉड्यूल में उपयोग करने की अनुमति है और इसे प्रोत्साहित किया जाता है, बशर्ते मॉड्यूल मुफ्त में वितरित किया जाए।\n\n"
-        "सॉफ़्टवेयर 'जैसा है' प्रदान किया जाता है, बिना किसी प्रकार की वारंटी, व्यक्त या निहित, के।\n"
-        "किसी भी स्थिति में, इस सॉफ़्टवेयर के उपयोग से उत्पन्न किसी भी दावे, क्षति या अन्य दायित्व के लिए लेखक उत्तरदायी नहीं होगा।\n",
-
-        // सहायता
-        "NeonX",
-        "उपयोग: cat फ़ाइल | neonx [विकल्प]\n\n",
-        "-m [0-11]      एनिमेशन मोड\n",
-        "-s [मान]      गति (डिफ़ॉल्ट 0.2)\n",
-        "-f [मान]      आवृत्ति (डिफ़ॉल्ट 0.3)\n",
-        "-d [मान]      अवधि (0: अनंत)\n",
-        "-A [कोण]      ग्रेडिएंट कोण (0-360 डिग्री)\n",
-        "-p [मान]      फिक्स्ड सीड्स\n",
-        "-S             स्थैतिक मोड\n",
-        "-c [चौड़ाई]   फिक्स्ड ग्रेडिएंट चौड़ाई\n",
-        "-o [0-1]       किनारे की अपारदर्शिता\n",
-        "-F [मान]      FPS (उदा. 60, 90)\n",
-        "-L             लाइन-बाय-लाइन मोड (स्ट्रीम)\n",
-        "--preset [नाम] प्रीसेट लोड करें (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    क्वांटाइज्ड मोड दृश्य गुणवत्ता कम कर सकता है\n",
-        "--spin         बाहरी स्क्रिप्ट के लिए कच्चे ANSI रंग कोड आउटपुट करें\n",
-        "--lang [भाषा] भाषा चुनें (pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km)\n",
-        "--license      सॉफ़्टवेयर लाइसेंस\n",
-        "-v,--version   बाइनरी संस्करण\n",
-        "-h,--help      यह सहायता दिखाएँ\n",
-
-        // त्रुटि संदेश
-        "\033[1;31m[NeonX त्रुटि 400]: विकल्प '%s' के बाद एक संख्यात्मक मान की आवश्यकता है।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 400]: विकल्प '%s' के लिए एक संख्यात्मक मान की आवश्यकता है, प्राप्त: '%s'\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 400]: एनिमेशन मोड (-m) एक पूर्णांक होना चाहिए।\033[0m\n",
-        "\033[1;33m[NeonX जानकारी 416]: एनिमेशन मोड (-m) 0 और 11 के बीच होना चाहिए।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 400]: अमान्य विकल्प या अलग तर्क '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX त्रुटि 404]: बाइनरी को कोई डेटा पास नहीं किया गया! \033[0m\n",
-        "\n\033[1;31m[NeonX त्रुटि 413]: फ़ाइल बहुत बड़ी है। स्ट्रीमिंग मोड के लिए -L का उपयोग करें।\033[0m\n",
-        "\033[1;33m[NeonX जानकारी 403]: अखंडता की जांच नहीं कर सकता, प्रतिबंधित प्रणाली या छेड़छाड़ वाली बाइनरी।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 403]: अखंडता जांच के लिए अपनी निष्पादन योग्य फ़ाइल खोलने में विफल।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 403]: अखंडता जांच के दौरान फ़ाइल पढ़ने की त्रुटि।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 403]: अखंडता सत्यापित करने के लिए अपर्याप्त मेमोरी।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 403]: अमान्य हस्ताक्षर या गलत हेक्साडेसिमल प्रारूप।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 403]: फ़ाइल अखंडता हस्ताक्षर रखने के लिए बहुत छोटी है।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 400]: विकल्प '%s' के लिए एक पूर्णांक की आवश्यकता है।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 400]: विकल्प '%s' के लिए एक सकारात्मक मान की आवश्यकता है।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 400]: अवधि ऋणात्मक नहीं हो सकती।\033[0m\n",
-        "\033[1;31m[NeonX त्रुटि 206]: मेमोरी आवंटित नहीं कर सका (wcsdup)।\033[0m\n",
-        "\033[1;33m[NeonX जानकारी 403]: बफर को निवारक रूप से 32MB तक छोटा किया गया। रेंडरिंग क्षतिग्रस्त हो सकती है।\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX चेतावनी]: कस्टम कुंजी लोड करने में विफल, अंतर्निहित फ़ॉलबैक का उपयोग कर रहा है।\033[0m\n"
+        MSG_ERRO "Dosya açılırken hata oluştu\n" RESET,
+        "Orijinal Yapımcı: ", "Derleyen: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "DEĞİŞTİRİLDİ" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Gelişmiş Terminal Güzelleştirici" RESET "\n",
+        "Kullanım: " BG_FOSCO " cat dosya | neonx [seçenekler] " RESET "\n\n",
+        "  -m [0-11]          Animasyon stilini tanımlar\n",
+        "  -s [değer]         Geçiş hızı " MSG_CMD_DIM "(Varsayılan: 0.2)" RESET "\n",
+        "  -f [değer]         Dalga frekansı " MSG_CMD_DIM "(Varsayılan: 0.3)" RESET "\n",
+        "  -d [değer]         Saniye cinsinden süre " MSG_CMD_DIM "(0 = Sonsuz)" RESET "\n",
+        "  -A [açı]           Gradyan açısını döndürür " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [değer]         Sabit bir seed ayarlar " MSG_CMD_DIM "(Deterministik)" RESET "\n",
+        "  -S                 Statik bir kare oluşturur " MSG_CMD_DIM "(Animasyon yok)" RESET "\n",
+        "  -c [genişlik]      Statik gradyan genişliğine zorlar\n",
+        "  -o [0-1]           Kenar opaklığını/pürüzsüzlüğünü ayarlar\n",
+        "  -F [değer]         Kare hızını kilitler " MSG_CMD_DIM "(ör: 60, 90)" RESET "\n",
+        "  -L                 Satır satır işleme " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [isim]    Renk paletlerini yükler " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Renk kuantizasyonu " MSG_CMD_DIM "(Daha yüksek performans)" RESET "\n",
+        "  --spin             Saf ANSI kodları üretir " MSG_CMD_DIM "(Scriptler için)" RESET "\n",
+        "  --lang [id]        Arayüz dilini geçersiz kılar " MSG_CMD_DIM "(ör: pt, en)" RESET "\n",
+        "  --license          Yazılım lisans koşullarını gösterir\n",
+        "  -v, --version      İkili sürümü ve derleme durumunu gösterir\n",
+        "  -h, --help         Bu etkileşimli yardım panelini gösterir\n",
+        MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği sayısal bir değer gerektirir.\n",
+        MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği sayı gerektirir. Alınan: '%s'\n",
+        MSG_ERRO "[ ❌ HATA 400 ]" RESET " Animasyon modu (-m) tam sayı olmalıdır.\n",
+        MSG_INFO "[ ℹ️ BİLGİ 416 ]" RESET " Animasyon modu (-m) 0 ile 11 arasında olmalıdır.\n",
+        MSG_ERRO "[ ❌ HATA 400 ]" RESET " Geçersiz seçenek veya boşta argüman '%s'\n",
+        "\n" MSG_ERRO "[ ❌ HATA 404 ]" RESET " İkili dosyaya hiçbir veri geçilmedi!\n",
+        "\n" MSG_ERRO "[ ❌ HATA 413 ]" RESET " Dosya çok büyük. Akış modu için -L kullanın.\n",
+        MSG_AVISO "[ ⚠️ UYARI 403 ]" RESET " Bütünlük doğrulanamadı (kısıtlı sistem).\n",
+        MSG_ERRO "[ ❌ HATA 403 ]" RESET " Doğrulama için yürütülebilir dosya açılamadı.\n",
+        MSG_ERRO "[ ❌ HATA 403 ]" RESET " Bütünlük doğrulaması sırasında dosya okuma hatası.\n",
+        MSG_ERRO "[ ❌ HATA 403 ]" RESET " Bütünlüğü doğrulamak için yetersiz bellek.\n",
+        MSG_ERRO "[ ❌ HATA 403 ]" RESET " Geçersiz imza veya yanlış onaltılık biçim.\n",
+        MSG_ERRO "[ ❌ HATA 403 ]" RESET " Dosya, imzayı barındırmak için çok küçük.\n",
+        MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği bir tam sayı gerektirir.\n",
+        MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği pozitif bir değer gerektirir.\n",
+        MSG_ERRO "[ ❌ HATA 400 ]" RESET " Süre negatif olamaz.\n",
+        MSG_ERRO "[ ❌ HATA 206 ]" RESET " Bellek ayrılamadı (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ UYARI 403 ]" RESET " Arabellek 32MB ile sınırlandırıldı. Görüntü bozulabilir.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ UYARI ]" RESET " Özel anahtar yüklenemedi, yerleşik anahtar kullanılıyor.\n"
     },
 
-    // ---------------- TAILANDES (11) ----------------
+    // ---------------- [11] POLONÊS (PL) ----------------
     {
-        "เกิดข้อผิดพลาดในการเปิดไฟล์",
-
-        // รุ่น
-        "ผู้สร้างดั้งเดิม: ",
-        "คอมไพล์โดย: ",
-        "สถานะ: \033[1;32m'%s'\033[0m\n",
-        "สถานะ: \033[1;33m'%s'\033[0m\n",
-        "สถานะ: \033[1;31mMODIFIED\033[0m\n",
-        "สถานะ: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // สัญญาอนุญาต
-        "สัญญาอนุญาตการใช้งาน - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "ลิขสิทธิ์ (c) 2026 @inrryoff - ได้รับอนุญาตภายใต้เงื่อนไขพิเศษ NeonX LICENSE\n\n"
-        "ด้วยเอกสารนี้ อนุญาตให้บุคคลใดก็ตามที่ได้รับสำเนาของซอฟต์แวร์นี้ใช้งานฟรี โดยอยู่ภายใต้เงื่อนไขต่อไปนี้:\n\n"
-        "1. การแสดงที่มา (เครดิต):\n"
-        "   ชื่อผู้สร้างดั้งเดิม (@inrryoff) และประกาศลิขสิทธิ์จะต้องถูกเก็บไว้ในไฟล์ซอร์สโค้ดทั้งหมด, ส่วนหัว และในผลลัพธ์เวอร์ชันของไบนารีที่คอมไพล์แล้ว (เช่น neonx --version)\n\n"
-        "2. ห้ามนำไปใช้ในเชิงพาณิชย์:\n"
-        "   ห้ามจำหน่าย ให้เช่า หรือนำซอฟต์แวร์นี้ไปใช้ในเชิงพาณิชย์ในรูปแบบใดๆ ไม่ว่าจะเป็นซอร์สโค้ดหรือไบนารีที่คอมไพล์แล้ว โดยเดี่ยวหรือรวมในแพ็คเกจที่ต้องชำระเงิน\n\n"
-        "3. งานดัดแปลงและการแก้ไข:\n"
-        "   อนุญาตให้แก้ไขโค้ดเพื่อการปรับปรุงหรือใช้งานส่วนตัวได้ โดยต้อง:\n"
-        "   ก) งานดัดแปลงต้องไม่ถูกขาย\n"
-        "   ข) เวอร์ชันที่แก้ไขแล้วต้องถูกเก็บไว้ในคลังสาธารณะ (โอเพนซอร์ส)\n"
-        "   ค) เครดิตต่อผู้สร้างดั้งเดิมต้องถูกเก็บไว้อย่างชัดเจน\n\n"
-        "4. การแจกจ่ายในโมดูล (MAGISK/KERNELSU):\n"
-        "   อนุญาตและสนับสนุนให้ใช้ไบนารีนี้ในโมดูลปรับแต่งประสิทธิภาพ โดยมีเงื่อนไขว่าโมดูลนั้นต้องแจกจ่ายฟรี\n\n"
-        "ซอฟต์แวร์นี้ถูกจัดเตรียม 'ตามที่เป็น' โดยไม่มีการรับประกันใดๆ ไม่ว่าโดยชัดแจ้งหรือโดยนัย\n"
-        "ไม่ว่าในกรณีใด ผู้สร้างจะไม่รับผิดชอบต่อการเรียกร้อง ความเสียหาย หรือความรับผิดอื่นใดที่เกิดจากการใช้ซอฟต์แวร์นี้\n",
-
-        // ความช่วยเหลือ
-        "NeonX",
-        "การใช้งาน: cat ไฟล์ | neonx [ตัวเลือก]\n\n",
-        "-m [0-11]      โหมดแอนิเมชัน\n",
-        "-s [ค่า]       ความเร็ว (ค่าเริ่มต้น 0.2)\n",
-        "-f [ค่า]       ความถี่ (ค่าเริ่มต้น 0.3)\n",
-        "-d [ค่า]       ระยะเวลา (0: ไม่จำกัด)\n",
-        "-A [มุม]       มุมเกรเดียนต์ (0-360 องศา)\n",
-        "-p [ค่า]       ค่าเริ่มต้นคงที่\n",
-        "-S             โหมดคงที่\n",
-        "-c [ความกว้าง] ความกว้างเกรเดียนต์คงที่\n",
-        "-o [0-1]       ความทึบของขอบ\n",
-        "-F [ค่า]       FPS (เช่น 60, 90)\n",
-        "-L             โหมดทีละบรรทัด (สตรีม)\n",
-        "--preset [ชื่อ] โหลดพรีเซ็ต (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    โหมดควอนไทซ์อาจลดคุณภาพของภาพ\n",
-        "--spin         ส่งออกรหัสสี ANSI ดิบสำหรับสคริปต์ภายนอก\n",
-        "--lang [ภาษา] เลือกภาษา (pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km)\n",
-        "--license      สัญญาอนุญาตซอฟต์แวร์\n",
-        "-v,--version   เวอร์ชันของไบนารี\n",
-        "-h,--help      แสดงความช่วยเหลือนี้\n",
-
-        // ข้อความแสดงข้อผิดพลาด
-        "\033[1;31m[NeonX ข้อผิดพลาด 400]: ตัวเลือก '%s' ต้องการค่าตัวเลขตามหลัง\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 400]: ตัวเลือก '%s' ต้องการค่าตัวเลข, ได้รับ: '%s'\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 400]: โหมดแอนิเมชัน (-m) ต้องเป็นจำนวนเต็ม\033[0m\n",
-        "\033[1;33m[NeonX ข้อมูล 416]: โหมดแอนิเมชัน (-m) ต้องอยู่ระหว่าง 0 ถึง 11\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 400]: ตัวเลือกไม่ถูกต้องหรืออาร์กิวเมนต์หลุด '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX ข้อผิดพลาด 404]: ไม่มีการส่งข้อมูลไปยังไบนารี! \033[0m\n",
-        "\n\033[1;31m[NeonX ข้อผิดพลาด 413]: ไฟล์ใหญ่เกินไป ใช้ -L สำหรับโหมดสตรีม\033[0m\n",
-        "\033[1;33m[NeonX ข้อมูล 403]: ไม่สามารถตรวจสอบความสมบูรณ์ได้ ระบบถูกจำกัดหรือไบนารีถูกแก้ไข\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 403]: ไม่สามารถเปิดไฟล์ปฏิบัติการของตัวเองเพื่อตรวจสอบความสมบูรณ์\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 403]: ข้อผิดพลาดในการอ่านไฟล์ระหว่างการตรวจสอบความสมบูรณ์\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 403]: หน่วยความจำไม่เพียงพอที่จะตรวจสอบความสมบูรณ์\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 403]: ลายเซ็นไม่ถูกต้องหรือรูปแบบเลขฐานสิบหกไม่ถูกต้อง\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 403]: ไฟล์เล็กเกินไปที่จะบรรจุลายเซ็นความสมบูรณ์\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 400]: ตัวเลือก '%s' ต้องการจำนวนเต็ม\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 400]: ตัวเลือก '%s' ต้องการค่าบวก\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 400]: ระยะเวลาไม่สามารถเป็นลบได้\033[0m\n",
-        "\033[1;31m[NeonX ข้อผิดพลาด 206]: ไม่สามารถจัดสรรหน่วยความจำ (wcsdup)\033[0m\n",
-        "\033[1;33m[NeonX ข้อมูล 403]: บัฟเฟอร์ถูกตัดเหลือ 32MB เพื่อป้องกันไว้ก่อน การเรนเดอร์อาจเสียหาย\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX คำเตือน]: โหลดคีย์แบบกำหนดเองล้มเหลว กำลังใช้คีย์สำรองในตัว\033[0m\n"
+        MSG_ERRO "Błąd podczas otwierania pliku\n" RESET,
+        "Oryginalny Twórca: ", "Skompilowane przez: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "ZMODYFIKOWANO" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Zaawansowany Upiększacz Terminala" RESET "\n",
+        "Użycie: " BG_FOSCO " cat plik | neonx [opcje] " RESET "\n\n",
+        "  -m [0-11]          Definiuje styl animacji\n",
+        "  -s [wartość]       Prędkość przejścia " MSG_CMD_DIM "(Domyślnie: 0.2)" RESET "\n",
+        "  -f [wartość]       Częstotliwość fali " MSG_CMD_DIM "(Domyślnie: 0.3)" RESET "\n",
+        "  -d [wartość]       Czas w sekundach " MSG_CMD_DIM "(0 = Nieskończoność)" RESET "\n",
+        "  -A [kąt]           Obraca kąt gradientu " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [wartość]       Ustawia stały seed " MSG_CMD_DIM "(Deterministyczny)" RESET "\n",
+        "  -S                 Generuje statyczną klatkę " MSG_CMD_DIM "(Brak animacji)" RESET "\n",
+        "  -c [szerokość]     Wymusza stałą szerokość gradientu\n",
+        "  -o [0-1]           Dostosowuje krycie/gładkość krawędzi\n",
+        "  -F [wartość]       Blokuje liczbę klatek " MSG_CMD_DIM "(np. 60, 90)" RESET "\n",
+        "  -L                 Przetwarzanie linia po linii " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [nazwa]   Ładuje palety kolorów " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Kwantyzacja kolorów " MSG_CMD_DIM "(Wyższa wydajność)" RESET "\n",
+        "  --spin             Generuje czyste kody ANSI " MSG_CMD_DIM "(Dla skryptów)" RESET "\n",
+        "  --lang [id]        Nadpisuje język interfejsu " MSG_CMD_DIM "(np. pt, en)" RESET "\n",
+        "  --license          Wyświetla warunki licencji oprogramowania\n",
+        "  -v, --version      Pokazuje wersję binarną i status kompilacji\n",
+        "  -h, --help         Wyświetla ten interaktywny panel pomocy\n",
+        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga podania wartości liczbowej.\n",
+        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga liczby. Otrzymano: '%s'\n",
+        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Tryb animacji (-m) musi być liczbą całkowitą.\n",
+        MSG_INFO "[ ℹ️ INFO 416 ]" RESET " Tryb animacji (-m) musi zawierać się w przedziale 0-11.\n",
+        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Nieprawidłowa opcja lub luźny argument '%s'\n",
+        "\n" MSG_ERRO "[ ❌ BŁĄD 404 ]" RESET " Nie przekazano żadnych danych do pliku binarnego!\n",
+        "\n" MSG_ERRO "[ ❌ BŁĄD 413 ]" RESET " Plik jest za duży. Użyj -L dla trybu stream.\n",
+        MSG_AVISO "[ ⚠️ OSTRZ 403 ]" RESET " Nie można zweryfikować integralności (ograniczony system).\n",
+        MSG_ERRO "[ ❌ BŁĄD 403 ]" RESET " Nie udało się otworzyć pliku wykonalnego do weryfikacji.\n",
+        MSG_ERRO "[ ❌ BŁĄD 403 ]" RESET " Błąd odczytu podczas weryfikacji integralności.\n",
+        MSG_ERRO "[ ❌ BŁĄD 403 ]" RESET " Niewystarczająca ilość pamięci do weryfikacji.\n",
+        MSG_ERRO "[ ❌ BŁĄD 403 ]" RESET " Nieprawidłowy podpis lub błędny format szesnastkowy.\n",
+        MSG_ERRO "[ ❌ BŁĄD 403 ]" RESET " Plik jest za mały, aby zawierać podpis.\n",
+        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga liczby całkowitej.\n",
+        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga wartości dodatniej.\n",
+        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Czas trwania nie może być ujemny.\n",
+        MSG_ERRO "[ ❌ BŁĄD 206 ]" RESET " Nie można przydzielić pamięci (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ OSTRZ 403 ]" RESET " Bufor obcięty do 32MB. Renderowanie może ulec uszkodzeniu.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ OSTRZ ]" RESET " Błąd ładowania własnego klucza, używam wbudowanego.\n"
     },
 
-    // ---------------- KHMER (12) ----------------
+    // ---------------- [12] INDONÉSIO (ID) ----------------
     {
-        "កំហុសក្នុងការបើកឯកសារ",
-
-        // កំណែ
-        "អ្នកបង្កើតដើម: ",
-        "ចងក្រងដោយ: ",
-        "ស្ថានភាព: \033[1;32m'%s'\033[0m\n",
-        "ស្ថានភាព: \033[1;33m'%s'\033[0m\n",
-        "ស្ថានភាព: \033[1;31mMODIFIED\033[0m\n",
-        "ស្ថានភាព: \033[1;33mVERIFY_ERROR\033[0m\n",
-
-        // អាជ្ញាប័ណ្ណ
-        "អាជ្ញាប័ណ្ណប្រើប្រាស់ - NEONX (C - VERSION)\n"
-        "-----------------------------------------------------------------\n"
-        "រក្សាសិទ្ធិ (c) 2026 @inrryoff - បានផ្តល់អាជ្ញាប័ណ្ណក្រោមលក្ខខណ្ឌពិសេស NeonX LICENSE\n\n"
-        "ដោយឯកសារនេះ បុគ្គលណាដែលទទួលបានច្បាប់ចម្លងនៃកម្មវិធីនេះ ត្រូវបានផ្តល់សិទ្ធិប្រើប្រាស់ដោយឥតគិតថ្លៃ ក្រោមលក្ខខណ្ឌដូចខាងក្រោម:\n\n"
-        "1. ការដកស្រង់ប្រភព (ក្រេឌីត):\n"
-        "   ត្រូវតែរក្សាឈ្មោះអ្នកបង្កើតដើម (@inrryoff) និងសេចក្តីជូនដំណឹងរក្សាសិទ្ធិនៅក្នុងឯកសារកូដប្រភពទាំងអស់ ឯកសារបឋមកថា និងលទ្ធផលកំណែនៃឯកសារគោលដែលបានចងក្រង (ឧ. neonx --version)។\n\n"
-        "2. ការហាមឃាត់ការធ្វើពាណិជ្ជកម្ម:\n"
-        "   ត្រូវហាមឃាត់យ៉ាងតឹងរ៉ឹងក្នុងការលក់ ជួល ឬធ្វើពាណិជ្ជកម្មកម្មវិធីនេះក្នុងទម្រង់ណាមួយ មិនថាជាកូដប្រភព ឬឯកសារគោលដែលបានចងក្រង ដោយឯករាជ្យ ឬរួមបញ្ចូលក្នុងកញ្ចប់បង់ប្រាក់។\n\n"
-        "3. ការដកស្រង់បន្ត និងការកែប្រែ:\n"
-        "   ការកែប្រែកូដត្រូវបានអនុញ្ញាតសម្រាប់ការកែលម្អ ឬប្រើប្រាស់ផ្ទាល់ខ្លួន ដោយមានលក្ខខណ្ឌថា:\n"
-        "   ក) កុំលក់ស្នាដៃដកស្រង់បន្ត។\n"
-        "   ខ) រក្សាកំណែដែលបានកែប្រែនៅក្នុងឃ្លាំងសាធារណៈ (ប្រភពបើកចំហ)។\n"
-        "   គ) ត្រូវរក្សាក្រេឌីតចំពោះអ្នកបង្កើតដើមឱ្យបានច្បាស់លាស់។\n\n"
-        "4. ការចែកចាយក្នុងម៉ូឌុល (MAGISK/KERNELSU):\n"
-        "   ការប្រើប្រាស់ឯកសារគោលនេះក្នុងម៉ូឌុលបង្កើនប្រសិទ្ធភាពត្រូវបានអនុញ្ញាត និងលើកទឹកចិត្ត ដោយមានលក្ខខណ្ឌថាម៉ូឌុលត្រូវបានចែកចាយដោយឥតគិតថ្លៃ។\n\n"
-        "កម្មវិធីនេះត្រូវបានផ្តល់ជូន 'ដូចដែលវាមាន' ដោយគ្មានការធានាណាមួយ ទាំងបង្ហាញឱ្យឃើញ ឬបង្កប់ន័យ។\n"
-        "ក្នុងករណីណាក៏ដោយ អ្នកបង្កើតនឹងមិនទទួលខុសត្រូវចំពោះការទាមទារ ការខូចខាត ឬការទទួលខុសត្រូវផ្សេងទៀតដែលកើតចេញពីការប្រើប្រាស់កម្មវិធីនេះឡើយ។\n",
-
-        // ជំនួយ
-        "NeonX",
-        "ការប្រើប្រាស់: cat ឯកសារ | neonx [ជម្រើស]\n\n",
-        "-m [0-11]      របៀបចលនា\n",
-        "-s [តម្លៃ]     ល្បឿន (លំនាំដើម 0.2)\n",
-        "-f [តម្លៃ]     ប្រេកង់ (លំនាំដើម 0.3)\n",
-        "-d [តម្លៃ]     រយៈពេល (0: គ្មានកំណត់)\n",
-        "-A [មុំ]       មុំជម្រាលពណ៌ (0-360 ដឺក្រេ)\n",
-        "-p [តម្លៃ]     គ្រាប់ពូជថេរ\n",
-        "-S             របៀបឋិតិវន្ត\n",
-        "-c [ទទឹង]     ទទឹងជម្រាលពណ៌ថេរ\n",
-        "-o [0-1]       ភាពស្រអាប់គែម\n",
-        "-F [តម្លៃ]     FPS (ឧ. 60, 90)\n",
-        "-L             របៀបបន្ទាត់ម្តង (ស្ទ្រីម)\n",
-        "--preset [ឈ្មោះ] ផ្ទុកបុរេកំណត់ (cyberpunk, retro, matrix, sunset)\n",
-        "--quantized    របៀបបរិមាណអាចបន្ថយគុណភាពមើលឃើញ\n",
-        "--spin         បញ្ចេញកូដពណ៌ ANSI ឆៅសម្រាប់ស្គ្រីបខាងក្រៅ\n",
-        "--lang [ភាសា] ជ្រើសភាសា (pt, en, es, zh, ja, ar, ru, bg, el, ko, hi, th, km)\n",
-        "--license      អាជ្ញាប័ណ្ណកម្មវិធី\n",
-        "-v,--version   កំណែឯកសារគោល\n",
-        "-h,--help      បង្ហាញជំនួយនេះ\n",
-
-        // សារកំហុស
-        "\033[1;31m[NeonX កំហុស 400]: ជម្រើស '%s' ត្រូវការតម្លៃលេខបន្ទាប់ពីវា។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 400]: ជម្រើស '%s' ត្រូវការតម្លៃលេខ, ទទួលបាន: '%s'\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 400]: របៀបចលនា (-m) ត្រូវតែជាចំនួនគត់។\033[0m\n",
-        "\033[1;33m[NeonX ព័ត៌មាន 416]: របៀបចលនា (-m) ត្រូវតែនៅចន្លោះ 0 និង 11។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 400]: ជម្រើសមិនត្រឹមត្រូវ ឬអាគុយម៉ង់រលុង '%s'\033[0m\n",
-        "\n\033[1;31m[NeonX កំហុស 404]: គ្មានទិន្នន័យត្រូវបានបញ្ជូនទៅឯកសារគោល! \033[0m\n",
-        "\n\033[1;31m[NeonX កំហុស 413]: ឯកសារធំពេក។ ប្រើ -L សម្រាប់របៀបស្ទ្រីម។\033[0m\n",
-        "\033[1;33m[NeonX ព័ត៌មាន 403]: មិនអាចពិនិត្យសុចរិតភាពបានទេ ប្រព័ន្ធត្រូវបានកំណត់ ឬឯកសារគោលត្រូវបានកែប្រែ។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 403]: បរាជ័យក្នុងការបើកឯកសារដែលអាចប្រតិបត្តិបានរបស់ខ្លួនសម្រាប់ពិនិត្យសុចរិតភាព។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 403]: កំហុសក្នុងការអានឯកសារកំឡុងពេលពិនិត្យសុចរិតភាព។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 403]: អង្គចងចាំមិនគ្រប់គ្រាន់ដើម្បីផ្ទៀងផ្ទាត់សុចរិតភាព។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 403]: ហត្ថលេខាមិនត្រឹមត្រូវ ឬទម្រង់គោលដប់ប្រាំមួយមិនត្រឹមត្រូវ។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 403]: ឯកសារតូចពេកមិនអាចផ្ទុកហត្ថលេខាសុចរិតភាព។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 400]: ជម្រើស '%s' ត្រូវការចំនួនគត់។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 400]: ជម្រើស '%s' ត្រូវការតម្លៃវិជ្ជមាន។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 400]: រយៈពេលមិនអាចជាចំនួនអវិជ្ជមាន។\033[0m\n",
-        "\033[1;31m[NeonX កំហុស 206]: មិនអាចបែងចែកអង្គចងចាំ (wcsdup)។\033[0m\n",
-        "\033[1;33m[NeonX ព័ត៌មាន 403]: សតិបណ្ដោះអាសន្នត្រូវបានកាត់ជា 32MB ដើម្បីបង្ការ។ ការបង្ហាញអាចខូច។\033[0m\n",
-        "\033[1;32mOK\033[0m\n",
-        "\033[1;31mFAIL\033[0m\n",
-        "\033[1;33m[NeonX ការព្រមាន]: បរាជ័យក្នុងការផ្ទុកសោផ្ទាល់ខ្លួន កំពុងប្រើសោបម្រុងដែលភ្ជាប់មកជាមួយ។\033[0m\n"
+        MSG_ERRO "Kesalahan saat membuka file\n" RESET,
+        "Pembuat Asli: ", "Dikompalasi oleh: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "DIMODIFIKASI" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Penata Terminal Lanjutan" RESET "\n",
+        "Penggunaan: " BG_FOSCO " cat file | neonx [opsi] " RESET "\n\n",
+        "  -m [0-11]          Menentukan gaya animasi\n",
+        "  -s [nilai]         Kecepatan transisi " MSG_CMD_DIM "(Default: 0.2)" RESET "\n",
+        "  -f [nilai]         Frekuensi gelombang " MSG_CMD_DIM "(Default: 0.3)" RESET "\n",
+        "  -d [nilai]         Durasi dalam detik " MSG_CMD_DIM "(0 = Tak terbatas)" RESET "\n",
+        "  -A [sudut]         Memutar sudut gradien " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [nilai]         Menetapkan seed tetap " MSG_CMD_DIM "(Deterministik)" RESET "\n",
+        "  -S                 Merender bingkai statis " MSG_CMD_DIM "(Tanpa animasi)" RESET "\n",
+        "  -c [lebar]         Memaksa lebar gradien statis\n",
+        "  -o [0-1]           Menyesuaikan opasitas/kehalusan tepi\n",
+        "  -F [nilai]         Mengunci kecepatan bingkai " MSG_CMD_DIM "(mis: 60, 90)" RESET "\n",
+        "  -L                 Pemrosesan baris demi baris " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [nama]    Memuat palet warna " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Kuantisasi warna " MSG_CMD_DIM "(Performa lebih tinggi)" RESET "\n",
+        "  --spin             Menghasilkan kode ANSI murni " MSG_CMD_DIM "(Untuk skrip)" RESET "\n",
+        "  --lang [id]        Menimpa bahasa antarmuka " MSG_CMD_DIM "(mis: pt, en)" RESET "\n",
+        "  --license          Menampilkan persyaratan lisensi\n",
+        "  -v, --version      Menampilkan versi biner dan status build\n",
+        "  -h, --help         Menampilkan panel bantuan interaktif ini\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan nilai numerik setelahnya.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan angka. Diterima: '%s'\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Mode animasi (-m) harus berupa bilangan bulat.\n",
+        MSG_INFO "[ ℹ️ INFO 416 ]" RESET " Mode animasi (-m) harus antara 0 dan 11.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi tidak valid atau argumen lepas '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ERROR 404 ]" RESET " Tidak ada data yang diteruskan ke biner!\n",
+        "\n" MSG_ERRO "[ ❌ ERROR 413 ]" RESET " File terlalu besar. Gunakan -L untuk mode stream.\n",
+        MSG_AVISO "[ ⚠️ AWAS 403 ]" RESET " Tidak dapat memverifikasi integritas (sistem dibatasi).\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Gagal membuka eksekutabel untuk verifikasi integritas.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Kesalahan membaca file selama verifikasi integritas.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Memori tidak cukup untuk memverifikasi integritas.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " Tanda tangan tidak valid atau format heksadesimal salah.\n",
+        MSG_ERRO "[ ❌ ERROR 403 ]" RESET " File terlalu kecil untuk menampung tanda tangan.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan bilangan bulat.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan nilai positif.\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Durasi tidak boleh negatif.\n",
+        MSG_ERRO "[ ❌ ERROR 206 ]" RESET " Tidak dapat mengalokasikan memori (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ AWAS 403 ]" RESET " Buffer dipotong menjadi 32MB. Render bisa rusak.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ AWAS ]" RESET " Gagal memuat kunci kustom, menggunakan kunci bawaan.\n"
     },
+
+    // ---------------- [13] ÁRABE (AR) ----------------
+    {
+        MSG_ERRO "خطأ في فتح الملف\n" RESET,
+        "المبتكر الأصلي: ", "تم التجميع بواسطة: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "تم التعديل" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - مُحسّن الطرفية المتقدم" RESET "\n",
+        "الاستخدام: " BG_FOSCO " cat ملف | neonx [خيارات] " RESET "\n\n",
+        "  -m [0-11]          يحدد نمط الرسوم المتحركة\n",
+        "  -s [قيمة]          سرعة الانتقال " MSG_CMD_DIM "(الافتراضي: 0.2)" RESET "\n",
+        "  -f [قيمة]          تردد الموجة " MSG_CMD_DIM "(الافتراضي: 0.3)" RESET "\n",
+        "  -d [قيمة]          المدة بالثواني " MSG_CMD_DIM "(0 = لانهائي)" RESET "\n",
+        "  -A [زاوية]         تدوير زاوية التدرج " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [قيمة]          يعين بذرة ثابتة " MSG_CMD_DIM "(حتمي)" RESET "\n",
+        "  -S                 يعرض إطارًا ثابتًا " MSG_CMD_DIM "(بدون رسوم متحركة)" RESET "\n",
+        "  -c [عرض]           يفرض عرض تدرج ثابت\n",
+        "  -o [0-1]           يضبط شفافية/نعومة الحواف\n",
+        "  -F [قيمة]          يُقفل معدل الإطارات " MSG_CMD_DIM "(مثل: 60, 90)" RESET "\n",
+        "  -L                 معالجة سطر بسطر " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [اسم]     يحمل لوحات الألوان " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        تكميم اللون " MSG_CMD_DIM "(أداء أعلى)" RESET "\n",
+        "  --spin             يولد أكواد ANSI نقية " MSG_CMD_DIM "(للنصوص البرمجية)" RESET "\n",
+        "  --lang [id]        يتجاوز لغة الواجهة " MSG_CMD_DIM "(مثل: pt, en)" RESET "\n",
+        "  --license          يعرض شروط ترخيص البرنامج\n",
+        "  -v, --version      يعرض إصدار الثنائي وحالة البناء\n",
+        "  -h, --help         يعرض لوحة المساعدة التفاعلية هذه\n",
+        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب قيمة رقمية بعده.\n",
+        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب رقمًا. تم الاستلام: '%s'\n",
+        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " وضع الرسوم المتحركة (-m) يجب أن يكون عددًا صحيحًا.\n",
+        MSG_INFO "[ ℹ️ معلومات 416 ]" RESET " وضع الرسوم المتحركة (-m) يجب أن يكون بين 0 و 11.\n",
+        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " خيار غير صالح أو وسيطة مفقودة '%s'\n",
+        "\n" MSG_ERRO "[ ❌ خطأ 404 ]" RESET " لم يتم تمرير أي بيانات إلى الثنائي!\n",
+        "\n" MSG_ERRO "[ ❌ خطأ 413 ]" RESET " الملف كبير جدًا. استخدم -L لوضع البث.\n",
+        MSG_AVISO "[ ⚠️ تحذير 403 ]" RESET " تعذر التحقق من النزاهة (نظام مقيد).\n",
+        MSG_ERRO "[ ❌ خطأ 403 ]" RESET " فشل فتح الملف التنفيذي للتحقق من النزاهة.\n",
+        MSG_ERRO "[ ❌ خطأ 403 ]" RESET " خطأ في قراءة الملف أثناء التحقق من النزاهة.\n",
+        MSG_ERRO "[ ❌ خطأ 403 ]" RESET " ذاكرة غير كافية للتحقق من النزاهة.\n",
+        MSG_ERRO "[ ❌ خطأ 403 ]" RESET " توقيع غير صالح أو تنسيق سداسي عشري غير صحيح.\n",
+        MSG_ERRO "[ ❌ خطأ 403 ]" RESET " الملف صغير جدًا بحيث لا يحتوي على التوقيع.\n",
+        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب عددًا صحيحًا.\n",
+        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب قيمة موجبة.\n",
+        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " لا يمكن أن تكون المدة سالبة.\n",
+        MSG_ERRO "[ ❌ خطأ 206 ]" RESET " تعذر تخصيص الذاكرة (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ تحذير 403 ]" RESET " تم اقتطاع المخزن المؤقت إلى 32 ميغابايت. قد يتلف العرض.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ تحذير ]" RESET " فشل تحميل المفتاح المخصص، جاري استخدام المدمج.\n"
+    },
+
+    // ---------------- [14] BÚLGARO (BG) ----------------
+    {
+        MSG_ERRO "Грешка при отваряне на файл\n" RESET,
+        "Оригинален създател: ", "Компилирано от: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "МОДИФИЦИРАН" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Разширен разкрасител на терминал" RESET "\n",
+        "Употреба: " BG_FOSCO " cat файл | neonx [опции] " RESET "\n\n",
+        "  -m [0-11]          Определя стила на анимацията\n",
+        "  -s [стойност]      Скорост на прехода " MSG_CMD_DIM "(По подразбиране: 0.2)" RESET "\n",
+        "  -f [стойност]      Честота на вълната " MSG_CMD_DIM "(По подразбиране: 0.3)" RESET "\n",
+        "  -d [стойност]      Продължителност в секунди " MSG_CMD_DIM "(0 = Безкрайно)" RESET "\n",
+        "  -A [ъгъл]          Завърта ъгъла на градиента " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [стойност]      Задава фиксиран сийд " MSG_CMD_DIM "(Детерминирано)" RESET "\n",
+        "  -S                 Рендерира статичен кадър " MSG_CMD_DIM "(Без анимация)" RESET "\n",
+        "  -c [ширина]        Принудителна статична ширина на градиента\n",
+        "  -o [0-1]           Регулира непрозрачността/гладкостта на ръбовете\n",
+        "  -F [стойност]      Заключва кадрите в секунда " MSG_CMD_DIM "(напр. 60, 90)" RESET "\n",
+        "  -L                 Обработка ред по ред " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [име]     Зарежда цветови палитри " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Квантоване на цветовете " MSG_CMD_DIM "(По-висока производителност)" RESET "\n",
+        "  --spin             Генерира чисти ANSI кодове " MSG_CMD_DIM "(За скриптове)" RESET "\n",
+        "  --lang [id]        Презаписва езика на интерфейса " MSG_CMD_DIM "(напр. pt, en)" RESET "\n",
+        "  --license          Показва условията за лицензиране\n",
+        "  -v, --version      Показва версията и статуса на компилацията\n",
+        "  -h, --help         Показва този интерактивен помощен панел\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква числова стойност след нея.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква число. Получено: '%s'\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Режимът на анимация (-m) трябва да е цяло число.\n",
+        MSG_INFO "[ ℹ️ ИНФО 416 ]" RESET " Режимът на анимация (-m) трябва да е между 0 и 11.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Невалидна опция или свободен аргумент '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ГРЕШКА 404 ]" RESET " Няма подадени данни към бинарния файл!\n",
+        "\n" MSG_ERRO "[ ❌ ГРЕШКА 413 ]" RESET " Файлът е твърде голям. Използвайте -L за stream режим.\n",
+        MSG_AVISO "[ ⚠️ ВНИМАНИЕ 403 ]" RESET " Цялостта не може да бъде проверена (ограничена система).\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 403 ]" RESET " Неуспешно отваряне на изпълнимия файл за проверка.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 403 ]" RESET " Грешка при четене на файла по време на проверка.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 403 ]" RESET " Недостатъчна памет за проверка на целостта.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 403 ]" RESET " Невалиден подпис или грешен шестнадесетичен формат.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 403 ]" RESET " Файлът е твърде малък, за да съдържа подпис.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква цяло число.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква положителна стойност.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Продължителността не може да бъде отрицателна.\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 206 ]" RESET " Не може да се задели памет (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ ВНИМАНИЕ 403 ]" RESET " Буферът е отрязан до 32MB. Рендерирането може да се повреди.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ ВНИМАНИЕ ]" RESET " Неуспешно зареждане на персонализиран ключ, използва се вграденият.\n"
+    },
+
+    // ---------------- [15] GREGO (EL) ----------------
+    {
+        MSG_ERRO "Σφάλμα κατά το άνοιγμα του αρχείου\n" RESET,
+        "Αρχικός Δημιουργός: ", "Μεταγλωττίστηκε από: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "ΤΡΟΠΟΠΟΙΗΜΕΝΟ" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - Προηγμένο Εργαλείο Καλλωπισμού Τερματικού" RESET "\n",
+        "Χρήση: " BG_FOSCO " cat αρχείο | neonx [επιλογές] " RESET "\n\n",
+        "  -m [0-11]          Ορίζει το στυλ κιν. σχεδίων\n",
+        "  -s [τιμή]          Ταχύτητα μετάβασης " MSG_CMD_DIM "(Προεπιλογή: 0.2)" RESET "\n",
+        "  -f [τιμή]          Συχνότητα κύματος " MSG_CMD_DIM "(Προεπιλογή: 0.3)" RESET "\n",
+        "  -d [τιμή]          Διάρκεια σε δευτερόλεπτα " MSG_CMD_DIM "(0 = Άπειρο)" RESET "\n",
+        "  -A [μοίρες]        Περιστρέφει τη γωνία ντεγκραντέ " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [τιμή]          Ορίζει σταθερό σπόρο " MSG_CMD_DIM "(Ντετερμινιστικό)" RESET "\n",
+        "  -S                 Εμφανίζει στατικό καρέ " MSG_CMD_DIM "(Χωρίς κίνηση)" RESET "\n",
+        "  -c [πλάτος]        Επιβάλλει σταθερό πλάτος ντεγκραντέ\n",
+        "  -o [0-1]           Ρυθμίζει την αδιαφάνεια/ομαλότητα των άκρων\n",
+        "  -F [τιμή]          Κλειδώνει το framerate " MSG_CMD_DIM "(π.χ. 60, 90)" RESET "\n",
+        "  -L                 Επεξεργασία γραμμή προς γραμμή " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [όνομα]   Φορτώνει παλέτες χρωμάτων " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        Κβαντισμός χρώματος " MSG_CMD_DIM "(Υψηλότερη απόδοση)" RESET "\n",
+        "  --spin             Δημιουργεί καθαρούς κωδικούς ANSI " MSG_CMD_DIM "(Για scripts)" RESET "\n",
+        "  --lang [id]        Παρακάμπτει τη γλώσσα " MSG_CMD_DIM "(π.χ. pt, en)" RESET "\n",
+        "  --license          Εμφανίζει τους όρους άδειας χρήσης\n",
+        "  -v, --version      Δείχνει την έκδοση και την κατάσταση του build\n",
+        "  -h, --help         Εμφανίζει αυτόν τον διαδραστικό πίνακα βοήθειας\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί μια αριθμητική τιμή.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί αριθμό. Λήφθηκε: '%s'\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η λειτουργία κιν. σχεδίων (-m) πρέπει να είναι ακέραιος.\n",
+        MSG_INFO "[ ℹ️ ΠΛΗΡΟΦΟΡΙΑ 416 ]" RESET " Η λειτουργία κιν. σχεδίων (-m) πρέπει να είναι μεταξύ 0 και 11.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Μη έγκυρη επιλογή ή ορφανό όρισμα '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 404 ]" RESET " Δεν διαβιβάστηκαν δεδομένα στο εκτελέσιμο!\n",
+        "\n" MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 413 ]" RESET " Αρχείο πολύ μεγάλο. Χρησιμοποιήστε -L για λειτουργία stream.\n",
+        MSG_AVISO "[ ⚠️ ΠΡΟΕΙΔ 403 ]" RESET " Αδυναμία επαλήθευσης ακεραιότητας (περιορισμένο σύστημα).\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 403 ]" RESET " Αποτυχία ανοίγματος του εκτελέσιμου για επαλήθευση.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 403 ]" RESET " Σφάλμα ανάγνωσης αρχείου κατά την επαλήθευση ακεραιότητας.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 403 ]" RESET " Ανεπαρκής μνήμη για την επαλήθευση της ακεραιότητας.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 403 ]" RESET " Μη έγκυρη υπογραφή ή λανθασμένη δεκαεξαδική μορφή.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 403 ]" RESET " Το αρχείο είναι πολύ μικρό για να περιέχει την υπογραφή.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί ακέραιο αριθμό.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί θετική τιμή.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η διάρκεια δεν μπορεί να είναι αρνητική.\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 206 ]" RESET " Αδυναμία εκχώρησης μνήμης (wcsdup).\n",
+        MSG_AVISO "[ ⚠️ ΠΡΟΕΙΔ 403 ]" RESET " Η μνήμη buffer περικόπηκε στα 32MB. Η απόδοση μπορεί να αλλοιωθεί.\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ ΠΡΟΕΙΔ ]" RESET " Αποτυχία φόρτωσης προσαρμοσμένου κλειδιού, χρήση ενσωματωμένου.\n"
+    },
+
+    // ---------------- [16] HINDI (HI) ----------------
+    {
+        MSG_ERRO "फ़ाइल खोलने में त्रुटि\n" RESET,
+        "मूल निर्माता: ", "द्वारा संकलित: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "संशोधित" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - उन्नत टर्मिनल ब्यूटीफायर" RESET "\n",
+        "उपयोग: " BG_FOSCO " cat फ़ाइल | neonx [विकल्प] " RESET "\n\n",
+        "  -m [0-11]          एनीमेशन शैली को परिभाषित करता है\n",
+        "  -s [मान]           संक्रमण गति " MSG_CMD_DIM "(डिफ़ॉल्ट: 0.2)" RESET "\n",
+        "  -f [मान]           तरंग आवृत्ति " MSG_CMD_DIM "(डिफ़ॉल्ट: 0.3)" RESET "\n",
+        "  -d [मान]           सेकंड में अवधि " MSG_CMD_DIM "(0 = अनंत)" RESET "\n",
+        "  -A [कोण]           ग्रेडिएंट कोण घुमाता है " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [मान]           स्थिर बीज सेट करता है " MSG_CMD_DIM "(निर्धारक)" RESET "\n",
+        "  -S                 स्थिर फ्रेम प्रस्तुत करता है " MSG_CMD_DIM "(कोई एनीमेशन नहीं)" RESET "\n",
+        "  -c [चौड़ाई]        स्थिर ग्रेडिएंट चौड़ाई लागू करता है\n",
+        "  -o [0-1]           किनारे की अस्पष्टता/चिकनाई को समायोजित करता है\n",
+        "  -F [मान]           फ्रेमरेट को लॉक करता है " MSG_CMD_DIM "(उदा. 60, 90)" RESET "\n",
+        "  -L                 लाइन-बाय-लाइन प्रोसेसिंग " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [नाम]     रंग पट्टियाँ लोड करता है " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        रंग परिमाणीकरण " MSG_CMD_DIM "(उच्च प्रदर्शन)" RESET "\n",
+        "  --spin             शुद्ध ANSI कोड उत्पन्न करता है " MSG_CMD_DIM "(स्क्रिप्ट के लिए)" RESET "\n",
+        "  --lang [id]        इंटरफ़ेस भाषा को ओवरराइड करता है " MSG_CMD_DIM "(उदा. pt, en)" RESET "\n",
+        "  --license          सॉफ़्टवेयर लाइसेंस शर्तें प्रदर्शित करता है\n",
+        "  -v, --version      बाइनरी संस्करण और बिल्ड स्थिति दिखाता है\n",
+        "  -h, --help         यह इंटरैक्टिव सहायता पैनल प्रदर्शित करता है\n",
+        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के बाद संख्यात्मक मान की आवश्यकता है।\n",
+        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के लिए एक संख्या आवश्यक है। प्राप्त: '%s'\n",
+        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " एनीमेशन मोड (-m) एक पूर्णांक होना चाहिए।\n",
+        MSG_INFO "[ ℹ️ जानकारी 416 ]" RESET " एनीमेशन मोड (-m) 0 और 11 के बीच होना चाहिए।\n",
+        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " अमान्य विकल्प या मुक्त तर्क '%s'\n",
+        "\n" MSG_ERRO "[ ❌ त्रुटि 404 ]" RESET " बाइनरी में कोई डेटा पास नहीं किया गया!\n",
+        "\n" MSG_ERRO "[ ❌ त्रुटि 413 ]" RESET " फ़ाइल बहुत बड़ी है। स्ट्रीम मोड के लिए -L का उपयोग करें।\n",
+        MSG_AVISO "[ ⚠️ चेतावनी 403 ]" RESET " अखंडता सत्यापित नहीं की जा सकी (प्रतिबंधित प्रणाली)।\n",
+        MSG_ERRO "[ ❌ त्रुटि 403 ]" RESET " अखंडता सत्यापन के लिए निष्पादन योग्य खोलने में विफल।\n",
+        MSG_ERRO "[ ❌ त्रुटि 403 ]" RESET " अखंडता सत्यापन के दौरान फ़ाइल पढ़ने में त्रुटि।\n",
+        MSG_ERRO "[ ❌ त्रुटि 403 ]" RESET " अखंडता सत्यापित करने के लिए अपर्याप्त मेमोरी।\n",
+        MSG_ERRO "[ ❌ त्रुटि 403 ]" RESET " अमान्य हस्ताक्षर या गलत हेक्साडेसिमल प्रारूप।\n",
+        MSG_ERRO "[ ❌ त्रुटि 403 ]" RESET " हस्ताक्षर शामिल करने के लिए फ़ाइल बहुत छोटी है।\n",
+        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के लिए पूर्णांक की आवश्यकता है।\n",
+        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के लिए सकारात्मक मान की आवश्यकता है।\n",
+        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " अवधि नकारात्मक नहीं हो सकती।\n",
+        MSG_ERRO "[ ❌ त्रुटि 206 ]" RESET " मेमोरी आवंटित नहीं की जा सकी (wcsdup)।\n",
+        MSG_AVISO "[ ⚠️ चेतावनी 403 ]" RESET " बफ़र 32MB तक छोटा कर दिया गया। प्रतिपादन दूषित हो सकता है।\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ चेतावनी ]" RESET " कस्टम कुंजी लोड करने में विफल, अंतर्निहित का उपयोग कर रहा है।\n"
+    },
+
+    // ---------------- [17] TAILANDÊS (TH) ----------------
+    {
+        MSG_ERRO "ข้อผิดพลาดในการเปิดไฟล์\n" RESET,
+        "ผู้สร้างดั้งเดิม: ", "คอมไพล์โดย: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "ถูกปรับเปลี่ยน" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - เครื่องมือตกแต่งเทอร์มินัลขั้นสูง" RESET "\n",
+        "วิธีใช้: " BG_FOSCO " cat ไฟล์ | neonx [ตัวเลือก] " RESET "\n\n",
+        "  -m [0-11]          กำหนดสไตล์แอนิเมชัน\n",
+        "  -s [ค่า]            ความเร็วในการเปลี่ยนภาพ " MSG_CMD_DIM "(ค่าเริ่มต้น: 0.2)" RESET "\n",
+        "  -f [ค่า]            ความถี่ของคลื่น " MSG_CMD_DIM "(ค่าเริ่มต้น: 0.3)" RESET "\n",
+        "  -d [ค่า]            ระยะเวลาเป็นวินาที " MSG_CMD_DIM "(0 = อนันต์)" RESET "\n",
+        "  -A [องศา]          หมุนมุมการไล่ระดับสี " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [ค่า]            ตั้งค่าซีดคงที่ " MSG_CMD_DIM "(แบบกำหนดได้)" RESET "\n",
+        "  -S                 เรนเดอร์เฟรมคงที่ " MSG_CMD_DIM "(ไม่มีแอนิเมชัน)" RESET "\n",
+        "  -c [ความกว้าง]     บังคับความกว้างการไล่ระดับสีแบบคงที่\n",
+        "  -o [0-1]           ปรับความทึบ/ความเรียบเนียนของขอบ\n",
+        "  -F [ค่า]            ล็อคอัตราเฟรม " MSG_CMD_DIM "(เช่น 60, 90)" RESET "\n",
+        "  -L                 การประมวลผลทีละบรรทัด " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [ชื่อ]    โหลดจานสี " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        การลดทอนสี " MSG_CMD_DIM "(ประสิทธิภาพสูงขึ้น)" RESET "\n",
+        "  --spin             สร้างรหัส ANSI ล้วน " MSG_CMD_DIM "(สำหรับสคริปต์)" RESET "\n",
+        "  --lang [id]        แทนที่ภาษาอินเทอร์เฟซ " MSG_CMD_DIM "(เช่น pt, en)" RESET "\n",
+        "  --license          แสดงเงื่อนไขการอนุญาตให้ใช้ซอฟต์แวร์\n",
+        "  -v, --version      แสดงเวอร์ชันไบนารีและสถานะบิลด์\n",
+        "  -h, --help         แสดงแผงความช่วยเหลือแบบโต้ตอบนี้\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการค่าตัวเลขต่อท้าย\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการตัวเลข ได้รับ: '%s'\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " โหมดแอนิเมชัน (-m) ต้องเป็นจำนวนเต็ม\n",
+        MSG_INFO "[ ℹ️ ข้อมูล 416 ]" RESET " โหมดแอนิเมชัน (-m) ต้องอยู่ระหว่าง 0 ถึง 11\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือกไม่ถูกต้องหรืออาร์กิวเมนต์หลุด '%s'\n",
+        "\n" MSG_ERRO "[ ❌ ข้อผิดพลาด 404 ]" RESET " ไม่มีการส่งผ่านข้อมูลไปยังไบนารี!\n",
+        "\n" MSG_ERRO "[ ❌ ข้อผิดพลาด 413 ]" RESET " ไฟล์ใหญ่เกินไป ใช้ -L สำหรับโหมดสตรีม\n",
+        MSG_AVISO "[ ⚠️ คำเตือน 403 ]" RESET " ไม่สามารถตรวจสอบความสมบูรณ์ได้ (ระบบถูกจำกัด)\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 403 ]" RESET " ล้มเหลวในการเปิดไฟล์ปฏิบัติการเพื่อตรวจสอบความสมบูรณ์\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 403 ]" RESET " ข้อผิดพลาดในการอ่านไฟล์ระหว่างการตรวจสอบความสมบูรณ์\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 403 ]" RESET " หน่วยความจำไม่เพียงพอที่จะตรวจสอบความสมบูรณ์\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 403 ]" RESET " ลายเซ็นไม่ถูกต้องหรือรูปแบบเลขฐานสิบหกไม่ถูกต้อง\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 403 ]" RESET " ไฟล์เล็กเกินไปที่จะมีลายเซ็น\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการจำนวนเต็ม\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการค่าบวก\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ระยะเวลาไม่สามารถติดลบได้\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 206 ]" RESET " ไม่สามารถจัดสรรหน่วยความจำได้ (wcsdup)\n",
+        MSG_AVISO "[ ⚠️ คำเตือน 403 ]" RESET " บัฟเฟอร์ถูกตัดทอนเหลือ 32MB การเรนเดอร์อาจเสียหาย\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ คำเตือน ]" RESET " โหลดคีย์ที่กำหนดเองไม่สำเร็จ ใช้คีย์ในตัว\n"
+    },
+
+    // ---------------- [18] KHMER (KM) ----------------
+    {
+        MSG_ERRO "កំហុសក្នុងការបើកឯកសារ\n" RESET,
+        "អ្នកបង្កើតដើម: ", "ចងក្រងដោយ: ",
+        "Status: " MSG_SUCESSO "%s" RESET "\n",
+        "Status: " MSG_AVISO "%s" RESET "\n",
+        "Status: " MSG_ERRO "បានកែប្រែ" RESET "\n",
+        "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
+        LICENSE_EN,
+        LOGO_NEONX DIM ITALIC " - កម្មវិធីលម្អ Terminal កម្រិតខ្ពស់" RESET "\n",
+        "ការប្រើប្រាស់: " BG_FOSCO " cat ឯកសារ | neonx [ជម្រើស] " RESET "\n\n",
+        "  -m [0-11]          កំណត់រចនាប័ទ្មចលនា\n",
+        "  -s [តម្លៃ]          ល្បឿនផ្លាស់ប្តូរ " MSG_CMD_DIM "(លំនាំដើម: 0.2)" RESET "\n",
+        "  -f [តម្លៃ]          ប្រេកង់រលក " MSG_CMD_DIM "(លំនាំដើម: 0.3)" RESET "\n",
+        "  -d [តម្លៃ]          រយៈពេលគិតជាវិនាទី " MSG_CMD_DIM "(0 = គ្មានដែនកំណត់)" RESET "\n",
+        "  -A [ដឺក្រេ]         បង្វិលមុំជម្រាល " MSG_CMD_DIM "(0-360)" RESET "\n",
+        "  -p [តម្លៃ]          កំណត់គ្រាប់ពូជថេរ " MSG_CMD_DIM "(កំណត់ទុកជាមុន)" RESET "\n",
+        "  -S                 បង្ហាញស៊ុមឋិតិវន្ត " MSG_CMD_DIM "(គ្មានចលនា)" RESET "\n",
+        "  -c [ទទឹង]          បង្ខំទទឹងជម្រាលថេរ\n",
+        "  -o [0-1]           កែតម្រូវភាពស្រអាប់/ភាពរលោងនៃគែម\n",
+        "  -F [តម្លៃ]          ចាក់សោអត្រាស៊ុម " MSG_CMD_DIM "(ឧ. 60, 90)" RESET "\n",
+        "  -L                 ដំណើរការមួយបន្ទាត់ម្តង " MSG_CMD_DIM "(Stream)" RESET "\n",
+        "  --preset [ឈ្មោះ]   ផ្ទុកក្ដារលាយពណ៌ " MSG_CMD_DIM "(cyberpunk, retro)" RESET "\n",
+        "  --quantized        កង់ទីសកម្មពណ៌ " MSG_CMD_DIM "(ដំណើរការខ្ពស់ជាងមុន)" RESET "\n",
+        "  --spin             បង្កើតកូដ ANSI សុទ្ធ " MSG_CMD_DIM "(សម្រាប់ស្គ្រីប)" RESET "\n",
+        "  --lang [id]        បដិសេធភាសាចំណុចប្រទាក់ " MSG_CMD_DIM "(ឧ. pt, en)" RESET "\n",
+        "  --license          បង្ហាញលក្ខខណ្ឌអាជ្ញាប័ណ្ណកម្មវិធី\n",
+        "  -v, --version      បង្ហាញកំណែគោលពីរ និងស្ថានភាពបង្កើត\n",
+        "  -h, --help         បង្ហាញផ្ទាំងជំនួយអន្តរកម្មនេះ\n",
+        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារតម្លៃលេខបន្ទាប់ពីវា។\n",
+        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារលេខ។ បានទទួល: '%s'\n",
+        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " របៀបចលនា (-m) ត្រូវតែជាចំនួនគត់។\n",
+        MSG_INFO "[ ℹ️ ព័ត៌មាន 416 ]" RESET " របៀបចលនា (-m) ត្រូវតែចន្លោះពី 0 ដល់ 11។\n",
+        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើសមិនត្រឹមត្រូវ ឬអាគុយម៉ង់រលុង '%s'\n",
+        "\n" MSG_ERRO "[ ❌ កំហុស 404 ]" RESET " គ្មានទិន្នន័យត្រូវបានបញ្ជូនទៅគោលពីរទេ!\n",
+        "\n" MSG_ERRO "[ ❌ កំហុស 413 ]" RESET " ឯកសារធំពេក។ ប្រើ -L សម្រាប់របៀបស្ទ្រីម។\n",
+        MSG_AVISO "[ ⚠️ ព្រមាន 403 ]" RESET " មិនអាចផ្ទៀងផ្ទាត់សុចរិតភាពបានទេ (ប្រព័ន្ធដែលបានដាក់កម្រិត)។\n",
+        MSG_ERRO "[ ❌ កំហុស 403 ]" RESET " បរាជ័យក្នុងការបើកឯកសារដែលអាចប្រតិបត្តិបានសម្រាប់ការផ្ទៀងផ្ទាត់។\n",
+        MSG_ERRO "[ ❌ កំហុស 403 ]" RESET " កំហុសក្នុងការអានឯកសារកំឡុងពេលផ្ទៀងផ្ទាត់សុចរិតភាព។\n",
+        MSG_ERRO "[ ❌ កំហុស 403 ]" RESET " អង្គចងចាំមិនគ្រប់គ្រាន់ដើម្បីផ្ទៀងផ្ទាត់សុចរិតភាព។\n",
+        MSG_ERRO "[ ❌ កំហុស 403 ]" RESET " ហត្ថលេខាមិនត្រឹមត្រូវ ឬទម្រង់គោលដប់ប្រាំមួយមិនត្រឹមត្រូវ។\n",
+        MSG_ERRO "[ ❌ កំហុស 403 ]" RESET " ឯកសារតូចពេកមិនអាចផ្ទុកហត្ថលេខាបានទេ។\n",
+        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារចំនួនគត់។\n",
+        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារតម្លៃវិជ្ជមាន។\n",
+        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " រយៈពេលមិនអាចអវិជ្ជមានបានទេ។\n",
+        MSG_ERRO "[ ❌ កំហុស 206 ]" RESET " មិនអាចបែងចែកអង្គចងចាំបានទេ (wcsdup)។\n",
+        MSG_AVISO "[ ⚠️ ព្រមាន 403 ]" RESET " សតិបណ្ដោះអាសន្នត្រូវបានកាត់ឱ្យខ្លីត្រឹម 32MB។ ការបង្ហាញអាចខូច។\n",
+        MSG_SUCESSO "[ OK ]" RESET "\n",
+        MSG_ERRO "[ FAIL ]" RESET "\n",
+        MSG_AVISO "[ ⚠️ ព្រមាន ]" RESET " បរាជ័យក្នុងការផ្ទុកសោផ្ទាល់ខ្លួន ដោយប្រើសោដែលភ្ជាប់មកជាមួយ។\n"
+    }
 };
 
 const char* get_msg(enum Mensagem id) {
@@ -1075,14 +1112,17 @@ void msgs_set_language(const char *lang_code) {
     prefix[1] = (char)tolower((unsigned char)lang_code[1]);
     prefix[2] = '\0';
 
-    for (int i = 0; i < 13; i++) {
+    // Cálculo automático para não precisar atualizar o loop ao adicionar mais idiomas
+    int num_langs = sizeof(lang_prefixes) / sizeof(lang_prefixes[0]);
+    
+    for (int i = 0; i < num_langs; i++) {
         if (strncmp(prefix, lang_prefixes[i], 2) == 0) {
             idioma_atual = i;
             return;
         }
     }
     
-    idioma_atual = 1;
+    idioma_atual = 1; // Fallback se não encontrar o idioma digitado/detectado
 }
 
 void msgs_init(void) {
@@ -1090,7 +1130,7 @@ void msgs_init(void) {
 #ifdef _WIN32
     lang = msgs_detect_windows_locale();
 #else
-    lang = getenv("LANG");
+    lang = getenv("LANG"); // Funciona para "pt_BR.UTF-8", ele vai pegar só o "pt" na msgs_set_language
 #endif
     
     msgs_set_language(lang);

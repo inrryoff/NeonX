@@ -2,6 +2,14 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.2.0-STABLE] – 2026
+
+### Adicionado
+- **Sistema Centralizado de Estilos (`src/style.h`):** Introdução de um arquivo dedicado para gerenciar macros de formatação ANSI, incluindo o novo logotipo dinâmico `LOGO_NEONX` (com as cores N(vermelho) e(amarelo) o(verde) n(ciano) X(azul)) e padronização visual das mensagens de erro e alertas.
+- **Expansão Massiva de Internacionalização (i18n):** O suporte a idiomas foi expandido de 13 para 19 línguas (incluindo Polonês, Indonésio, Turco, entre outros). A detecção automática e tratamento de fallbacks foram aprimorados.
+- **Integração de Keygen Otimizada:** A ferramenta interna `tools/keygen.c` agora suporta extração direta do array C (`--print-hex`), formatando a chave pública em `8 bytes` por linha, facilitando a atualização imediata no cabeçalho `src/integrity.h`.
+- **Refinamento do Build System:** A macro `GENERIC_NEONX_KEY` injetada dinamicamente pelo `build.sh` agora trata adequadamente a nova extração em múltiplas linhas do keygen.
+
 ## [2.1.9-STABLE] – 2026
 
 ### Corrigido

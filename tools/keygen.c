@@ -50,12 +50,14 @@ int main(int argc, char **argv) {
     fwrite(public_key, 1, 32, f);
     fclose(f);
 
-    // Se solicitado, imprime a hex da pública no stdout para o build.sh capturar
+    // Se solicitado, imprime a hex da pública no formato C para o src/integrity.h
     if (argc > 3 && strcmp(argv[3], "--print-hex") == 0) {
+        printf("static const unsigned char NEONX_OFFICIAL_PUBLIC_KEY[32] = {\n");
         for (int i = 0; i < 32; i++) {
-            printf("%02X", public_key[i]);
+            printf("0x%02X%s", public_key[i], (i == 31) ? "" : ", ");
+            if ((i + 1) % 8 == 0 && i != 31) printf("\n    ");
         }
-        printf("\n");
+        printf("\n};\n");
     }
 
     return 0;

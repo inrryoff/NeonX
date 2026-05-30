@@ -1,7 +1,10 @@
 #define _XOPEN_SOURCE 700
 #define _DEFAULT_SOURCE
+#include "integrity.h"
 #include "terminal.h"
+#include "render.h"
 #include "msgs.h"
+#include "style.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
@@ -31,8 +34,6 @@ extern char *program_invocation_short_name;
 #define PROG_NAME "neonx"
 #endif
 
-#include "render.h"
-#include "integrity.h"
 
 static int g_integrity_status = -1;
 static Content *g_current_content = NULL;
@@ -79,7 +80,7 @@ void free_content(Content *c) {
 
 /** Exibe a versão do programa, criador e status de integridade. */
 void print_version(void) {
-    printf("NeonX v%s\n", VERSION);
+    printf("\033[1;31mN\033[1;33me\033[1;32mo\033[1;36mn\033[1;34mX\033[0m v%s\n", VERSION);
     printf("%s%s\n", MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR);
     printf("%s%s\n", MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
     
@@ -114,8 +115,8 @@ void print_license(void)
 /** Exibe o menu de ajuda com todas as opções de linha de comando. */
 void show_help(void)
 {
-    printf("NeonX v%s | %s%s | %s%s\n\n", 
-           VERSION, 
+    printf("%s" "v%s | %s%s | %s%s\n\n", 
+           MSG(MSG_HELP_HEADER), VERSION, 
            MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR,
            MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
     
