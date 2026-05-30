@@ -96,7 +96,25 @@ if [[ "$SANITIZE" == "1" ]]; then
     PERF_FLAGS="${PERF_FLAGS//-flto/}"
 fi
 
-declare -A BUILD_REPORT
+# Compatibilidade com Bash < 4.0 (macOS padrão)
+BUILD_REPORT_KEYS=()
+BUILD_REPORT_VALUES=()
+update_build_report() {
+    local label="$1"
+    local status="$2"
+    local found=false
+    for i in "${!BUILD_REPORT_KEYS[@]}"; do
+        if [[ "${BUILD_REPORT_KEYS[$i]}" == "$label" ]]; then
+            BUILD_REPORT_VALUES[$i]="$status"
+            found=true
+            break
+        fi
+    done
+    if [[ "$found" == false ]]; then
+        BUILD_REPORT_KEYS+=("$label")
+        BUILD_REPORT_VALUES+=("$status")
+    fi
+}
 
 check_deps() {
     local deps=("clang" "zig" "hexdump" "zip" "sha256sum")
@@ -182,7 +200,7 @@ compile_wasm() {
     fi
 
     if ! command -v emcc &> "$NULL_DEV"; then
-        BUILD_REPORT["$label"]="FALHOU (SEM EMCC)"
+        update_build_report "$label" "FALHOU (SEM EMCC)"
         return 1
     fi
 
@@ -198,14 +216,14 @@ compile_wasm() {
         -o "$out_js"
 
     if [[ $? -ne 0 || ! -f "$out_js" ]]; then
-        BUILD_REPORT["$label"]="FALHOU"
+        update_build_report "$label" "FALHOU"
         return 1
     fi
 
     update_hash "$out_wasm"
     update_hash "$out_js"
     create_zip "$out_wasm" "$label" "false"
-    BUILD_REPORT["$label"]="SUCESSO"
+    update_build_report "$label" "SUCESSO"
     print_success "Build $label concluída!"
 }
 
@@ -245,7 +263,7 @@ compile_tool() {
     # Adicionado -lbcrypt para o Windows via Zig
     if [[ "$label" == *"windows"* || ("$is_native" == "true" && "$WINDOWS_HOST" == "true") ]]; then
         is_windows="true"
-        active_perf_flags="${active_perf_flags//-flto/}"
+        active_perf_flags="${active_perf_flags//-flto/} -D_CRT_SECURE_NO_WARNINGS -Wno-format-nonliteral"
         target_math_lib="-lbcrypt"
         final_bin="${final_bin}.exe"
     fi
@@ -253,7 +271,13 @@ compile_tool() {
     local obj_math="$OUTPUT_DIR/math_fixed_${label}.o"
     local obj_seff="$OUTPUT_DIR/shader_effects_${label}.o"
     local obj_rend="$OUTPUT_DIR/render_core_${label}.o"
-    local core_a="$OUTPUT_DIR/libneonx_core_${label}.a"
+    local core_lib_name="libneonx_core_${label}.a"
+    local core_lib_flag="neonx_core_${label}"
+
+    if [[ "$is_windows" == "true" ]]; then
+        core_lib_name="neonx_core_${label}.lib"
+    fi
+    local core_a="$OUTPUT_DIR/$core_lib_name"
 
     if [[ "$is_native" == "true" ]]; then
         clang -c "$SRC_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS
@@ -264,7 +288,7 @@ compile_tool() {
 
         clang "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
             -o "$final_bin" \
-            -L"$OUTPUT_DIR" -l"neonx_core_${label}" \
+            -L"$OUTPUT_DIR" -l"$core_lib_flag" \
             $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
             $SIG_MACRO \
             -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
@@ -278,7 +302,7 @@ compile_tool() {
 
         zig cc "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
             -o "$final_bin" -target "$target" \
-            -L"$OUTPUT_DIR" -l"neonx_core_${label}" \
+            -L"$OUTPUT_DIR" -l"$core_lib_flag" \
             $active_perf_flags \
             $SIG_MACRO \
             -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
@@ -286,7 +310,7 @@ compile_tool() {
     fi
 
     if [[ $? -ne 0 ]]; then
-        BUILD_REPORT["$label"]="FALHOU"
+        update_build_report "$label" "FALHOU"
         return 1
     fi
 
@@ -294,7 +318,7 @@ compile_tool() {
 
     if [[ "$is_native" == "true" ]]; then
         if ! validate_native_binary "$final_bin"; then
-            BUILD_REPORT["$label"]="CRASH"
+            update_build_report "$label" "CRASH"
             return 1
         fi
     fi
@@ -303,7 +327,7 @@ compile_tool() {
     update_hash "$final_bin"
     create_zip "$final_bin" "$label" "$is_windows"
     
-    BUILD_REPORT["$label"]="SUCESSO"
+    update_build_report "$label" "SUCESSO"
     print_success "Build $label concluída!"
 }
 
@@ -402,8 +426,9 @@ largura_interna=50
 echo -e "\n${CYAN}╔════════════════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║             ${YELLOW}RELATÓRIO DE BUILD NEONX${NC}               ${CYAN}║${NC}"
 echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
-for key in "${!BUILD_REPORT[@]}"; do
-    status="${BUILD_REPORT[$key]}"
+for i in "${!BUILD_REPORT_KEYS[@]}"; do
+    key="${BUILD_REPORT_KEYS[$i]}"
+    status="${BUILD_REPORT_VALUES[$i]}"
     if [[ "$status" == "SUCESSO" ]]; then
         printf "${CYAN}║${NC}  ├── %-26s: ${GREEN}%-14s${NC}    ${CYAN}║${NC}\n" "$key" "$status"
     else
