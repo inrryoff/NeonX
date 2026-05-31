@@ -183,10 +183,14 @@ void neonx_set_custom_gradient(int r1, int g1, int b1, int r2, int g2, int b2) {
 #include <wchar.h>
 #include <string.h>
 
-/** Renderiza uma linha completa de caracteres aplicando cores dinâmicas. */
-void neonx_render_line(wchar_t *line, int32_t y_fixed, int32_t phase, int mode, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, RenderDriver *driver) {
+/** 
+ * Renderiza uma linha completa de caracteres aplicando cores dinâmicas. 
+ * Nota: Em sistemas Windows, wchar_t é UTF-16. Caracteres fora do BMP (como Emojis) 
+ * são representados como pares substitutos (surrogate pairs), o que pode resultar 
+ * em duas iterações deste loop para um único glifo visual.
+ */
+void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, int mode, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, RenderDriver *driver) {
     if (!line) return;
-    size_t line_len = wcslen(line);
     int last_r = -1, last_g = -1, last_b = -1;
 
     for (size_t x = 0; x < line_len; x++) {

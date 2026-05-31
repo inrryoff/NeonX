@@ -16,11 +16,9 @@
 #endif
 
 #include "integrity.h"
-#include "shaders.h"
 #include "msgs.h"
 #include "render.h"
-#include "math_fixed.h"
-#include "render_core.h"
+#include "neonx.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -339,11 +337,15 @@ int main(int argc, char *argv[]) {
     terminal_setup_signals(&content);
 
     content.lines = malloc((size_t)g_max_lines_limit * sizeof(wchar_t*));
-    if (!content.lines) {
+    content.line_lens = malloc((size_t)g_max_lines_limit * sizeof(size_t));
+    if (!content.lines || !content.line_lens) {
         fprintf(stderr, "%s", MSG(MSG_ERR_MEMORY_ALLOC));
+        if (content.lines) free(content.lines);
+        if (content.line_lens) free(content.line_lens);
         return 1;
     }
     memset(content.lines, 0, (size_t)g_max_lines_limit * sizeof(wchar_t*));
+    memset(content.line_lens, 0, (size_t)g_max_lines_limit * sizeof(size_t));
     
     load_input_data(&opts, &content);
     

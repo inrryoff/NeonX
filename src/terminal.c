@@ -66,15 +66,21 @@ void sleep_us(uint32_t microseconds)
 
 /** Libera a memória alocada para as linhas de texto processadas. */
 void free_content(Content *c) {
-    if (!c || !c->lines) return;
-    for (int i = 0; i < c->count; i++) {
-        if (c->lines[i]) {
-            free(c->lines[i]);
-            c->lines[i] = NULL;
+    if (!c) return;
+    if (c->lines) {
+        for (int i = 0; i < c->count; i++) {
+            if (c->lines[i]) {
+                free(c->lines[i]);
+                c->lines[i] = NULL;
+            }
         }
+        free(c->lines);
+        c->lines = NULL;
     }
-    free(c->lines);
-    c->lines = NULL;
+    if (c->line_lens) {
+        free(c->line_lens);
+        c->line_lens = NULL;
+    }
     c->count = 0;
 }
 

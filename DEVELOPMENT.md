@@ -11,6 +11,7 @@ A organização de pastas separa o código-fonte dos artefatos de compilação e
 ```text
 NeonX/
 ├── src/                 # Código-fonte principal da Engine
+│   ├── neonx.h          # API Pública Unificada (Cabeçalho mestre)
 │   ├── main.c           # Ponto de entrada, parsing e loop principal
 │   ├── math_fixed.c     # Matemática de ponto fixo e entropia segura
 │   ├── shader_effects.c # Lógica interna dos efeitos de shader
@@ -18,11 +19,12 @@ NeonX/
 │   ├── render_driver.h  # Interface agnóstica para drivers de saída
 │   ├── integrity.c/.h   # Lógica de validação criptográfica (Ed25519)
 │   ├── monocypher.c/.h  # Motor de criptografia leve
-│   ├── shaders.c/.h     # Gerenciamento de presets (agora via JSON)
+│   ├── shaders.c/.h     # Gerenciamento de presets
 │   ├── terminal.c/.h    # Gerenciamento ANSI e sinais de sistema
 │   └── style.h          # Estilos predefinidos e a logo do NeonX
 ├── tools/               # Ferramentas auxiliares
 ├── build/               # Binários compilados
+├── ARCHITECTURE.md      # Explicação detalhada da estrutura da engine
 ├── Makefile             # Sistema de build estruturado (Clang/Make)
 ├── build.sh             # Script rápido para builds e testes
 └── README.md            # Documentação principal
@@ -30,7 +32,7 @@ NeonX/
 
 ## 🚀 Compilação
 
-O projeto agora utiliza um `Makefile` para gerenciar as builds.
+O projeto utiliza um `Makefile` para gerenciar as builds.
 
 ### Build de Release (Padrão)
 ```bash
@@ -51,15 +53,19 @@ make wasm
 
 ## 📦 Usando a biblioteca NeonX (Core)
 
-O NeonX expõe seu núcleo como módulos C independentes.
+A partir da v2.2.3, o NeonX oferece o cabeçalho `src/neonx.h` como interface única para integração.
 
-### Compilação da Biblioteca
-Para gerar a biblioteca estática manualmente:
+### Integração Rápida
+Basta incluir o cabeçalho no seu código C/C++:
+```c
+#include "neonx.h"
+```
+
+### Compilação da Biblioteca Estática
+O `Makefile` gera automaticamente a biblioteca estática:
 ```bash
-clang -O3 -c src/math_fixed.c -o build/math_fixed.o
-clang -O3 -c src/shader_effects.c -o build/shader_effects.o
-clang -O3 -c src/render_core.c -o build/render_core.o
-ar rcs build/libneonx_core.a build/math_fixed.o build/shader_effects.o build/render_core.o
+# Isso gera o arquivo build/libneonx_core.a
+make
 ```
 
 ---
@@ -68,30 +74,9 @@ ar rcs build/libneonx_core.a build/math_fixed.o build/shader_effects.o build/ren
 
 O motor de cores do NeonX roda no navegador via WASM. A arquitetura é baseada no `RenderDriver` (`src/render_driver.h`), o que permite que a mesma lógica de renderização procedural seja utilizada tanto no CLI quanto na Web.
 
-As exportações WASM em `src/main_wasm.c` permitem:
-- Configurar presets idênticos aos do CLI (`neonx_wasm_set_preset`).
-- Definir gradientes customizados via Hex (`neonx_wasm_set_custom_gradient`).
-- Manipular offsets de cor e frequência em tempo real.
+A versão WASM agora também utiliza a API unificada para garantir paridade total de recursos.
 
 ---
 
-## 📝 Testando suas Alterações
-Após qualquer alteração, valide o sistema:
-```bash
-./build.sh --test
-```
-
----
-
-## 🔱 Criando um Fork e Personalizando
-
-Se você deseja criar sua própria versão do NeonX:
-
-1.  **Fork o Repositório:** Use o botão de Fork no GitHub.
-2.  **Personalize a Identidade:** No arquivo `src/style.h`, você pode alterar o `LOGO_NEONX` e as cores padrão.
-3.  **Adicione seus Presets:** Modifique `src/shaders.c` para incluir novas paletas e comportamentos.
-4.  **Assine seu Binário:** Siga as instruções em `CONTRIBUTING.md` para gerar suas próprias chaves e garantir que seu binário seja reconhecido como oficial do seu fork.
-5.  **Mantenha os Créditos:** Lembre-se que a licença exige a manutenção dos créditos ao autor original (@inrryoff).
-
----
-Desenvolvido com ☕, C e Termux.
+## 🏗️ Performance e Otimizações
+Se você estiver contribuindo para o núcleo (core), atente-se ao sistema de **Length Caching** na estrutura `Content`. Todas as strings de entrada têm seu comprimento pré-calculado em `load_input_data` para evitar o custo de `wcslen` durante o loop de animação de alta frequência.

@@ -37,7 +37,10 @@ Sempre rode os testes antes de enviar uma alteração:
 
 ### Padrões de Código
 *   **Linguagem:** C puro (C99/C11).
+*   **Arquitetura:** Leia o [ARCHITECTURE.md](./ARCHITECTURE.md) antes de modificar o núcleo.
 *   **Matemática:** Use as macros de ponto fixo em `math_fixed.h`. **Não utilize `float` ou `double`**.
+*   **API:** Utilize sempre o cabeçalho mestre `src/neonx.h` para expor novas funcionalidades.
+*   **Performance:** Respeite o sistema de **Length Caching**. Evite chamadas a `wcslen` dentro de loops de renderização.
 *   **Commits:** Seja claro no que mudou (ex: `feat: adiciona preset ocean`, `fix: corrige bug no parser`).
 
 ---

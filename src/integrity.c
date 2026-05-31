@@ -43,17 +43,24 @@ static int hex2bin(uint8_t *bin, const uint8_t *hex, size_t hex_len) {
 static void load_active_key(void) {
     if (key_loaded) return;
 
+    unsigned char tmp_key[32];
+    bool is_official = false;
+
 #ifdef GENERIC_NEONX_KEY
-    if (hex2bin(active_public_key, (const uint8_t*)GENERIC_NEONX_KEY, 64) == 0) {
-        key_loaded = true;
-        using_official = false;
-        return;
+    if (hex2bin(tmp_key, (const uint8_t*)GENERIC_NEONX_KEY, 64) == 0) {
+        is_official = false;
+    } else {
+        memcpy(tmp_key, NEONX_OFFICIAL_PUBLIC_KEY, 32);
+        is_official = true;
     }
+#else
+    memcpy(tmp_key, NEONX_OFFICIAL_PUBLIC_KEY, 32);
+    is_official = true;
 #endif
 
-    memcpy(active_public_key, NEONX_OFFICIAL_PUBLIC_KEY, 32);
+    memcpy(active_public_key, tmp_key, 32);
+    using_official = is_official;
     key_loaded = true;
-    using_official = true;
 }
 
 /** Verifica se a chave pública oficial está em uso. */

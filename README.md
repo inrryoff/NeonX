@@ -1,6 +1,6 @@
 # 🌈 NeonX – Ultra-High Performance Terminal Colorizer
 
-[![Versão](https://img.shields.io/badge/version-2.2.2--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.2.3--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
 [![NeonX Web](https://img.shields.io/badge/NeonX-Web_Demo-0a0a0f?style=flat-square&logo=terminal&logoColor=00ffcc)](https://neonx-web.netlify.app/)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Android%20%7C%20Windows%20%7C%20WASM-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
@@ -30,13 +30,12 @@ echo "NeonX Engine" | neonx --preset synthwave -S
 
 ---
 
-## ✨ O que há de novo na v2.2.2-STABLE
+## ✨ O que há de novo na v2.2.3-STABLE
 
-- **Gradientes Customizados:** Suporte total a transições suaves entre cores via `--color1` e `--color2` em formato Hexadecimal (ex: `#FF0000` para `#FFA500`).
-- **Paletas de Cores Reais:** Presets como `dracula`, `synthwave` e `hacker` agora utilizam canais RGB específicos para fidelidade visual absoluta.
-- **7 Novos Temas:** `vaporwave`, `ocean`, `forest`, `blood`, `hacker`, `synthwave` e `dracula`.
-- **Parser Blindado:** Correção de bugs críticos no parsing de argumentos que causavam comportamento inesperado ao combinar flags.
-- **Performance de Elite:** Matemática Fixed-Point otimizada para CPUs modernas e sistemas embarcados.
+- **Performance de Elite (Caching):** Otimização massiva no loop de renderização com cache de comprimentos de linha, reduzindo drasticamente o uso de CPU.
+- **API Unificada (`neonx.h`):** Nova interface de programação consolidada para desenvolvedores que desejam integrar o motor NeonX em seus próprios projetos.
+- **Arquitetura Transparente:** Adição do `ARCHITECTURE.md` para explicar detalhadamente como o motor funciona, do ponto fixo aos drivers de saída.
+- **Robustez de Integridade:** Refatoração do sistema de carregamento de chaves para garantir segurança e estabilidade.
 
 ---
 
@@ -75,6 +74,21 @@ O NeonX agora conta com um sistema de paletas customizadas:
 - **Synthwave:** Estética oitentista com rosa neon e azul.
 - **Vaporwave:** Gradientes suaves e relaxantes.
 - **Matrix / Cyberpunk / Retro / Sunset** e muito mais!
+
+---
+
+## 🏗️ Para Desenvolvedores
+
+Agora você pode usar o NeonX como uma biblioteca. Basta incluir `src/neonx.h` no seu projeto:
+
+```c
+#include "neonx.h"
+
+// Exemplo simples de renderização via driver
+RenderDriver driver = { my_set_color, my_reset_color, my_put_char, my_ctx };
+neonx_render_line(L"Hello NeonX", 11, y_fixed, phase, mode, cx, cy, max_dist, &driver);
+```
+Consulte o [ARCHITECTURE.md](./ARCHITECTURE.md) para mais detalhes.
 
 ---
 

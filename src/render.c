@@ -2,12 +2,9 @@
 #define _DEFAULT_SOURCE
 
 #include "render.h"
-#include "shaders.h"
 #include "msgs.h"
 #include "terminal.h"
-#include "render_driver.h"
-#include "render_core.h"
-#include "math_fixed.h"
+#include "neonx.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -102,6 +99,7 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr)
             cleanup_and_exit(content_ptr, 6);
         }
 
+        content_ptr->line_lens[content_ptr->count] = len;
         content_ptr->lines[content_ptr->count++] = dup_buf;
     }
     
@@ -169,11 +167,11 @@ static void cli_put_char(RenderDriver *self, wchar_t c) {
 }
 
 /** Renderiza uma linha de texto aplicando o efeito de cor configurado. */
-static void print_colored_line(wchar_t *line, int32_t y_fixed, int32_t phase, struct neonx_options *opts, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, char **buf_ptr, size_t *rem_ptr)
+static void print_colored_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, struct neonx_options *opts, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, char **buf_ptr, size_t *rem_ptr)
 {
     CliDriverCtx ctx = {buf_ptr, rem_ptr, -1, -1, -1};
     RenderDriver driver = {cli_set_color, cli_reset_color, cli_put_char, &ctx};
-    neonx_render_line(line, y_fixed, phase, opts->anim_mode, cx_fixed, cy_fixed, max_dist_fixed, &driver);
+    neonx_render_line(line, line_len, y_fixed, phase, opts->anim_mode, cx_fixed, cy_fixed, max_dist_fixed, &driver);
 }
 
 /** Executa a renderização em tempo real linha por linha (modo stream). */
@@ -186,13 +184,13 @@ int run_stream_mode(struct neonx_options *opts, Content *content_ptr)
 
     for (int i = 0; i < line_count; i++) {
         wchar_t *line_buf = content_ptr->lines[i];
-        size_t len = wcslen(line_buf);
+        size_t len = content_ptr->line_lens[i];
         int32_t y_fixed = FLOAT_TO_FIXED(i);
         int32_t cy_fixed = FLOAT_TO_FIXED(0.5f);
         int32_t cx_fixed = FLOAT_TO_FIXED((float)len / 2.0f);
         int32_t max_dist_fixed = neonx_fast_dist_fixed(cx_fixed, cy_fixed);
 
-        print_colored_line(line_buf, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, NULL, NULL);
+        print_colored_line(line_buf, len, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, NULL, NULL);
 
         printf("\033[0m\n");
         fflush(stdout);
@@ -206,12 +204,13 @@ int run_stream_mode(struct neonx_options *opts, Content *content_ptr)
     while (fgetws(buf, MAX_LINE_LEN, stdin)) {
         size_t len = wcslen(buf);
         if (len > 0 && buf[len-1] == L'\n') buf[len-1] = L'\0';
+        len = wcslen(buf); // Recalculate after newline removal
         sanitize_ansi_escapes_w(buf);
         int32_t y_fixed = FLOAT_TO_FIXED(line_count);
         int32_t cy_fixed = FLOAT_TO_FIXED(0.5f);
         int32_t cx_fixed = FLOAT_TO_FIXED((float)len / 2.0f);
         int32_t max_dist_fixed = neonx_fast_dist_fixed(cx_fixed, cy_fixed);
-        print_colored_line(buf, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, NULL, NULL);
+        print_colored_line(buf, len, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, NULL, NULL);
         printf("\033[0m\n");
         fflush(stdout);
         phase += opts->speed_fixed;
@@ -227,7 +226,7 @@ int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
     int max_w = 0;
     for(int i = 0; i < content_ptr->count; i++) {
         if (!content_ptr->lines[i]) continue;
-        int l = (int)wcsnlen(content_ptr->lines[i], MAX_LINE_LEN);
+        int l = (int)content_ptr->line_lens[i];
         if(l > max_w) max_w = l;
     }
     if (opts->fixed_width > 0) max_w = opts->fixed_width;
@@ -275,10 +274,11 @@ int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
         first_frame = false;
         for (int y = 0; y < content_ptr->count; y++) {
             wchar_t *line = content_ptr->lines[y];
+            size_t line_len = content_ptr->line_lens[y];
             int32_t y_fixed = FLOAT_TO_FIXED(y);
             w = safe_append(ptr, rem, "\r");
             ptr += w; rem -= w;
-            print_colored_line(line, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, &ptr, &rem);
+            print_colored_line(line, line_len, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, &ptr, &rem);
             w = safe_append(ptr, rem, "\033[0m\033[K\n");
             ptr += w; rem -= w;
         }

@@ -3,10 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
-#include "math_fixed.h"
-#include "render_core.h"
-#include "render_driver.h"
-#include "shaders.h"
+#include "neonx.h"
 
 /** Estrutura de contexto específica para o driver WebAssembly (Browser/WASM). */
 typedef struct {
@@ -122,7 +119,8 @@ char* neonx_apply_colors(const char* input_text, int mode, int width, int height
         if (winput[i] == L'\n' || winput[i] == L'\0') {
             wchar_t saved = winput[i];
             winput[i] = L'\0';
-            neonx_render_line(line_start, (int32_t)grid_y << FIXED_SHIFT, phase, mode, cx, cy, max_dist, &driver);
+            size_t line_len = (size_t)(&winput[i] - line_start);
+            neonx_render_line(line_start, line_len, (int32_t)grid_y << FIXED_SHIFT, phase, mode, cx, cy, max_dist, &driver);
             if (saved == L'\n') {
                 wasm_put_char(&driver, L'\n');
                 grid_y++;

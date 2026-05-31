@@ -10,6 +10,7 @@
 /** Estrutura que armazena as linhas de texto processadas. */
 typedef struct {
     wchar_t **lines;
+    size_t *line_lens;
     int count;
     int max_line_len;
 } Content;

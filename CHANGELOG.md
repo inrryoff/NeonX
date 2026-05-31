@@ -2,6 +2,20 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.2.3-STABLE] – 2026
+
+### Adicionado
+- **API Pública Unificada (`neonx.h`):** Criação de um cabeçalho consolidado para facilitar o uso do NeonX Core como biblioteca em projetos externos, documentando as principais interfaces de renderização e matemática.
+- **Documentação de Arquitetura:** Inclusão do arquivo `ARCHITECTURE.md` detalhando os princípios de design, fluxo de dados e estrutura do projeto.
+- **Robustez na Inicialização:** Refatoração do carregamento da chave de integridade em `integrity.c` para mitigar riscos de race conditions e melhorar a segurança do estado global.
+
+### Otimizado
+- **Cache de Comprimento de Linhas:** Implementação de cache para comprimentos de strings na estrutura `Content`, eliminando chamadas redundantes a `wcslen` e `wcsnlen` durante o loop de animação, resultando em ganho significativo de performance.
+- **Simplificação de Dependências:** Refatoração interna para utilizar o novo cabeçalho `neonx.h`, reduzindo o acoplamento e simplificando a manutenção.
+
+### Alterado
+- **Documentação Técnica:** Adicionados comentários sobre o tratamento de caracteres fora do BMP (Emojis) em sistemas Windows devido à natureza UTF-16 do `wchar_t`.
+
 ## [2.2.2-STABLE] – 2026
 
 ### Adicionado
