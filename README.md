@@ -96,7 +96,7 @@ Consulte o [ARCHITECTURE.md](./ARCHITECTURE.md) para mais detalhes.
 
 Se o **NeonX** é útil para você ou para sua equipe, considere apoiar o desenvolvimento contínuo!
 
-- **Doações:** [Clique aqui para apoiar via PayPal/Pix/etc] (Substitua pelo seu link!)
+- **Doações:** [Clique aqui para apoiar via PayPal/Pix/etc]()
 - **Siga o autor:** [@inrryoff](https://github.com/inrryoff)
 - **Dê uma estrela:** ⭐ No GitHub para ajudar na visibilidade!
 
