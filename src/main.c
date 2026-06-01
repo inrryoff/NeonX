@@ -72,14 +72,17 @@ static bool parse_hex_color(const char *hex, int *r, int *g, int *b) {
 }
 
 /** Exibe mensagens de erro formatadas no fluxo de erro padrão (stderr). */
-#ifdef __GNUC__
-__attribute__((format(printf, 1, 2)))
+static void print_error_msg(const char *msg, const char *arg1, const char *arg2) {
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
-static void print_error_msg(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
-    va_end(args);
+    if (arg2) fprintf(stderr, msg, arg1, arg2);
+    else if (arg1) fprintf(stderr, msg, arg1);
+    else fprintf(stderr, "%s", msg);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 }
 
 /** Processa argumentos numéricos específicos da linha de comando e atualiza as opções. */
@@ -99,6 +102,19 @@ static int handle_numeric_argument(const char *arg, const char *val, struct neon
             print_error_msg(MSG(MSG_ERR_INVALID_NUMBER), "-o", val);
             return 3;
         }
+        opts->vertical_opacity = false;
+        neonx_set_vertical_opacity(false);
+        neonx_set_opacity(num_fixed);
+        return 0;
+    }
+
+    if (!strcmp(arg, "-O")) {
+        if (num_fixed < 0 || num_fixed > FIXED_ONE) {
+            print_error_msg(MSG(MSG_ERR_INVALID_NUMBER), "-O", val);
+            return 3;
+        }
+        opts->vertical_opacity = true;
+        neonx_set_vertical_opacity(true);
         neonx_set_opacity(num_fixed);
         return 0;
     }
@@ -106,7 +122,7 @@ static int handle_numeric_argument(const char *arg, const char *val, struct neon
     if (!strcmp(arg, "-F")) {
         int32_t fps = num_fixed / FIXED_ONE;
         if (fps <= 0) {
-            print_error_msg(MSG(MSG_ERR_MUST_BE_POSITIVE), "-F");
+            print_error_msg(MSG(MSG_ERR_MUST_BE_POSITIVE), "-F", NULL);
             return 3;
         }
         opts->frame_time_us = (uint32_t)(1000000LL / fps);
@@ -115,7 +131,7 @@ static int handle_numeric_argument(const char *arg, const char *val, struct neon
 
     if (!strcmp(arg, "-m")) {
         int32_t mode = num_fixed / FIXED_ONE;
-        if (mode < 0 || mode > MAX_ANIM_MODE) {
+        if (mode < 0 || mode > 11) {
             fprintf(stderr, "%s", MSG(MSG_ERR_MODE_LIMIT));
             return 4;
         }
@@ -126,7 +142,7 @@ static int handle_numeric_argument(const char *arg, const char *val, struct neon
     if (!strcmp(arg, "-c")) {
         int32_t width = num_fixed / FIXED_ONE;
         if (width <= 0) {
-            print_error_msg(MSG(MSG_ERR_MUST_BE_POSITIVE), "-c");
+            print_error_msg(MSG(MSG_ERR_MUST_BE_POSITIVE), "-c", NULL);
             return 3;
         }
         opts->fixed_width = width;
@@ -143,9 +159,16 @@ static int handle_numeric_argument(const char *arg, const char *val, struct neon
         return 0;
     }
 
-    if (!strcmp(arg, "-s")) opts->speed_fixed = num_fixed;
-    else if (!strcmp(arg, "-f")) neonx_set_frequency(num_fixed);
-    else if (!strcmp(arg, "-A")) neonx_set_gradient_angle(num_fixed);
+    if (!strcmp(arg, "-s")) {
+        opts->speed_fixed = num_fixed;
+        opts->speed_set = true;
+    } else if (!strcmp(arg, "-f")) {
+        opts->freq_fixed = num_fixed;
+        opts->freq_set = true;
+    } else if (!strcmp(arg, "-A")) {
+        opts->angle_fixed = num_fixed;
+        opts->angle_set = true;
+    }
     
     return 0;
 }
@@ -180,6 +203,20 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
         if (!strcmp(arg, "-S")) { opts->static_mode = true; continue; }
         if (!strcmp(arg, "-L")) { opts->stream_mode = true; continue; }
         if (!strcmp(arg, "--quantized")) { neonx_set_quantization(true); continue; }
+        if (!strcmp(arg, "--no-ansi")) { opts->disable_ansi = true; continue; }
+        if (!strcmp(arg, "--fo")) {
+            opts->matte_mode = true;
+            neonx_set_matte_mode(true);
+            /* Verifica se o próximo argumento é uma intensidade numérica */
+            if (i + 1 < argc && (isdigit((unsigned char)argv[i+1][0]) || (argv[i+1][0] == '.' && isdigit((unsigned char)argv[i+1][1])))) {
+                bool ok;
+                int32_t intensity = secure_str_to_fixed(argv[++i], &ok);
+                if (ok && intensity >= 0 && intensity <= FIXED_ONE) {
+                    neonx_set_matte_intensity(intensity);
+                }
+            }
+            continue;
+        }
         
         if (!strcmp(arg, "--lang") && i + 1 < argc) {
             msgs_set_language(argv[++i]);
@@ -192,7 +229,7 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
                 opts->c1_r = r; opts->c1_g = g; opts->c1_b = b;
                 opts->c1_set = true;
             } else {
-                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), argv[i]);
+                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), argv[i], NULL);
                 return 3;
             }
             continue;
@@ -203,7 +240,7 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
                 opts->c2_r = r; opts->c2_g = g; opts->c2_b = b;
                 opts->c2_set = true;
             } else {
-                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), argv[i]);
+                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), argv[i], NULL);
                 return 3;
             }
             continue;
@@ -212,22 +249,22 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
         if (!strcmp(arg, "--preset") && i + 1 < argc) {
             const char *preset_val = argv[++i];
             if (preset_val[0] == '-') {
-                print_error_msg(MSG(MSG_ERR_MISSING_VALUE), arg);
+                print_error_msg(MSG(MSG_ERR_MISSING_VALUE), arg, NULL);
                 return 3;
             }
-            if (!shaders_set_preset(preset_val, &opts->anim_mode, &opts->speed_fixed)) {
-                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), preset_val);
+            if (!shaders_set_preset(preset_val, opts)) {
+                print_error_msg(MSG(MSG_ERR_INVALID_OPTION), preset_val, NULL);
                 return 3;
             }
             continue;
         }
 
-        const char *numeric_flags[] = {"-d", "-s", "-f", "-m", "-A", "-c", "-o", "-F", NULL};
+        const char *numeric_flags[] = {"-d", "-s", "-f", "-m", "-A", "-c", "-o", "-F", "-O", NULL};
         bool found_numeric = false;
         for (int k = 0; numeric_flags[k]; k++) {
             if (!strcmp(arg, numeric_flags[k])) {
                 if (i + 1 >= argc || (argv[i+1][0] == '-' && !isdigit((unsigned char)argv[i+1][1]) && argv[i+1][1] != '.')) {
-                    print_error_msg(MSG(MSG_ERR_MISSING_VALUE), arg);
+                    print_error_msg(MSG(MSG_ERR_MISSING_VALUE), arg, NULL);
                     return 3;
                 }
                 int res = handle_numeric_argument(arg, argv[++i], opts);
@@ -238,8 +275,8 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
         }
         if (found_numeric) continue;
 
-        print_error_msg(MSG(MSG_ERR_INVALID_OPTION), arg);
-        show_help();
+        print_error_msg(MSG(MSG_ERR_INVALID_OPTION), arg, NULL);
+        show_help(opts->disable_ansi);
         return 3;
     }
     return 0;
@@ -269,9 +306,9 @@ static void init_system_context(void) {
 /** Trata comandos de exibição de informações (ajuda, versão, licença, integridade). */
 static int handle_info_commands(const struct neonx_options *opts)
 {
-    if (opts->show_help_flag)    { show_help(); return 0; }
-    if (opts->show_version_flag) { print_version(); return 0; }
-    if (opts->show_license_flag) { print_license(); return 0; }
+    if (opts->show_help_flag)    { show_help(opts->disable_ansi); return 0; }
+    if (opts->show_version_flag) { print_version(opts->disable_ansi); return 0; }
+    if (opts->show_license_flag) { print_license(opts->disable_ansi); return 0; }
     
     if (opts->verify_sig_flag) {
         if (auth_status == 0) {
@@ -279,7 +316,7 @@ static int handle_info_commands(const struct neonx_options *opts)
             return 0;
         }
         if (auth_status == 2) {
-            fprintf(stderr, "%s", MSG(MSG_ERR_VERIFY_RESTRICTED));
+            fprintf(stderr, "%s", MSG(MSG_ERR_INTEGRITY_FAIL));
             return 2;
         }
         fprintf(stderr, "%s", MSG(MSG_VERIFY_FAIL));
@@ -304,18 +341,22 @@ static void run_spin_tool(void)
 
 /** Ponto de entrada principal do NeonX. */
 int main(int argc, char *argv[]) {
-    struct neonx_options opts = {0};
-    opts.phase_fixed_set = false;
-    opts.stream_mode = false;
-    opts.speed_fixed = FLOAT_TO_FIXED(0.2f);
-    opts.frame_time_us = 50000;
-
     init_system_context();
     auth_status = check_integrity();
     set_integrity_status(auth_status);
-    
+
+    struct neonx_options opts = {0};
+    opts.speed_fixed = FLOAT_TO_FIXED(0.2f);
+    opts.freq_fixed = 19660; // 0.3 default
+    opts.angle_fixed = -65536; // -1 default
+    opts.frame_time_us = 16666; // 60 FPS default
+
     int parse_res = parse_arguments(argc, argv, &opts);
     if (parse_res != 0) return parse_res;
+
+    /* Aplica parâmetros finais ao motor */
+    neonx_set_frequency(opts.freq_fixed);
+    neonx_set_gradient_angle(opts.angle_fixed);
 
     if (opts.c1_set && opts.c2_set) {
         neonx_set_custom_gradient(opts.c1_r, opts.c1_g, opts.c1_b, opts.c2_r, opts.c2_g, opts.c2_b);
@@ -349,13 +390,12 @@ int main(int argc, char *argv[]) {
     
     load_input_data(&opts, &content);
     
+    int res;
     if (opts.stream_mode) {
-        run_stream_mode(&opts, &content);
+        res = run_stream_mode(&opts, &content);
     } else {
-        run_buffered_mode(&opts, &content);
+        res = run_buffered_mode(&opts, &content);
     }
-    
-    cleanup_and_exit(&content, 0);
-    return 0;
+    cleanup_and_exit(&content, res);
+    return res;
 }
-

@@ -11,6 +11,7 @@
 typedef struct {
     wchar_t **lines;
     size_t *line_lens;
+    wchar_t *pool;
     int count;
     int max_line_len;
 } Content;
@@ -28,13 +29,13 @@ void set_content_initialized(void);
 void free_content(Content *c);
 
 /** Exibe a versão e informações de autoria. */
-void print_version(void);
+void print_version(bool disable_ansi);
 
 /** Exibe a licença do software. */
-void print_license(void);
+void print_license(bool disable_ansi);
 
 /** Exibe o guia de uso e opções do programa. */
-void show_help(void);
+void show_help(bool disable_ansi);
 
 /** Manipulador de sinal para interrupção CTRL+C. */
 void handle_sigint(int sig);

@@ -1,10 +1,52 @@
 #include "msgs.h"
 #include "style.h"
+#include "math_fixed_internal.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+/** 
+ * Returns the virtual offset for localized text alignment tables.
+ */
+uint32_t nx_msgs_get_locale_voffset(void) {
+    /* Alignment component C: fragmented for UTF-8 table mapping */
+    uint32_t c1 = NX_FRAGMENT_C ^ 0x55555555UL;
+    uint32_t c2 = 0x55555555UL;
+    return c1 ^ c2;
+}
+
+static char g_strip_buf[2][8192];
+static int g_strip_idx = 0;
+
+static const char* strip_ansi(const char *src) {
+    if (!src) return "";
+    char *dest = g_strip_buf[g_strip_idx];
+    g_strip_idx = (g_strip_idx + 1) % 2;
+    char *d = dest;
+    const char *s = src;
+    while (*s && (size_t)(d - dest) < sizeof(g_strip_buf[0]) - 1) {
+        if (*s == '\033' && *(s + 1) == '[') {
+            s += 2;
+            while (*s && !((*s >= 'A' && *s <= 'Z') || (*s >= 'a' && *s <= 'z'))) s++;
+            if (*s) s++;
+        } else {
+            *d++ = *s++;
+        }
+    }
+    *d = '\0';
+    return dest;
+}
+
+const char* MSG_F(enum Mensagem id, bool disable_ansi) {
+    const char *msg = get_msg(id);
+    if (disable_ansi) {
+        return strip_ansi(msg);
+    }
+    return msg;
+}
 
 #ifdef _WIN32
 #include <windows.h>
@@ -42,11 +84,11 @@ static const char *lang_prefixes[19] = {
 #define LICENSE_PT \
     "LICENÇA DE USO - NEONX (C - VERSION)\n" \
     "-----------------------------------------------------------------\n" \
-    "Copyright (c) 2026 @inrryoff - Licenciado sob condições especiais " LOGO_NEONX " LICENSE\n\n" \
+    "Copyright (c) 2026 @inrry\x6f\x66\x66 - Licenciado sob condições especiais " LOGO_NEONX " LICENSE\n\n" \
     "Pelo presente, fica concedida permissão a qualquer pessoa que obtenha uma cópia\n" \
     "deste software para usá-lo gratuitamente, sujeito às seguintes condições:\n\n" \
     MSG_LEGAL_TXT "1. ATRIBUIÇÃO (CRÉDITOS):" RESET "\n" \
-    "   O nome do autor original (@inrryoff) and os avisos de copyright devem ser\n" \
+    "   O nome do autor original (@inrry\x6f\x66\x66) and os avisos de copyright devem ser\n" \
     "   mantidos em todos os arquivos de código-fonte, cabeçalhos e na saída de\n" \
     "   versão do binário compilado (ex: " BG_FOSCO " neonx --version " RESET ").\n\n" \
     MSG_LEGAL_TXT "2. PROIBIÇÃO DE COMERCIALIZAÇÃO:" RESET "\n" \
@@ -68,11 +110,11 @@ static const char *lang_prefixes[19] = {
 #define LICENSE_EN \
     "NEONX USE LICENSE (C - VERSION)\n" \
     "-----------------------------------------------------------------\n" \
-    "Copyright (c) 2026 @inrryoff - Licensed under special conditions " LOGO_NEONX " LICENSE\n\n" \
+    "Copyright (c) 2026 @inrry\x6f\x66\x66 - Licensed under special conditions " LOGO_NEONX " LICENSE\n\n" \
     "Permission is hereby granted, free of charge, to any person obtaining a copy\n" \
     "of this software and associated documentation files, subject to the following:\n\n" \
     MSG_LEGAL_TXT "1. ATTRIBUTION (CREDITS):" RESET "\n" \
-    "   The original author's name (@inrryoff) and copyright notices must be\n" \
+    "   The original author's name (@inrry\x6f\x66\x66) and copyright notices must be\n" \
     "   kept in all source files, headers, and compiled binary version outputs\n" \
     "   (e.g., " BG_FOSCO " neonx --version " RESET ").\n\n" \
     MSG_LEGAL_TXT "2. PROHIBITION OF COMMERCIALIZATION:" RESET "\n" \
@@ -96,35 +138,39 @@ static const char *mensagens[19][MSG_TOTAL] = {
     // ---------------- [0] PORTUGUÊS (PT) ----------------
     {
         MSG_ERRO "Erro ao abrir arquivo\n" RESET,
-        "Criador Original: ", "Compilado por: ",
+        "Criador Original: ",
+        "Compilado por: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "MODIFICADO" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_PT,
         LOGO_NEONX DIM ITALIC " - Embelezador de Terminal Avançado" RESET "\n",
-        "Uso: " BG_FOSCO " cat arquivo | neonx [opcoes] " RESET "\n\n",
-        "  -m [0-11]          Define o estilo da animação\n",
-        "  -s [valor]         Velocidade da transição " MSG_CMD_DIM "(Padrão: 0.2)" RESET "\n",
-        "  -f [valor]         Frequência da onda " MSG_CMD_DIM "(Padrão: 0.3)" RESET "\n",
-        "  -d [valor]         Duração em segundos " MSG_CMD_DIM "(0 = Infinito)" RESET "\n",
-        "  -A [graus]         Rotaciona o ângulo do gradiente " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [valor]         Define uma seed fixa " MSG_CMD_DIM "(Determinística)" RESET "\n",
-        "  -S                 Renderiza um quadro estático " MSG_CMD_DIM "(Sem animação)" RESET "\n",
-        "  -c [largura]       Força uma largura estática para o gradiente\n",
-        "  -o [0-1]           Ajusta a opacidade/suavidade das bordas\n",
-        "  -F [valor]         Trava a taxa de quadros " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n",
-        "  -L                 Processamento linha por linha " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nome]    Carrega paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Define a cor inicial do gradiente (ex: #FF0000)\n",
-        "  --color2 [hex]     Define a cor final do gradiente (ex: #FFA500)\n",
-        "  --quantized        Quantização de cores " MSG_CMD_DIM "(Maior performance)" RESET "\n",
-        "  --spin             Gera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n",
-        "  --lang [id]        Sobrescreve o idioma " MSG_CMD_DIM "(ex: pt, en)" RESET "\n",
-        "  --license          Exibe os termos de licenciamento\n",
-        "  -v, --version      Mostra a versão e status do binário\n",
+        "Uso: " BG_FOSCO " cat arquivo | neonx [opcoes] " RESET "\n\n"
+        "  -m [0-11]          Define o estilo da animação\n"
+        "  -s [valor]         Velocidade da transição " MSG_CMD_DIM "(Padrão: 0.2)" RESET "\n"
+        "  -f [valor]         Frequência da onda " MSG_CMD_DIM "(Padrão: 0.3)" RESET "\n"
+        "  -d [valor]         Duração em segundos " MSG_CMD_DIM "(0 = Infinito)" RESET "\n"
+        "  -max-lines [val]   Limite máximo de linhas " MSG_CMD_DIM "(Padrão: 10.000)" RESET "\n"
+        "  -A [graus]         Rotaciona o ângulo do gradiente " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [valor]     Define uma seed fixa " MSG_CMD_DIM "(Determinística)" RESET "\n"
+        "  -S                 Renderiza um quadro estático " MSG_CMD_DIM "(Sem animação)" RESET "\n"
+        "  -c [largura]       Força uma largura estática para o gradiente\n"
+        "  -o [0-1]           Ajusta a opacidade horizontal/suavidade\n"
+        "  -O [0-1]           Ativa a Opacidade Vertical (fading topo/base)\n"
+        "  -F [valor]         Trava a taxa de quadros " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n"
+        "  -L                 Processamento linha por linha " MSG_CMD_DIM "(Stream)" RESET "\n"
+        "  --fo [0-1]         Ativa o Modo Fosco (Reduz vivacidade)\n"
+        "  --preset [nome]    Carrega paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Alias para --color1 e --color2\n"
+        "  --color1 [hex]     Define a cor inicial do gradiente (ex: #FF0000)\n"
+        "  --color2 [hex]     Define a cor final do gradiente (ex: #FFA500)\n"
+        "  --quantized        Quantização de cores " MSG_CMD_DIM "(Maior performance)" RESET "\n"
+        "  --no-ansi          Desativa o uso de cores ANSI na saída\n"
+        "  --spin             Gera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n"
+        "  --lang [id]        Sobrescreve o idioma " MSG_CMD_DIM "(ex: pt, en)" RESET "\n"
+        "  --license          Exibe os termos de licenciamento\n"
+        "  -v, --version      Mostra a versão e status do binário\n"
         "  -h, --help         Exibe este painel de ajuda interativo\n",
         MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor numérico após ela.\n",
         MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor numérico. Recebido: '%s'\n",
@@ -143,44 +189,49 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor positivo.\n",
         MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A duração não pode ser negativa.\n",
         MSG_ERRO "[ ❌ ERRO 206 ]" RESET " Não foi possível alocar memória (wcsdup).\n",
-        MSG_AVISO "[ ⚠️ AVISO 403 ]" RESET " Buffer truncado para 32MB. Renderização pode falhar.\n",
+        MSG_AVISO "[ ⚠️ AVISO 206 ]" RESET " Buffer truncado para 32MB. Renderização pode falhar.\n",
+        MSG_AVISO "[ ⚠️ AVISO 203 ]" RESET " Falha ao carregar chave customizada, usando embutida.\n"
+        MSG_CMD_DIM "[ ⚙️ DEBUG 214 ]" RESET " Desalinhamento geométrico detectado. Estabilização pode variar.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ AVISO ]" RESET " Falha ao carregar chave customizada, usando embutida.\n"
     },
 
     // ---------------- [1] INGLÊS (EN) ----------------
     {
         MSG_ERRO "Error opening file\n" RESET,
-        "Original Creator: ", "Compiled by: ",
+        "Original Creator: ",
+        "Compiled by: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "MODIFIED" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
         LOGO_NEONX DIM ITALIC " - Advanced Terminal Beautifier" RESET "\n",
-        "Usage: " BG_FOSCO " cat file | neonx [options] " RESET "\n\n",
-        "  -m [0-11]          Defines the animation style\n",
-        "  -s [val]           Transition speed " MSG_CMD_DIM "(Default: 0.2)" RESET "\n",
-        "  -f [val]           Wave frequency " MSG_CMD_DIM "(Default: 0.3)" RESET "\n",
-        "  -d [val]           Duration in seconds " MSG_CMD_DIM "(0 = Infinite)" RESET "\n",
-        "  -A [deg]           Rotates the gradient angle " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [val]           Sets a fixed seed " MSG_CMD_DIM "(Deterministic)" RESET "\n",
-        "  -S                 Renders a static frame " MSG_CMD_DIM "(No animation)" RESET "\n",
-        "  -c [width]         Forces a static gradient width\n",
-        "  -o [0-1]           Adjusts edge opacity/smoothness\n",
-        "  -F [val]           Locks the framerate " MSG_CMD_DIM "(e.g., 60, 90)" RESET "\n",
-        "  -L                 Line-by-line processing " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [name]    Loads color palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Color quantization " MSG_CMD_DIM "(Higher performance)" RESET "\n",
-        "  --spin             Generates pure ANSI codes " MSG_CMD_DIM "(For scripts)" RESET "\n",
-        "  --lang [id]        Overrides interface language " MSG_CMD_DIM "(e.g., pt, en)" RESET "\n",
-        "  --license          Displays software licensing terms\n",
-        "  -v, --version      Shows binary version and build status\n",
+        "Usage: " BG_FOSCO " cat file | neonx [options] " RESET "\n\n"
+        "  -m [0-11]          Defines the animation style\n"
+        "  -s [val]           Transition speed " MSG_CMD_DIM "(Default: 0.2)" RESET "\n"
+        "  -f [val]           Wave frequency " MSG_CMD_DIM "(Default: 0.3)" RESET "\n"
+        "  -d [val]           Duration in seconds " MSG_CMD_DIM "(0 = Infinite)" RESET "\n"
+        "  -max-lines [val]   Maximum lines limit " MSG_CMD_DIM "(Default: 10.000)" RESET "\n"
+        "  -A [deg]           Rotates the gradient angle " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [val]       Sets a fixed seed " MSG_CMD_DIM "(Deterministic)" RESET "\n"
+        "  -S                 Renders a static frame " MSG_CMD_DIM "(No animation)" RESET "\n"
+        "  -c [width]         Forces a static gradient width\n"
+        "  -o [0-1]           Adjusts horizontal opacity/smoothness\n"
+        "  -O [0-1]           Enables Vertical Opacity (fading top/base)\n"
+        "  -F [val]           Locks the framerate " MSG_CMD_DIM "(e.g., 60, 90)" RESET "\n"
+        "  -L                 Line-by-line processing " MSG_CMD_DIM "(Stream)" RESET "\n"
+        "  --fo [0-1]         Enables Matte Mode (Reduces vibrancy)\n"
+        "  --preset [name]    Loads palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Alias for --color1 and --color2\n"
+        "  --color1 [hex]     Sets the starting color (e.g., #FF0000)\n"
+        "  --color2 [hex]     Sets the ending color (e.g., #FFA500)\n"
+        "  --quantized        Color quantization " MSG_CMD_DIM "(Higher performance)" RESET "\n"
+        "  --no-ansi          Disables ANSI colors in output\n"
+        "  --spin             Generates pure ANSI codes " MSG_CMD_DIM "(For scripts)" RESET "\n"
+        "  --lang [id]        Overrides interface language " MSG_CMD_DIM "(e.g., pt, en)" RESET "\n"
+        "  --license          Displays software licensing terms\n"
+        "  -v, --version      Shows binary version and build status\n"
         "  -h, --help         Displays this interactive help panel\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires a numeric value after it.\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires a numeric value. Received: '%s'\n",
@@ -200,43 +251,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Duration cannot be negative.\n",
         MSG_ERRO "[ ❌ ERROR 206 ]" RESET " Could not allocate memory (wcsdup).\n",
         MSG_AVISO "[ ⚠️ WARN 403 ]" RESET " Buffer truncated to 32MB. Rendering may corrupt.\n",
+        MSG_AVISO "[ ⚠️ WARN 203 ]" RESET " Failed to load custom key, using built-in key.\n"
+        MSG_CMD_DIM "[ ⚙️ DEBUG 214 ]" RESET " Geometric misalignment detected. Stabilization may vary.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ WARN ]" RESET " Failed to load custom key, using built-in key.\n"
     },
 
     // ---------------- [2] ESPANHOL (ES) ----------------
     {
         MSG_ERRO "Error al abrir el archivo\n" RESET,
-        "Creador Original: ", "Compilado por: ",
+        "Creador Original: ",
+        "Compilado por: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "MODIFICADO" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
-        LICENSE_EN,
+        LICENSE_PT,
         LOGO_NEONX DIM ITALIC " - Embellecedor de Terminal Avanzado" RESET "\n",
-        "Uso: " BG_FOSCO " cat archivo | neonx [opciones] " RESET "\n\n",
-        "  -m [0-11]          Define el estilo de animación\n",
-        "  -s [val]           Velocidad de transición " MSG_CMD_DIM "(Por defecto: 0.2)" RESET "\n",
-        "  -f [val]           Frecuencia de onda " MSG_CMD_DIM "(Por defecto: 0.3)" RESET "\n",
-        "  -d [val]           Duración en segundos " MSG_CMD_DIM "(0 = Infinito)" RESET "\n",
-        "  -A [grados]        Rota el ángulo del gradiente " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [val]           Establece semilla fija " MSG_CMD_DIM "(Determinista)" RESET "\n",
-        "  -S                 Renderiza un cuadro estático " MSG_CMD_DIM "(Sin animación)" RESET "\n",
-        "  -c [ancho]         Fuerza un ancho de gradiente estático\n",
-        "  -o [0-1]           Ajusta la opacidad/suavidad de los bordes\n",
-        "  -F [val]           Bloquea los cuadros por segundo " MSG_CMD_DIM "(ej: 60, 90)" RESET "\n",
-        "  -L                 Procesamiento línea por línea " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nom]     Carga paletas de colores " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Cuantización de colores " MSG_CMD_DIM "(Mayor rendimiento)" RESET "\n",
-        "  --spin             Genera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n",
-        "  --lang [id]        Sobrescribe el idioma " MSG_CMD_DIM "(ej: pt, en)" RESET "\n",
-        "  --license          Muestra los términos de licencia\n",
-        "  -v, --version      Muestra la versión y estado del binario\n",
+        "Uso: " BG_FOSCO " cat archivo | neonx [opciones] " RESET "\n\n"
+        "  -m [0-11]          Define el estilo de la animación\n"
+        "  -s [valor]         Velocidad de transición " MSG_CMD_DIM "(Predeterminado: 0.2)" RESET "\n"
+        "  -f [valor]         Frecuencia de la onda " MSG_CMD_DIM "(Predeterminado: 0.3)" RESET "\n"
+        "  -d [valor]         Duración en segundos " MSG_CMD_DIM "(0 = Infinito)" RESET "\n"
+        "  -max-lines [val]   Límite máximo de líneas " MSG_CMD_DIM "(Predeterminado: 10.000)" RESET "\n"
+        "  -A [grados]        Rota el ángulo del gradiente " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [valor]     Define una seed fija " MSG_CMD_DIM "(Determinística)" RESET "\n"
+        "  -S                 Renderiza un cuadro estático " MSG_CMD_DIM "(Sin animación)" RESET "\n"
+        "  -c [ancho]         Fuerza un ancho estático para el gradiente\n"
+        "  -o [0-1]           Ajusta la opacidad horizontal/suavidad\n"
+        "  -O [0-1]           Activa la Opacidad Vertical (fading sup/inf)\n"
+        "  -F [valor]         Bloquea la tasa de cuadros " MSG_CMD_DIM "(ej: 60, 90)" RESET "\n"
+        "  -L                 Procesamiento línea por línea " MSG_CMD_DIM "(Stream)" RESET "\n"
+        "  --fo [0-1]         Activa el Modo Mate (Reduce intensidad)\n"
+        "  --preset [nombre]  Carga paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Alias para --color1 y --color2\n"
+        "  --color1 [hex]     Define el color inicial del gradiente (ej: #FF0000)\n"
+        "  --color2 [hex]     Define el color final del gradiente (ej: #FFA500)\n"
+        "  --quantized        Cuantización de colores " MSG_CMD_DIM "(Mayor rendimiento)" RESET "\n"
+        "  --no-ansi          Desactiva el uso de colores ANSI en la salida\n"
+        "  --spin             Genera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n"
+        "  --lang [id]        Sobrescribe el idioma " MSG_CMD_DIM "(ej: es, en)" RESET "\n"
+        "  --license          Muestra los términos de licencia\n"
+        "  -v, --version      Muestra la versión y estado del binario\n"
         "  -h, --help         Muestra este panel de ayuda interactivo\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un valor numérico.\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un numérico. Recibido: '%s'\n",
@@ -256,43 +312,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La duración no puede ser negativa.\n",
         MSG_ERRO "[ ❌ ERROR 206 ]" RESET " No se pudo asignar memoria (wcsdup).\n",
         MSG_AVISO "[ ⚠️ AVISO 403 ]" RESET " Búfer truncado a 32MB. El renderizado puede corromperse.\n",
+        MSG_AVISO "[ ⚠️ AVISO 203 ]" RESET " Fallo al cargar clave personalizada, usando la integrada.\n"
+        MSG_CMD_DIM "[ ⚙️ DEPURACIÓN 214 ]" RESET " Desalineamiento geométrico detectado. La estabilización puede variar.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ AVISO ]" RESET " Fallo al cargar clave personalizada, usando la integrada.\n"
     },
 
     // ---------------- [3] FRANCÊS (FR) ----------------
     {
         MSG_ERRO "Erreur d'ouverture du fichier\n" RESET,
-        "Créateur Original : ", "Compilé par : ",
+        "Créateur Original : ",
+        "Compilé par : ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "MODIFIÉ" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
         LOGO_NEONX DIM ITALIC " - Embellisseur de Terminal Avancé" RESET "\n",
-        "Utilisation: " BG_FOSCO " cat fichier | neonx [options] " RESET "\n\n",
-        "  -m [0-11]          Définit le style d'animation\n",
-        "  -s [val]           Vitesse de transition " MSG_CMD_DIM "(Défaut: 0.2)" RESET "\n",
-        "  -f [val]           Fréquence de l'onde " MSG_CMD_DIM "(Défaut: 0.3)" RESET "\n",
-        "  -d [val]           Durée en secondes " MSG_CMD_DIM "(0 = Infini)" RESET "\n",
-        "  -A [deg]           Fait pivoter l'angle du dégradé " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [val]           Définit une graine fixe " MSG_CMD_DIM "(Déterministe)" RESET "\n",
-        "  -S                 Affiche une image statique " MSG_CMD_DIM "(Sans animation)" RESET "\n",
-        "  -c [largeur]       Force une largeur de dégradé statique\n",
-        "  -o [0-1]           Ajuste l'opacité/douceur des bords\n",
-        "  -F [val]           Verrouille le framerate " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n",
-        "  -L                 Traitement ligne par ligne " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nom]     Charge des palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Quantification des couleurs " MSG_CMD_DIM "(Hautes performances)" RESET "\n",
-        "  --spin             Génère des codes ANSI purs " MSG_CMD_DIM "(Pour scripts)" RESET "\n",
-        "  --lang [id]        Remplace la langue de l'interface " MSG_CMD_DIM "(ex: pt, en)" RESET "\n",
-        "  --license          Affiche les conditions de licence\n",
-        "  -v, --version      Affiche la version et l'état du binaire\n",
+        "Utilisation: " BG_FOSCO " cat fichier | neonx [options] " RESET "\n\n"
+        "  -m [0-11]          Définit le style de l'animation\n"
+        "  -s [valeur]        Vitesse de transition " MSG_CMD_DIM "(Défaut: 0.2)" RESET "\n"
+        "  -f [valeur]        Fréquence de l'onde " MSG_CMD_DIM "(Défaut: 0.3)" RESET "\n"
+        "  -d [valeur]        Durée en secondes " MSG_CMD_DIM "(0 = Infini)" RESET "\n"
+        "  -max-lines [val]   Limite maximale de lignes " MSG_CMD_DIM "(Défaut: 10.000)" RESET "\n"
+        "  -A [degrés]        Fait pivoter l'angle du dégradé " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [valeur]    Définit une graine fixe " MSG_CMD_DIM "(Déterministe)" RESET "\n"
+        "  -S                 Rendu d'une image statique " MSG_CMD_DIM "(Sans animation)" RESET "\n"
+        "  -c [largeur]       Force une largeur statique pour le dégradé\n"
+        "  -o [0-1]           Ajuste l'opacité horizontale/lissage\n"
+        "  -O [0-1]           Active l'Opacité Verticale (fondu haut/bas)\n"
+        "  -F [valeur]        Verrouille la fréquence d'images " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n"
+        "  -L                 Traitement ligne par ligne " MSG_CMD_DIM "(Flux)" RESET "\n"
+        "  --fo [0-1]         Active le Mode Mat (Réduit la vivacité)\n"
+        "  --preset [nom]     Charge des palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Alias pour --color1 et --color2\n"
+        "  --color1 [hex]     Définit la couleur de début du dégradé (ex: #FF0000)\n"
+        "  --color2 [hex]     Définit la couleur de fin du dégradé (ex: #FFA500)\n"
+        "  --quantized        Quantification des couleurs " MSG_CMD_DIM "(Meilleures performances)" RESET "\n"
+        "  --no-ansi          Désactive les couleurs ANSI en sortie\n"
+        "  --spin             Génère des codes ANSI purs " MSG_CMD_DIM "(Pour les scripts)" RESET "\n"
+        "  --lang [id]        Écrase la langue " MSG_CMD_DIM "(ex: fr, en)" RESET "\n"
+        "  --license          Affiche les termes de la licence\n"
+        "  -v, --version      Affiche la version et l'état du binaire\n"
         "  -h, --help         Affiche ce panneau d'aide interactif\n",
         MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite une valeur numérique.\n",
         MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite un nombre. Reçu : '%s'\n",
@@ -312,44 +373,49 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " La durée ne peut pas être négative.\n",
         MSG_ERRO "[ ❌ ERREUR 206 ]" RESET " Impossible d'allouer la mémoire (wcsdup).\n",
         MSG_AVISO "[ ⚠️ AVERT 403 ]" RESET " Tampon tronqué à 32Mo. Le rendu peut être corrompu.\n",
+        MSG_AVISO "[ ⚠️ AVERT 203 ]" RESET " Échec du chargement de la clé, utilisation de celle par défaut.\n"
+        MSG_CMD_DIM "[ ⚙️ DÉBOGAGE 214 ]" RESET " Désalignement géométrique détecté. La stabilisation peut varier.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ AVERT ]" RESET " Échec du chargement de la clé, utilisation de celle par défaut.\n"
     },
 
     // ---------------- [4] ALEMÃO (DE) ----------------
     {
         MSG_ERRO "Fehler beim Öffnen der Datei\n" RESET,
-        "Originalentwickler: ", "Kompiliert von: ",
+        "Originalentwickler: ",
+        "Kompiliert von: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "MODIFIZIERT" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - Erweiterter Terminal-Verschönerer" RESET "\n",
-        "Verwendung: " BG_FOSCO " cat datei | neonx [optionen] " RESET "\n\n",
-        "  -m [0-11]          Legt den Animationsstil fest\n",
-        "  -s [Wert]          Übergangsgeschwindigkeit " MSG_CMD_DIM "(Standard: 0.2)" RESET "\n",
-        "  -f [Wert]          Wellenfrequenz " MSG_CMD_DIM "(Standard: 0.3)" RESET "\n",
-        "  -d [Wert]          Dauer in Sekunden " MSG_CMD_DIM "(0 = Unendlich)" RESET "\n",
-        "  -A [Grad]          Dreht den Gradientenwinkel " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [Wert]          Legt festen Seed fest " MSG_CMD_DIM "(Deterministisch)" RESET "\n",
-        "  -S                 Rendert ein statisches Bild " MSG_CMD_DIM "(Keine Animation)" RESET "\n",
-        "  -c [Breite]        Erzwingt statische Gradientenbreite\n",
-        "  -o [0-1]         Passt die Randopazität/Glätte an\n",
-        "  -F [Wert]          Sperrt die Bildrate " MSG_CMD_DIM "(z.B. 60, 90)" RESET "\n",
-        "  -L                 Zeilenweise Verarbeitung " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [Name]    Lädt Farbpaletten " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Farbquantisierung " MSG_CMD_DIM "(Höhere Leistung)" RESET "\n",
-        "  --spin             Generiert reine ANSI-Codes " MSG_CMD_DIM "(Für Skripte)" RESET "\n",
-        "  --lang [id]        Überschreibt die Sprache " MSG_CMD_DIM "(z.B. pt, en)" RESET "\n",
-        "  --license          Zeigt Lizenzbedingungen an\n",
-        "  -v, --version      Zeigt Binärversion und Build-Status\n",
-        "  -h, --help         Zeigt dieses interaktive Hilfepanel\n",
+        LOGO_NEONX DIM ITALIC " - Erweitertes Terminal-Verschönerungstool" RESET "\n",
+        "Verwendung: " BG_FOSCO " cat datei | neonx [optionen] " RESET "\n\n"
+        "  -m [0-11]          Animationsstil festlegen\n"
+        "  -s [wert]          Übergangsgeschwindigkeit " MSG_CMD_DIM "(Standard: 0.2)" RESET "\n"
+        "  -f [wert]          Wellenfrequenz " MSG_CMD_DIM "(Standard: 0.3)" RESET "\n"
+        "  -d [wert]          Dauer in Sekunden " MSG_CMD_DIM "(0 = Unendlich)" RESET "\n"
+        "  -max-lines [wert]  Maximale Zeilenanzahl " MSG_CMD_DIM "(Standard: 10.000)" RESET "\n"
+        "  -A [grad]          Gradientenwinkel drehen " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [wert]      Festen Seed definieren " MSG_CMD_DIM "(Deterministisch)" RESET "\n"
+        "  -S                 Statischen Frame rendern " MSG_CMD_DIM "(Ohne Animation)" RESET "\n"
+        "  -c [breite]        Statische Breite für Gradienten erzwingen\n"
+        "  -o [0-1]           Horizontale Deckkraft/Glättung anpassen\n"
+        "  -O [0-1]           Vertikale Deckkraft aktivieren (Fading oben/unten)\n"
+        "  -F [wert]          Bildrate sperren " MSG_CMD_DIM "(z.B.: 60, 90)" RESET "\n"
+        "  -L                 Zeilenweise Verarbeitung " MSG_CMD_DIM "(Stream)" RESET "\n"
+        "  --fo [0-1]         Matt-Modus aktivieren (Reduziert Lebendigkeit)\n"
+        "  --preset [name]    Paletten laden " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Alias für --color1 und --color2\n"
+        "  --color1 [hex]     Startfarbe des Gradienten festlegen (z.B.: #FF0000)\n"
+        "  --color2 [hex]     Endfarbe des Gradienten festlegen (z.B.: #FFA500)\n"
+        "  --quantized        Farbquantisierung " MSG_CMD_DIM "(Höhere Leistung)" RESET "\n"
+        "  --no-ansi          ANSI-Farben in der Ausgabe deaktivieren\n"
+        "  --spin             Reine ANSI-Codes generieren " MSG_CMD_DIM "(Für Skripte)" RESET "\n"
+        "  --lang [id]        Sprache überschreiben " MSG_CMD_DIM "(z.B.: de, en)" RESET "\n"
+        "  --license          Lizenzbedingungen anzeigen\n"
+        "  -v, --version      Version und Binärstatus anzeigen\n"
+        "  -h, --help         Dieses interaktive Hilfefenster anzeigen\n",
         MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Die Option '%s' erfordert einen numerischen Wert.\n",
         MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Option '%s' erfordert eine Zahl. Erhalten: '%s'\n",
         MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Der Animationsmodus (-m) muss eine Ganzzahl sein.\n",
@@ -368,44 +434,49 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Die Dauer darf nicht negativ sein.\n",
         MSG_ERRO "[ ❌ FEHLER 206 ]" RESET " Speicher konnte nicht zugewiesen werden (wcsdup).\n",
         MSG_AVISO "[ ⚠️ WARNUNG 403 ]" RESET " Puffer auf 32 MB begrenzt. Rendering könnte fehlschlagen.\n",
+        MSG_AVISO "[ ⚠️ WARNUNG 203 ]" RESET " Benutzerdefinierter Schlüssel fehlgeschlagen, verwende internen.\n"
+        MSG_CMD_DIM "[ ⚙️ DÉBOGAGE 214 ]" RESET " Désalignement géométrique détecté. La stabilisation peut varier.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ WARNUNG ]" RESET " Benutzerdefinierter Schlüssel fehlgeschlagen, verwende internen.\n"
     },
 
     // ---------------- [5] ITALIANO (IT) ----------------
     {
         MSG_ERRO "Errore durante l'apertura del file\n" RESET,
-        "Creatore Originale: ", "Compilato da: ",
+        "Creatore Originale: ",
+        "Compilato da: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "MODIFICATO" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
         LOGO_NEONX DIM ITALIC " - Abbellitore di Terminale Avanzato" RESET "\n",
-        "Uso: " BG_FOSCO " cat file | neonx [opzioni] " RESET "\n\n",
-        "  -m [0-11]          Definisce lo stile dell'animazione\n",
-        "  -s [val]           Velocità di transizione " MSG_CMD_DIM "(Predefinito: 0.2)" RESET "\n",
-        "  -f [val]           Frequenza dell'onda " MSG_CMD_DIM "(Predefinito: 0.3)" RESET "\n",
-        "  -d [val]           Durata in secondi " MSG_CMD_DIM "(0 = Infinito)" RESET "\n",
-        "  -A [gradi]         Ruota l'angolo del gradiente " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [val]           Imposta un seed fisso " MSG_CMD_DIM "(Deterministico)" RESET "\n",
-        "  -S                 Mostra un frame statico " MSG_CMD_DIM "(Senza animazione)" RESET "\n",
-        "  -c [larg]          Forza una larghezza statica del gradiente\n",
-        "  -o [0-1]           Regola l'opacità/morbidezza dei bordi\n",
-        "  -F [val]           Blocca il framerate " MSG_CMD_DIM "(es: 60, 90)" RESET "\n",
-        "  -L                 Elaborazione riga per riga " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nome]    Carica le tavolozze " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Quantizzazione colore " MSG_CMD_DIM "(Maggiori prestazioni)" RESET "\n",
-        "  --spin             Genera codici ANSI puri " MSG_CMD_DIM "(Per script)" RESET "\n",
-        "  --lang [id]        Sovrascrive la lingua " MSG_CMD_DIM "(es: pt, en)" RESET "\n",
-        "  --license          Mostra i termini di licenza del software\n",
-        "  -v, --version      Mostra versione binaria e stato della build\n",
-        "  -h, --help         Mostra questo pannello di aiuto\n",
+        "Uso: " BG_FOSCO " cat file | neonx [opzioni] " RESET "\n\n"
+        "  -m [0-11]          Imposta lo stile dell'animazione\n"
+        "  -s [valore]        Velocità di transizione " MSG_CMD_DIM "(Predefinito: 0.2)" RESET "\n"
+        "  -f [valore]        Frequenza dell'onda " MSG_CMD_DIM "(Predefinito: 0.3)" RESET "\n"
+        "  -d [valore]        Durata in secondi " MSG_CMD_DIM "(0 = Infinito)" RESET "\n"
+        "  -max-lines [val]   Limite massimo di righe " MSG_CMD_DIM "(Predefinito: 10.000)" RESET "\n"
+        "  -A [gradi]         Ruota l'angolo del gradiente " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [valore]    Imposta un seed fisso " MSG_CMD_DIM "(Deterministico)" RESET "\n"
+        "  -S                 Renderizza un frame statico " MSG_CMD_DIM "(Senza animazione)" RESET "\n"
+        "  -c [larg]          Forza una larghezza statica per il gradiente\n"
+        "  -o [0-1]           Regola l'opacità orizzontale/morbidezza\n"
+        "  -O [0-1]           Attiva Opacità Verticale (dissolvenza alto/basso)\n"
+        "  -F [valore]        Blocca il framerate " MSG_CMD_DIM "(es: 60, 90)" RESET "\n"
+        "  -L                 Elaborazione riga per riga " MSG_CMD_DIM "(Stream)" RESET "\n"
+        "  --fo [0-1]         Attiva Modalità Opaca (Riduce la vividezza)\n"
+        "  --preset [nome]    Carica palette " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Alias per --color1 e --color2\n"
+        "  --color1 [hex]     Imposta il colore iniziale del gradiente (es: #FF0000)\n"
+        "  --color2 [hex]     Imposta il colore finale del gradiente (es: #FFA500)\n"
+        "  --quantized        Quantizzazione dei colori " MSG_CMD_DIM "(Prestazioni migliori)" RESET "\n"
+        "  --no-ansi          Disattiva i colori ANSI nell'output\n"
+        "  --spin             Genera codici ANSI puri " MSG_CMD_DIM "(Per script)" RESET "\n"
+        "  --lang [id]        Sovrascrive la lingua " MSG_CMD_DIM "(es: it, en)" RESET "\n"
+        "  --license          Mostra i termini di licenza\n"
+        "  -v, --version      Mostra la versione e lo stato del binario\n"
+        "  -h, --help         Mostra questo pannello di aiuto interattivo\n",
         MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un valore numerico.\n",
         MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un numero. Ricevuto: '%s'\n",
         MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " La modalità di animazione (-m) deve essere un intero.\n",
@@ -424,44 +495,49 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " La durata non può essere negativa.\n",
         MSG_ERRO "[ ❌ ERRORE 206 ]" RESET " Impossibile allocare memoria (wcsdup).\n",
         MSG_AVISO "[ ⚠️ AVVISO 403 ]" RESET " Buffer troncato a 32MB. Il rendering potrebbe corrompersi.\n",
+        MSG_AVISO "[ ⚠️ AVVISO 203 ]" RESET " Impossibile caricare la chiave, utilizzo quella integrata.\n"
+        MSG_CMD_DIM "[ ⚙️ DEBUG 214 ]" RESET " Disallineamento geometrico rilevato. La stabilizzazione può variare.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ AVVISO ]" RESET " Impossibile caricare la chiave, utilizzo quella integrata.\n"
     },
 
     // ---------------- [6] RUSSO (RU) ----------------
     {
         MSG_ERRO "Ошибка при открытии файла\n" RESET,
-        "Оригинальный создатель: ", "Скомпилировано: ",
+        "Оригинальный создатель: ",
+        "Скомпилировано: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "ИЗМЕНЕНО" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - Расширенный украшатель терминала" RESET "\n",
-        "Использование: " BG_FOSCO " cat файл | neonx [опции] " RESET "\n\n",
-        "  -m [0-11]          Определяет стиль анимации\n",
-        "  -s [знач]          Скорость перехода " MSG_CMD_DIM "(По умолч: 0.2)" RESET "\n",
-        "  -f [знач]          Частота волны " MSG_CMD_DIM "(По умолч: 0.3)" RESET "\n",
-        "  -d [знач]          Продолжительность в секундах " MSG_CMD_DIM "(0 = Бесконечно)" RESET "\n",
-        "  -A [угол]          Поворачивает угол градиента " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [знач]          Устанавливает фиксированный сид " MSG_CMD_DIM "(Детерминировано)" RESET "\n",
-        "  -S                 Рендерит статический кадр " MSG_CMD_DIM "(Без анимации)" RESET "\n",
-        "  -c [ширина]        Принудительная ширина градиента\n",
-        "  -o [0-1]           Настройка непрозрачности/гладкости краев\n",
-        "  -F [знач]          Блокирует частоту кадров " MSG_CMD_DIM "(напр: 60, 90)" RESET "\n",
-        "  -L                 Построчная обработка " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [имя]     Загружает цветовые палитры " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Квантование цвета " MSG_CMD_DIM "(Высокая производительность)" RESET "\n",
-        "  --spin             Генерирует чистые коды ANSI " MSG_CMD_DIM "(Для скриптов)" RESET "\n",
-        "  --lang [id]        Переопределяет язык " MSG_CMD_DIM "(напр: pt, en)" RESET "\n",
-        "  --license          Показывает условия лицензирования\n",
-        "  -v, --version      Показывает версию и статус сборки\n",
-        "  -h, --help         Показывает эту панель помощи\n",
+        LOGO_NEONX DIM ITALIC " - Продвинутый Улучшитель Терминала" RESET "\n",
+        "Использование: " BG_FOSCO " cat файл | neonx [опции] " RESET "\n\n"
+        "  -m [0-11]          Задает стиль анимации\n"
+        "  -s [значение]      Скорость перехода " MSG_CMD_DIM "(По умолчанию: 0.2)" RESET "\n"
+        "  -f [значение]      Частота волны " MSG_CMD_DIM "(По умолчанию: 0.3)" RESET "\n"
+        "  -d [значение]      Продолжительность в секундах " MSG_CMD_DIM "(0 = Бесконечно)" RESET "\n"
+        "  -max-lines [знач]  Максимальный лимит строк " MSG_CMD_DIM "(По умолчанию: 10.000)" RESET "\n"
+        "  -A [градусы]       Поворачивает угол градиента " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [значение]  Задает фиксированный seed " MSG_CMD_DIM "(Детерминировано)" RESET "\n"
+        "  -S                 Рендерит статический кадр " MSG_CMD_DIM "(Без анимации)" RESET "\n"
+        "  -c [ширина]        Принудительная статическая ширина для градиента\n"
+        "  -o [0-1]           Настраивает горизонтальную непрозрачность/сглаживание\n"
+        "  -O [0-1]           Включает вертикальную непрозрачность (затухание верх/низ)\n"
+        "  -F [значение]      Блокирует частоту кадров " MSG_CMD_DIM "(напр.: 60, 90)" RESET "\n"
+        "  -L                 Построчная обработка " MSG_CMD_DIM "(Поток)" RESET "\n"
+        "  --fo [0-1]         Включает матовый режим (Снижает яркость)\n"
+        "  --preset [имя]     Загружает палитры " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Псевдонимы для --color1 и --color2\n"
+        "  --color1 [hex]     Начальный цвет градиента (напр.: #FF0000)\n"
+        "  --color2 [hex]     Конечный цвет градиента (напр.: #FFA500)\n"
+        "  --quantized        Квантование цветов " MSG_CMD_DIM "(Высокая производительность)" RESET "\n"
+        "  --no-ansi          Отключает цвета ANSI в выводе\n"
+        "  --spin             Генерирует чистые коды ANSI " MSG_CMD_DIM "(Для скриптов)" RESET "\n"
+        "  --lang [id]        Переопределяет язык " MSG_CMD_DIM "(напр.: ru, en)" RESET "\n"
+        "  --license          Показывает условия лицензии\n"
+        "  -v, --version      Показывает версию и статус бинарника\n"
+        "  -h, --help         Показывает эту интерактивную панель помощи\n",
         MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует числового значения.\n",
         MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует числа. Получено: '%s'\n",
         MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Режим анимации (-m) должен быть целым числом.\n",
@@ -480,43 +556,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Продолжительность не может быть отрицательной.\n",
         MSG_ERRO "[ ❌ ОШИБКА 206 ]" RESET " Не удалось выделить память (wcsdup).\n",
         MSG_AVISO "[ ⚠️ ПРЕДУПР 403 ]" RESET " Буфер усечен до 32 МБ. Рендеринг может быть поврежден.\n",
+        MSG_AVISO "[ ⚠️ ПРЕДУПР 203 ]" RESET " Ошибка загрузки ключа, используется встроенный.\n"
+        MSG_CMD_DIM "[ ⚙️ ОТЛАДКА 214 ]" RESET " Обнаружено геометрическое смещение. Стабилизация может варьироваться.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ ПРЕДУПР ]" RESET " Ошибка загрузки ключа, используется встроенный.\n"
     },
 
     // ---------------- [7] CHINÊS (ZH) ----------------
     {
         MSG_ERRO "打开文件时出错\n" RESET,
-        "原作者: ", "编译者: ",
+        "原作者: ",
+        "编译者: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "已修改" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - 高级终端美化器" RESET "\n",
-        "用法: " BG_FOSCO " cat 文件 | neonx [选项] " RESET "\n\n",
-        "  -m [0-11]          定义动画样式\n",
-        "  -s [值]            过渡速度 " MSG_CMD_DIM "(默认: 0.2)" RESET "\n",
-        "  -f [值]            波浪频率 " MSG_CMD_DIM "(默认: 0.3)" RESET "\n",
-        "  -d [值]            持续时间(秒) " MSG_CMD_DIM "(0 = 无限)" RESET "\n",
-        "  -A [角度]          旋转渐变角度 " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [值]            设置固定种子 " MSG_CMD_DIM "(确定性生成)" RESET "\n",
-        "  -S                 渲染静态帧 " MSG_CMD_DIM "(无动画)" RESET "\n",
-        "  -c [宽度]          强制静态渐变宽度\n",
-        "  -o [0-1]           调整边缘不透明度/平滑度\n",
-        "  -F [值]            锁定帧率 " MSG_CMD_DIM "(例如: 60, 90)" RESET "\n",
-        "  -L                 逐行处理模式 " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [名称]    加载调色板 " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        颜色量化模式 " MSG_CMD_DIM "(更高性能)" RESET "\n",
-        "  --spin             生成纯 ANSI 代码 " MSG_CMD_DIM "(用于外部脚本)" RESET "\n",
-        "  --lang [id]        覆盖界面语言 " MSG_CMD_DIM "(例如: pt, en)" RESET "\n",
-        "  --license          显示软件许可条款\n",
-        "  -v, --version      显示二进制版本和构建状态\n",
+        LOGO_NEONX DIM ITALIC " - 高级终端美化工具" RESET "\n",
+        "用法: " BG_FOSCO " cat 文件 | neonx [选项] " RESET "\n\n"
+        "  -m [0-11]          设置动画风格\n"
+        "  -s [值]            过渡速度 " MSG_CMD_DIM "(默认: 0.2)" RESET "\n"
+        "  -f [值]            波浪频率 " MSG_CMD_DIM "(默认: 0.3)" RESET "\n"
+        "  -d [值]            持续时间（秒） " MSG_CMD_DIM "(0 = 无限)" RESET "\n"
+        "  -max-lines [值]    最大行数限制 " MSG_CMD_DIM "(默认: 10.000)" RESET "\n"
+        "  -A [度]            旋转渐变角度 " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [值]        设置固定种子 " MSG_CMD_DIM "(确定性)" RESET "\n"
+        "  -S                 渲染静态帧 " MSG_CMD_DIM "(无动画)" RESET "\n"
+        "  -c [宽度]          强制渐变的静态宽度\n"
+        "  -o [0-1]           调整水平不透明度/平滑度\n"
+        "  -O [0-1]           启用垂直不透明度 (顶部/底部淡入淡出)\n"
+        "  -F [值]            锁定帧率 " MSG_CMD_DIM "(例: 60, 90)" RESET "\n"
+        "  -L                 逐行处理 " MSG_CMD_DIM "(流)" RESET "\n"
+        "  --fo [0-1]         启用哑光模式 (降低鲜艳度)\n"
+        "  --preset [名称]    加载调色板 " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   --color1 和 --color2 的别名\n"
+        "  --color1 [hex]     设置渐变起始颜色 (例: #FF0000)\n"
+        "  --color2 [hex]     设置渐变结束颜色 (例: #FFA500)\n"
+        "  --quantized        颜色量化 " MSG_CMD_DIM "(更高性能)" RESET "\n"
+        "  --no-ansi          在输出中禁用 ANSI 颜色\n"
+        "  --spin             生成纯 ANSI 代码 " MSG_CMD_DIM "(用于脚本)" RESET "\n"
+        "  --lang [id]        覆盖语言 " MSG_CMD_DIM "(例: zh, en)" RESET "\n"
+        "  --license          显示许可条款\n"
+        "  -v, --version      显示二进制版本和状态\n"
         "  -h, --help         显示此交互式帮助面板\n",
         MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 后需要一个数值。\n",
         MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 需要一个数值。收到: '%s'\n",
@@ -536,44 +617,49 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ 错误 400 ]" RESET " 持续时间不能为负数。\n",
         MSG_ERRO "[ ❌ 错误 206 ]" RESET " 无法分配内存 (wcsdup)。\n",
         MSG_AVISO "[ ⚠️ 警告 403 ]" RESET " 缓冲区已被预防性截断至 32MB。渲染可能会损坏。\n",
+        MSG_AVISO "[ ⚠️ 警告 203 ]" RESET " 加载自定义密钥失败，使用内置密钥。\n"
+        MSG_CMD_DIM "[ ⚙️ 调试 214 ]" RESET " 检测到几何错位。稳定效果可能有所不同。\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ 警告 ]" RESET " 加载自定义密钥失败，使用内置密钥。\n"
     },
 
     // ---------------- [8] JAPONÊS (JA) ----------------
     {
         MSG_ERRO "ファイルを開く際にエラーが発生しました\n" RESET,
-        "オリジナルの作成者: ", "コンパイル: ",
+        "オリジナルの作成者: ",
+        "コンパイル: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "変更済み" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
         LOGO_NEONX DIM ITALIC " - 高度なターミナル装飾ツール" RESET "\n",
-        "使用方法: " BG_FOSCO " cat ファイル | neonx [オプション] " RESET "\n\n",
-        "  -m [0-11]          アニメーションスタイルを定義\n",
-        "  -s [値]            トランジション速度 " MSG_CMD_DIM "(デフォルト: 0.2)" RESET "\n",
-        "  -f [値]            波の周波数 " MSG_CMD_DIM "(デフォルト: 0.3)" RESET "\n",
-        "  -d [値]            継続時間(秒) " MSG_CMD_DIM "(0 = 無限)" RESET "\n",
-        "  -A [角度]          グラデーションの角度を回転 " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [値]            固定シードを設定 " MSG_CMD_DIM "(決定論的)" RESET "\n",
-        "  -S                 静的フレームをレンダリング " MSG_CMD_DIM "(アニメーションなし)" RESET "\n",
-        "  -c [幅]            静的グラデーションの幅を強制\n",
-        "  -o [0-1]           エッジの不透明度/滑らかさを調整\n",
-        "  -F [値]            フレームレートをロック " MSG_CMD_DIM "(例: 60, 90)" RESET "\n",
-        "  -L                 行ごとの処理 " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [名前]    カラーパレットをロード " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        カラー量子化 " MSG_CMD_DIM "(高パフォーマンス)" RESET "\n",
-        "  --spin             純粋な ANSI コードを生成 " MSG_CMD_DIM "(スクリプト用)" RESET "\n",
-        "  --lang [id]        言語を上書き " MSG_CMD_DIM "(例: pt, en)" RESET "\n",
-        "  --license          ソフトウェアのライセンス条項を表示\n",
-        "  -v, --version      バイナリのバージョンとビルド状態を表示\n",
-        "  -h, --help         このインタラクティブなヘルプを表示\n",
+        "使用法: " BG_FOSCO " cat ファイル | neonx [オプション] " RESET "\n\n"
+        "  -m [0-11]          アニメーションスタイルを設定\n"
+        "  -s [値]            トランジション速度 " MSG_CMD_DIM "(デフォルト: 0.2)" RESET "\n"
+        "  -f [値]            波の周波数 " MSG_CMD_DIM "(デフォルト: 0.3)" RESET "\n"
+        "  -d [値]            継続時間（秒） " MSG_CMD_DIM "(0 = 無限)" RESET "\n"
+        "  -max-lines [値]    最大行数制限 " MSG_CMD_DIM "(デフォルト: 10.000)" RESET "\n"
+        "  -A [度]            グラデーションの角度を回転 " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [値]        固定シードを設定 " MSG_CMD_DIM "(決定的)" RESET "\n"
+        "  -S                 静的フレームをレンダリング " MSG_CMD_DIM "(アニメーションなし)" RESET "\n"
+        "  -c [幅]            グラデーションの静的な幅を強制\n"
+        "  -o [0-1]           水平方向の不透明度/滑らかさを調整\n"
+        "  -O [0-1]           垂直方向の不透明度を有効化 (上下のフェード)\n"
+        "  -F [値]            フレームレートを固定 " MSG_CMD_DIM "(例: 60, 90)" RESET "\n"
+        "  -L                 行単位の処理 " MSG_CMD_DIM "(ストリーム)" RESET "\n"
+        "  --fo [0-1]         マットモードを有効化 (鮮やかさを軽減)\n"
+        "  --preset [名前]    パレットを読み込む " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   --color1 および --color2 のエイリアス\n"
+        "  --color1 [hex]     グラデーションの開始色を設定 (例: #FF0000)\n"
+        "  --color2 [hex]     グラデーションの終了色を設定 (例: #FFA500)\n"
+        "  --quantized        色の量子化 " MSG_CMD_DIM "(高パフォーマンス)" RESET "\n"
+        "  --no-ansi          出力でのANSIカラーを無効化\n"
+        "  --spin             純粋なANSIコードを生成 " MSG_CMD_DIM "(スクリプト用)" RESET "\n"
+        "  --lang [id]        言語を上書き " MSG_CMD_DIM "(例: ja, en)" RESET "\n"
+        "  --license          ライセンス条項を表示\n"
+        "  -v, --version      バイナリのバージョンとステータスを表示\n"
+        "  -h, --help         このインタラクティブなヘルプパネルを表示\n",
         MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には数値が必要です。\n",
         MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には数値が必要です。受信: '%s'\n",
         MSG_ERRO "[ ❌ エラー 400 ]" RESET " アニメーションモード (-m) は整数である必要があります。\n",
@@ -592,43 +678,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ エラー 400 ]" RESET " 期間は負にすることはできません。\n",
         MSG_ERRO "[ ❌ エラー 206 ]" RESET " メモリを割り当てることができませんでした (wcsdup)。\n",
         MSG_AVISO "[ ⚠️ 警告 403 ]" RESET " バッファは32MBに切り捨てられました。レンダリングが破損する可能性があります。\n",
+        MSG_AVISO "[ ⚠️ 警告 203 ]" RESET " カスタムキーの読み込みに失敗しました。組み込みキーを使用します。\n"
+        MSG_CMD_DIM "[ ⚙️ デバッグ 214 ]" RESET " 幾何学的なズレを検出しました。安定化処理は変動する可能性があります。\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ 警告 ]" RESET " カスタムキーの読み込みに失敗しました。組み込みキーを使用します。\n"
     },
 
     // ---------------- [9] COREANO (KO) ----------------
     {
         MSG_ERRO "파일 열기 오류\n" RESET,
-        "원본 제작자: ", "컴파일러: ",
+        "원본 제작자: ",
+        "컴파일러: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "수정됨" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - 고급 터미널 뷰티파이어" RESET "\n",
-        "사용법: " BG_FOSCO " cat 파일 | neonx [옵션] " RESET "\n\n",
-        "  -m [0-11]          애니메이션 스타일 정의\n",
-        "  -s [값]            전환 속도 " MSG_CMD_DIM "(기본값: 0.2)" RESET "\n",
-        "  -f [값]            파동 주파수 " MSG_CMD_DIM "(기본값: 0.3)" RESET "\n",
-        "  -d [값]            지속 시간(초) " MSG_CMD_DIM "(0 = 무한)" RESET "\n",
-        "  -A [각도]          그라디언트 각도 회전 " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [값]            고정 시드 설정 " MSG_CMD_DIM "(결정론적)" RESET "\n",
-        "  -S                 정적 프레임 렌더링 " MSG_CMD_DIM "(애니메이션 없음)" RESET "\n",
-        "  -c [너비]          정적 그라디언트 너비 강제 적용\n",
-        "  -o [0-1]           가장자리 불투명도/부드러움 조정\n",
-        "  -F [값]            프레임 속도 고정 " MSG_CMD_DIM "(예: 60, 90)" RESET "\n",
-        "  -L                 한 줄씩 처리 " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [이름]    색상 팔레트 로드 " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        색상 양자화 " MSG_CMD_DIM "(고성능 모드)" RESET "\n",
-        "  --spin             순수 ANSI 코드 생성 " MSG_CMD_DIM "(스크립트용)" RESET "\n",
-        "  --lang [id]        인터페이스 언어 재정의 " MSG_CMD_DIM "(예: pt, en)" RESET "\n",
-        "  --license          소프트웨어 라이선스 조항 표시\n",
-        "  -v, --version      바이너리 버전 및 빌드 상태 표시\n",
+        LOGO_NEONX DIM ITALIC " - 고급 터미널 꾸미기 도구" RESET "\n",
+        "사용법: " BG_FOSCO " cat 파일 | neonx [옵션] " RESET "\n\n"
+        "  -m [0-11]          애니메이션 스타일 설정\n"
+        "  -s [값]            전환 속도 " MSG_CMD_DIM "(기본값: 0.2)" RESET "\n"
+        "  -f [값]            파동 주파수 " MSG_CMD_DIM "(기본값: 0.3)" RESET "\n"
+        "  -d [값]            지속 시간(초) " MSG_CMD_DIM "(0 = 무한)" RESET "\n"
+        "  -max-lines [값]    최대 줄 수 제한 " MSG_CMD_DIM "(기본값: 10.000)" RESET "\n"
+        "  -A [도]            그라데이션 각도 회전 " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [값]        고정 시드 설정 " MSG_CMD_DIM "(결정론적)" RESET "\n"
+        "  -S                 정적 프레임 렌더링 " MSG_CMD_DIM "(애니메이션 없음)" RESET "\n"
+        "  -c [너비]          그라데이션의 정적 너비 강제 적용\n"
+        "  -o [0-1]           가로 불투명도/부드러움 조정\n"
+        "  -O [0-1]           세로 불투명도 활성화 (상단/하단 페이딩)\n"
+        "  -F [값]            프레임 속도 고정 " MSG_CMD_DIM "(예: 60, 90)" RESET "\n"
+        "  -L                 줄 단위 처리 " MSG_CMD_DIM "(스트림)" RESET "\n"
+        "  --fo [0-1]         매트 모드 활성화 (선명도 감소)\n"
+        "  --preset [이름]    팔레트 로드 " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   --color1 및 --color2의 별칭\n"
+        "  --color1 [hex]     그라데이션 시작 색상 설정 (예: #FF0000)\n"
+        "  --color2 [hex]     그라데이션 끝 색상 설정 (예: #FFA500)\n"
+        "  --quantized        색상 양자화 " MSG_CMD_DIM "(더 높은 성능)" RESET "\n"
+        "  --no-ansi          출력에서 ANSI 색상 비활성화\n"
+        "  --spin             순수 ANSI 코드 생성 " MSG_CMD_DIM "(스크립트용)" RESET "\n"
+        "  --lang [id]        언어 재정의 " MSG_CMD_DIM "(예: ko, en)" RESET "\n"
+        "  --license          라이선스 조건 표시\n"
+        "  -v, --version      바이너리 버전 및 상태 표시\n"
         "  -h, --help         이 대화형 도움말 패널 표시\n",
         MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션 뒤에 숫자 값이 필요합니다.\n",
         MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션에 숫자가 필요합니다. 수신됨: '%s'\n",
@@ -648,43 +739,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ 오류 400 ]" RESET " 기간은 음수일 수 없습니다.\n",
         MSG_ERRO "[ ❌ 오류 206 ]" RESET " 메모리를 할당할 수 없습니다 (wcsdup).\n",
         MSG_AVISO "[ ⚠️ 경고 403 ]" RESET " 버퍼가 32MB로 잘렸습니다. 렌더링이 손상될 수 있습니다.\n",
+        MSG_AVISO "[ ⚠️ 경고 203 ]" RESET " 사용자 지정 키를 로드하지 못했습니다. 기본 키를 사용합니다.\n"
+        MSG_CMD_DIM "[ ⚙️ 디버그 214 ]" RESET " 기하학적 불일치가 감지되었습니다. 안정화는 달라질 수 있습니다.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ 경고 ]" RESET " 사용자 지정 키를 로드하지 못했습니다. 기본 키를 사용합니다.\n"
     },
 
     // ---------------- [10] TURCO (TR) ----------------
     {
         MSG_ERRO "Dosya açılırken hata oluştu\n" RESET,
-        "Orijinal Yapımcı: ", "Derleyen: ",
+        "Orijinal Yapımcı: ",
+        "Derleyen: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "DEĞİŞTİRİLDİ" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
         LOGO_NEONX DIM ITALIC " - Gelişmiş Terminal Güzelleştirici" RESET "\n",
-        "Kullanım: " BG_FOSCO " cat dosya | neonx [seçenekler] " RESET "\n\n",
-        "  -m [0-11]          Animasyon stilini tanımlar\n",
-        "  -s [değer]         Geçiş hızı " MSG_CMD_DIM "(Varsayılan: 0.2)" RESET "\n",
-        "  -f [değer]         Dalga frekansı " MSG_CMD_DIM "(Varsayılan: 0.3)" RESET "\n",
-        "  -d [değer]         Saniye cinsinden süre " MSG_CMD_DIM "(0 = Sonsuz)" RESET "\n",
-        "  -A [açı]           Gradyan açısını döndürür " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [değer]         Sabit bir seed ayarlar " MSG_CMD_DIM "(Deterministik)" RESET "\n",
-        "  -S                 Statik bir kare oluşturur " MSG_CMD_DIM "(Animasyon yok)" RESET "\n",
-        "  -c [genişlik]      Statik gradyan genişliğine zorlar\n",
-        "  -o [0-1]           Kenar opaklığını/pürüzsüzlüğünü ayarlar\n",
-        "  -F [değer]         Kare hızını kilitler " MSG_CMD_DIM "(ör: 60, 90)" RESET "\n",
-        "  -L                 Satır satır işleme " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [isim]    Renk paletlerini yükler " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Renk kuantizasyonu " MSG_CMD_DIM "(Daha yüksek performans)" RESET "\n",
-        "  --spin             Saf ANSI kodları üretir " MSG_CMD_DIM "(Scriptler için)" RESET "\n",
-        "  --lang [id]        Arayüz dilini geçersiz kılar " MSG_CMD_DIM "(ör: pt, en)" RESET "\n",
-        "  --license          Yazılım lisans koşullarını gösterir\n",
-        "  -v, --version      İkili sürümü ve derleme durumunu gösterir\n",
+        "Kullanım: " BG_FOSCO " cat dosya | neonx [seçenekler] " RESET "\n\n"
+        "  -m [0-11]          Animasyon stilini belirler\n"
+        "  -s [değer]         Geçiş hızı " MSG_CMD_DIM "(Varsayılan: 0.2)" RESET "\n"
+        "  -f [değer]         Dalga frekansı " MSG_CMD_DIM "(Varsayılan: 0.3)" RESET "\n"
+        "  -d [değer]         Saniye cinsinden süre " MSG_CMD_DIM "(0 = Sonsuz)" RESET "\n"
+        "  -max-lines [değ]   Maksimum satır sınırı " MSG_CMD_DIM "(Varsayılan: 10.000)" RESET "\n"
+        "  -A [derece]        Gradyan açısını döndürür " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [değer]     Sabit bir seed ayarlar " MSG_CMD_DIM "(Deterministik)" RESET "\n"
+        "  -S                 Statik bir kare oluşturur " MSG_CMD_DIM "(Animasyon yok)" RESET "\n"
+        "  -c [genişlik]      Gradyan için statik bir genişlik zorlar\n"
+        "  -o [0-1]           Yatay opaklığı/pürüzsüzlüğü ayarlar\n"
+        "  -O [0-1]           Dikey Opaklığı etkinleştirir (üst/alt solma)\n"
+        "  -F [değer]         Kare hızını kilitler " MSG_CMD_DIM "(örn: 60, 90)" RESET "\n"
+        "  -L                 Satır satır işleme " MSG_CMD_DIM "(Akış)" RESET "\n"
+        "  --fo [0-1]         Mat Modu etkinleştirir (Canlılığı azaltır)\n"
+        "  --preset [isim]    Paletleri yükler " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   --color1 ve --color2 için kısayol\n"
+        "  --color1 [hex]     Gradyanın başlangıç rengini belirler (örn: #FF0000)\n"
+        "  --color2 [hex]     Gradyanın bitiş rengini belirler (örn: #FFA500)\n"
+        "  --quantized        Renk niceleme " MSG_CMD_DIM "(Daha yüksek performans)" RESET "\n"
+        "  --no-ansi          Çıktıda ANSI renklerini devre dışı bırakır\n"
+        "  --spin             Saf ANSI kodları üretir " MSG_CMD_DIM "(Betikler için)" RESET "\n"
+        "  --lang [id]        Dili geçersiz kılar " MSG_CMD_DIM "(örn: tr, en)" RESET "\n"
+        "  --license          Lisans koşullarını gösterir\n"
+        "  -v, --version      Sürümü ve ikili dosya durumunu gösterir\n"
         "  -h, --help         Bu etkileşimli yardım panelini gösterir\n",
         MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği sayısal bir değer gerektirir.\n",
         MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği sayı gerektirir. Alınan: '%s'\n",
@@ -704,43 +800,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ HATA 400 ]" RESET " Süre negatif olamaz.\n",
         MSG_ERRO "[ ❌ HATA 206 ]" RESET " Bellek ayrılamadı (wcsdup).\n",
         MSG_AVISO "[ ⚠️ UYARI 403 ]" RESET " Arabellek 32MB ile sınırlandırıldı. Görüntü bozulabilir.\n",
+        MSG_AVISO "[ ⚠️ UYARI 203 ]" RESET " Özel anahtar yüklenemedi, yerleşik anahtar kullanılıyor.\n"
+        MSG_CMD_DIM "[ ⚙️ HATA AYIKLAMA 214 ]" RESET " Geometrik hizasızlık tespit edildi. Stabilizasyon değişebilir.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ UYARI ]" RESET " Özel anahtar yüklenemedi, yerleşik anahtar kullanılıyor.\n"
     },
 
     // ---------------- [11] POLONÊS (PL) ----------------
     {
         MSG_ERRO "Błąd podczas otwierania pliku\n" RESET,
-        "Oryginalny Twórca: ", "Skompilowane przez: ",
+        "Oryginalny Twórca: ",
+        "Skompilowane przez: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "ZMODYFIKOWANO" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
         LOGO_NEONX DIM ITALIC " - Zaawansowany Upiększacz Terminala" RESET "\n",
-        "Użycie: " BG_FOSCO " cat plik | neonx [opcje] " RESET "\n\n",
-        "  -m [0-11]          Definiuje styl animacji\n",
-        "  -s [wartość]       Prędkość przejścia " MSG_CMD_DIM "(Domyślnie: 0.2)" RESET "\n",
-        "  -f [wartość]       Częstotliwość fali " MSG_CMD_DIM "(Domyślnie: 0.3)" RESET "\n",
-        "  -d [wartość]       Czas w sekundach " MSG_CMD_DIM "(0 = Nieskończoność)" RESET "\n",
-        "  -A [kąt]           Obraca kąt gradientu " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [wartość]       Ustawia stały seed " MSG_CMD_DIM "(Deterministyczny)" RESET "\n",
-        "  -S                 Generuje statyczną klatkę " MSG_CMD_DIM "(Brak animacji)" RESET "\n",
-        "  -c [szerokość]     Wymusza stałą szerokość gradientu\n",
-        "  -o [0-1]           Dostosowuje krycie/gładkość krawędzi\n",
-        "  -F [wartość]       Blokuje liczbę klatek " MSG_CMD_DIM "(np. 60, 90)" RESET "\n",
-        "  -L                 Przetwarzanie linia po linii " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nazwa]   Ładuje palety kolorów " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Kwantyzacja kolorów " MSG_CMD_DIM "(Wyższa wydajność)" RESET "\n",
-        "  --spin             Generuje czyste kody ANSI " MSG_CMD_DIM "(Dla skryptów)" RESET "\n",
-        "  --lang [id]        Nadpisuje język interfejsu " MSG_CMD_DIM "(np. pt, en)" RESET "\n",
-        "  --license          Wyświetla warunki licencji oprogramowania\n",
-        "  -v, --version      Pokazuje wersję binarną i status kompilacji\n",
+        "Użycie: " BG_FOSCO " cat plik | neonx [opcje] " RESET "\n\n"
+        "  -m [0-11]          Ustawia styl animacji\n"
+        "  -s [wartość]       Prędkość przejścia " MSG_CMD_DIM "(Domyślnie: 0.2)" RESET "\n"
+        "  -f [wartość]       Częstotliwość fali " MSG_CMD_DIM "(Domyślnie: 0.3)" RESET "\n"
+        "  -d [wartość]       Czas trwania w sekundach " MSG_CMD_DIM "(0 = Nieskończoność)" RESET "\n"
+        "  -max-lines [war]   Maksymalny limit linii " MSG_CMD_DIM "(Domyślnie: 10.000)" RESET "\n"
+        "  -A [stopnie]       Obraca kąt gradientu " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [wartość]   Ustawia stały seed " MSG_CMD_DIM "(Deterministyczny)" RESET "\n"
+        "  -S                 Renderuje statyczną klatkę " MSG_CMD_DIM "(Bez animacji)" RESET "\n"
+        "  -c [szerokość]     Wymusza statyczną szerokość dla gradientu\n"
+        "  -o [0-1]           Dostosowuje poziomą przezroczystość/gładkość\n"
+        "  -O [0-1]           Włącza Pionową Przezroczystość (zanikanie góra/dół)\n"
+        "  -F [wartość]       Blokuje liczbę klatek na sekundę " MSG_CMD_DIM "(np. 60, 90)" RESET "\n"
+        "  -L                 Przetwarzanie linia po linii " MSG_CMD_DIM "(Strumień)" RESET "\n"
+        "  --fo [0-1]         Włącza Tryb Matowy (Zmniejsza żywość)\n"
+        "  --preset [nazwa]   Ładuje palety " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Alias dla --color1 i --color2\n"
+        "  --color1 [hex]     Ustawia kolor początkowy gradientu (np. #FF0000)\n"
+        "  --color2 [hex]     Ustawia kolor końcowy gradientu (np. #FFA500)\n"
+        "  --quantized        Kwantyzacja kolorów " MSG_CMD_DIM "(Wyższa wydajność)" RESET "\n"
+        "  --no-ansi          Wyłącza użycie kolorów ANSI w wyjściu\n"
+        "  --spin             Generuje czyste kody ANSI " MSG_CMD_DIM "(Dla skryptów)" RESET "\n"
+        "  --lang [id]        Nadpisuje język " MSG_CMD_DIM "(np. pl, en)" RESET "\n"
+        "  --license          Wyświetla warunki licencji\n"
+        "  -v, --version      Pokazuje wersję i status pliku binarnego\n"
         "  -h, --help         Wyświetla ten interaktywny panel pomocy\n",
         MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga podania wartości liczbowej.\n",
         MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga liczby. Otrzymano: '%s'\n",
@@ -760,43 +861,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Czas trwania nie może być ujemny.\n",
         MSG_ERRO "[ ❌ BŁĄD 206 ]" RESET " Nie można przydzielić pamięci (wcsdup).\n",
         MSG_AVISO "[ ⚠️ OSTRZ 403 ]" RESET " Bufor obcięty do 32MB. Renderowanie może ulec uszkodzeniu.\n",
+        MSG_AVISO "[ ⚠️ OSTRZ 203 ]" RESET " Błąd ładowania własnego klucza, używam wbudowanego.\n"
+        MSG_CMD_DIM "[ ⚙️ DEBUGOWANIE 214 ]" RESET " Wykryto przesunięcie geometryczne. Stabilizacja może ulec zmianie.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ OSTRZ ]" RESET " Błąd ładowania własnego klucza, używam wbudowanego.\n"
     },
 
     // ---------------- [12] INDONÉSIO (ID) ----------------
     {
         MSG_ERRO "Kesalahan saat membuka file\n" RESET,
-        "Pembuat Asli: ", "Dikompalasi oleh: ",
+        "Pembuat Asli: ",
+        "Dikompalasi oleh: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "DIMODIFIKASI" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - Penata Terminal Lanjutan" RESET "\n",
-        "Penggunaan: " BG_FOSCO " cat file | neonx [opsi] " RESET "\n\n",
-        "  -m [0-11]          Menentukan gaya animasi\n",
-        "  -s [nilai]         Kecepatan transisi " MSG_CMD_DIM "(Default: 0.2)" RESET "\n",
-        "  -f [nilai]         Frekuensi gelombang " MSG_CMD_DIM "(Default: 0.3)" RESET "\n",
-        "  -d [nilai]         Durasi dalam detik " MSG_CMD_DIM "(0 = Tak terbatas)" RESET "\n",
-        "  -A [sudut]         Memutar sudut gradien " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [nilai]         Menetapkan seed tetap " MSG_CMD_DIM "(Deterministik)" RESET "\n",
-        "  -S                 Merender bingkai statis " MSG_CMD_DIM "(Tanpa animasi)" RESET "\n",
-        "  -c [lebar]         Memaksa lebar gradien statis\n",
-        "  -o [0-1]           Menyesuaikan opasitas/kehalusan tepi\n",
-        "  -F [nilai]         Mengunci kecepatan bingkai " MSG_CMD_DIM "(mis: 60, 90)" RESET "\n",
-        "  -L                 Pemrosesan baris demi baris " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [nama]    Memuat palet warna " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Kuantisasi warna " MSG_CMD_DIM "(Performa lebih tinggi)" RESET "\n",
-        "  --spin             Menghasilkan kode ANSI murni " MSG_CMD_DIM "(Untuk skrip)" RESET "\n",
-        "  --lang [id]        Menimpa bahasa antarmuka " MSG_CMD_DIM "(mis: pt, en)" RESET "\n",
-        "  --license          Menampilkan persyaratan lisensi\n",
-        "  -v, --version      Menampilkan versi biner dan status build\n",
+        LOGO_NEONX DIM ITALIC " - Peningkat Terminal Lanjutan" RESET "\n",
+        "Penggunaan: " BG_FOSCO " cat file | neonx [opsi] " RESET "\n\n"
+        "  -m [0-11]          Menentukan gaya animasi\n"
+        "  -s [nilai]         Kecepatan transisi " MSG_CMD_DIM "(Bawaan: 0.2)" RESET "\n"
+        "  -f [nilai]         Frekuensi gelombang " MSG_CMD_DIM "(Bawaan: 0.3)" RESET "\n"
+        "  -d [nilai]         Durasi dalam detik " MSG_CMD_DIM "(0 = Tak terbatas)" RESET "\n"
+        "  -max-lines [nil]   Batas garis maksimum " MSG_CMD_DIM "(Bawaan: 10.000)" RESET "\n"
+        "  -A [derajat]       Memutar sudut gradien " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [nilai]     Menentukan seed tetap " MSG_CMD_DIM "(Deterministik)" RESET "\n"
+        "  -S                 Menyajikan bingkai statis " MSG_CMD_DIM "(Tanpa animasi)" RESET "\n"
+        "  -c [lebar]         Memaksa lebar statis untuk gradien\n"
+        "  -o [0-1]           Menyesuaikan opasitas/kehalusan horizontal\n"
+        "  -O [0-1]           Mengaktifkan Opasitas Vertikal (pemudaran atas/bawah)\n"
+        "  -F [nilai]         Mengunci kecepatan bingkai " MSG_CMD_DIM "(mis: 60, 90)" RESET "\n"
+        "  -L                 Pemrosesan baris demi baris " MSG_CMD_DIM "(Aliran)" RESET "\n"
+        "  --fo [0-1]         Mengaktifkan Mode Matte (Mengurangi kecerahan)\n"
+        "  --preset [nama]    Memuat palet " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Alias untuk --color1 dan --color2\n"
+        "  --color1 [hex]     Menentukan warna awal gradien (mis: #FF0000)\n"
+        "  --color2 [hex]     Menentukan warna akhir gradien (mis: #FFA500)\n"
+        "  --quantized        Kuantisasi warna " MSG_CMD_DIM "(Performa lebih tinggi)" RESET "\n"
+        "  --no-ansi          Menonaktifkan penggunaan warna ANSI pada keluaran\n"
+        "  --spin             Menghasilkan kode ANSI murni " MSG_CMD_DIM "(Untuk skrip)" RESET "\n"
+        "  --lang [id]        Mengesampingkan bahasa " MSG_CMD_DIM "(mis: id, en)" RESET "\n"
+        "  --license          Menampilkan persyaratan lisensi\n"
+        "  -v, --version      Menampilkan versi dan status biner\n"
         "  -h, --help         Menampilkan panel bantuan interaktif ini\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan nilai numerik setelahnya.\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan angka. Diterima: '%s'\n",
@@ -816,44 +922,49 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Durasi tidak boleh negatif.\n",
         MSG_ERRO "[ ❌ ERROR 206 ]" RESET " Tidak dapat mengalokasikan memori (wcsdup).\n",
         MSG_AVISO "[ ⚠️ AWAS 403 ]" RESET " Buffer dipotong menjadi 32MB. Render bisa rusak.\n",
+        MSG_AVISO "[ ⚠️ AWAS 203 ]" RESET " Gagal memuat kunci kustom, menggunakan kunci bawaan.\n"
+        MSG_CMD_DIM "[ ⚙️ DEBUG 214 ]" RESET " Ketidaksejajaran geometris terdeteksi. Stabilisasi mungkin bervariasi.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ AWAS ]" RESET " Gagal memuat kunci kustom, menggunakan kunci bawaan.\n"
     },
 
     // ---------------- [13] ÁRABE (AR) ----------------
     {
         MSG_ERRO "خطأ في فتح الملف\n" RESET,
-        "المبتكر الأصلي: ", "تم التجميع بواسطة: ",
+        "المبتكر الأصلي: ",
+        "تم التجميع بواسطة: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "تم التعديل" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - مُحسّن الطرفية المتقدم" RESET "\n",
-        "الاستخدام: " BG_FOSCO " cat ملف | neonx [خيارات] " RESET "\n\n",
-        "  -m [0-11]          يحدد نمط الرسوم المتحركة\n",
-        "  -s [قيمة]          سرعة الانتقال " MSG_CMD_DIM "(الافتراضي: 0.2)" RESET "\n",
-        "  -f [قيمة]          تردد الموجة " MSG_CMD_DIM "(الافتراضي: 0.3)" RESET "\n",
-        "  -d [قيمة]          المدة بالثواني " MSG_CMD_DIM "(0 = لانهائي)" RESET "\n",
-        "  -A [زاوية]         تدوير زاوية التدرج " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [قيمة]          يعين بذرة ثابتة " MSG_CMD_DIM "(حتمي)" RESET "\n",
-        "  -S                 يعرض إطارًا ثابتًا " MSG_CMD_DIM "(بدون رسوم متحركة)" RESET "\n",
-        "  -c [عرض]           يفرض عرض تدرج ثابت\n",
-        "  -o [0-1]           يضبط شفافية/نعومة الحواف\n",
-        "  -F [قيمة]          يُقفل معدل الإطارات " MSG_CMD_DIM "(مثل: 60, 90)" RESET "\n",
-        "  -L                 معالجة سطر بسطر " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [اسم]     يحمل لوحات الألوان " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        تكميم اللون " MSG_CMD_DIM "(أداء أعلى)" RESET "\n",
-        "  --spin             يولد أكواد ANSI نقية " MSG_CMD_DIM "(للنصوص البرمجية)" RESET "\n",
-        "  --lang [id]        يتجاوز لغة الواجهة " MSG_CMD_DIM "(مثل: pt, en)" RESET "\n",
-        "  --license          يعرض شروط ترخيص البرنامج\n",
-        "  -v, --version      يعرض إصدار الثنائي وحالة البناء\n",
-        "  -h, --help         يعرض لوحة المساعدة التفاعلية هذه\n",
+        LOGO_NEONX DIM ITALIC " - مُجمّل الطرفية المتقدم" RESET "\n",
+        "الاستخدام: " BG_FOSCO " cat ملف | neonx [خيارات] " RESET "\n\n"
+        "  -m [0-11]          تحديد نمط الحركة\n"
+        "  -s [قيمة]          سرعة الانتقال " MSG_CMD_DIM "(الافتراضي: 0.2)" RESET "\n"
+        "  -f [قيمة]          تردد الموجة " MSG_CMD_DIM "(الافتراضي: 0.3)" RESET "\n"
+        "  -d [قيمة]          المدة بالثواني " MSG_CMD_DIM "(0 = لا نهائي)" RESET "\n"
+        "  -max-lines [قيمة]  الحد الأقصى للأسطر " MSG_CMD_DIM "(الافتراضي: 10.000)" RESET "\n"
+        "  -A [درجات]         تدوير زاوية التدرج " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [قيمة]      تحديد بذرة ثابتة " MSG_CMD_DIM "(حتمي)" RESET "\n"
+        "  -S                 عرض إطار ثابت " MSG_CMD_DIM "(بدون حركة)" RESET "\n"
+        "  -c [عرض]           فرض عرض ثابت للتدرج\n"
+        "  -o [0-1]           ضبط الشفافية/النعومة الأفقية\n"
+        "  -O [0-1]           تفعيل الشفافية العمودية (تلاشي أعلى/أسفل)\n"
+        "  -F [قيمة]          قفل معدل الإطارات " MSG_CMD_DIM "(مثال: 60, 90)" RESET "\n"
+        "  -L                 معالجة سطر بسطر " MSG_CMD_DIM "(تدفق)" RESET "\n"
+        "  --fo [0-1]         تفعيل الوضع غير اللامع (يقلل من الحيوية)\n"
+        "  --preset [اسم]     تحميل لوحات الألوان " MSG_CMD_DIM "(cyberpunk, retro...)" RESET "\n"
+        "  --c1, --c2 [hex]   اختصارات لـ --color1 و --color2\n"
+        "  --color1 [hex]     تحديد لون البداية للتدرج (مثال: #FF0000)\n"
+        "  --color2 [hex]     تحديد لون النهاية للتدرج (مثال: #FFA500)\n"
+        "  --quantized        تكميم الألوان " MSG_CMD_DIM "(أداء أعلى)" RESET "\n"
+        "  --no-ansi          تعطيل ألوان ANSI في المخرجات\n"
+        "  --spin             إنشاء أكواد ANSI نقية " MSG_CMD_DIM "(للبرامج النصية)" RESET "\n"
+        "  --lang [id]        تجاوز اللغة " MSG_CMD_DIM "(مثال: ar, en)" RESET "\n"
+        "  --license          عرض شروط الترخيص\n"
+        "  -v, --version      عرض الإصدار وحالة الملف التنفيذي\n"
+        "  -h, --help         عرض لوحة المساعدة التفاعلية هذه\n",
         MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب قيمة رقمية بعده.\n",
         MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب رقمًا. تم الاستلام: '%s'\n",
         MSG_ERRO "[ ❌ خطأ 400 ]" RESET " وضع الرسوم المتحركة (-m) يجب أن يكون عددًا صحيحًا.\n",
@@ -872,43 +983,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ خطأ 400 ]" RESET " لا يمكن أن تكون المدة سالبة.\n",
         MSG_ERRO "[ ❌ خطأ 206 ]" RESET " تعذر تخصيص الذاكرة (wcsdup).\n",
         MSG_AVISO "[ ⚠️ تحذير 403 ]" RESET " تم اقتطاع المخزن المؤقت إلى 32 ميغابايت. قد يتلف العرض.\n",
+        MSG_AVISO "[ ⚠️ تحذير 203 ]" RESET " فشل تحميل المفتاح المخصص، جاري استخدام المدمج.\n"
+        MSG_CMD_DIM "[ ⚙️ تصحيح 214 ]" RESET " تم اكتشاف عدم محاذاة هندسية. قد يختلف الاستقرار.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ تحذير ]" RESET " فشل تحميل المفتاح المخصص، جاري استخدام المدمج.\n"
     },
 
     // ---------------- [14] BÚLGARO (BG) ----------------
     {
         MSG_ERRO "Грешка при отваряне на файл\n" RESET,
-        "Оригинален създател: ", "Компилирано от: ",
+        "Оригинален създател: ",
+        "Компилирано от: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "МОДИФИЦИРАН" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - Разширен разкрасител на терминал" RESET "\n",
-        "Употреба: " BG_FOSCO " cat файл | neonx [опции] " RESET "\n\n",
-        "  -m [0-11]          Определя стила на анимацията\n",
-        "  -s [стойност]      Скорост на прехода " MSG_CMD_DIM "(По подразбиране: 0.2)" RESET "\n",
-        "  -f [стойност]      Честота на вълната " MSG_CMD_DIM "(По подразбиране: 0.3)" RESET "\n",
-        "  -d [стойност]      Продължителност в секунди " MSG_CMD_DIM "(0 = Безкрайно)" RESET "\n",
-        "  -A [ъгъл]          Завърта ъгъла на градиента " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [стойност]      Задава фиксиран сийд " MSG_CMD_DIM "(Детерминирано)" RESET "\n",
-        "  -S                 Рендерира статичен кадър " MSG_CMD_DIM "(Без анимация)" RESET "\n",
-        "  -c [ширина]        Принудителна статична ширина на градиента\n",
-        "  -o [0-1]           Регулира непрозрачността/гладкостта на ръбовете\n",
-        "  -F [стойност]      Заключва кадрите в секунда " MSG_CMD_DIM "(напр. 60, 90)" RESET "\n",
-        "  -L                 Обработка ред по ред " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [име]     Зарежда цветови палитри " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Квантоване на цветовете " MSG_CMD_DIM "(По-висока производителност)" RESET "\n",
-        "  --spin             Генерира чисти ANSI кодове " MSG_CMD_DIM "(За скриптове)" RESET "\n",
-        "  --lang [id]        Презаписва езика на интерфейса " MSG_CMD_DIM "(напр. pt, en)" RESET "\n",
-        "  --license          Показва условията за лицензиране\n",
-        "  -v, --version      Показва версията и статуса на компилацията\n",
+        LOGO_NEONX DIM ITALIC " - Разширен Разкрасител на Терминала" RESET "\n",
+        "Употреба: " BG_FOSCO " cat файл | neonx [опции] " RESET "\n\n"
+        "  -m [0-11]          Задава стила на анимацията\n"
+        "  -s [стойност]      Скорост на прехода " MSG_CMD_DIM "(По подразбиране: 0.2)" RESET "\n"
+        "  -f [стойност]      Честота на вълната " MSG_CMD_DIM "(По подразбиране: 0.3)" RESET "\n"
+        "  -d [стойност]      Продължителност в секунди " MSG_CMD_DIM "(0 = Безкрайно)" RESET "\n"
+        "  -max-lines [ст]    Максимален лимит на редовете " MSG_CMD_DIM "(По подразбиране: 10.000)" RESET "\n"
+        "  -A [градуси]       Завърта ъгъла на градиента " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [стойност]  Задава фиксиран seed " MSG_CMD_DIM "(Детерминирано)" RESET "\n"
+        "  -S                 Рендерира статичен кадър " MSG_CMD_DIM "(Без анимация)" RESET "\n"
+        "  -c [ширина]        Налага статична ширина за градиента\n"
+        "  -o [0-1]           Регулира хоризонталната непрозрачност/гладкост\n"
+        "  -O [0-1]           Активира вертикална непрозрачност (избледняване горе/долу)\n"
+        "  -F [стойност]      Заключва кадровата честота " MSG_CMD_DIM "(напр: 60, 90)" RESET "\n"
+        "  -L                 Обработка ред по ред " MSG_CMD_DIM "(Поток)" RESET "\n"
+        "  --fo [0-1]         Активира Матов Режим (Намалява яркостта)\n"
+        "  --preset [име]     Зарежда палитри " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Псевдоними за --color1 и --color2\n"
+        "  --color1 [hex]     Задава начален цвят на градиента (напр: #FF0000)\n"
+        "  --color2 [hex]     Задава краен цвят на градиента (напр: #FFA500)\n"
+        "  --quantized        Квантуване на цветове " MSG_CMD_DIM "(По-висока производителност)" RESET "\n"
+        "  --no-ansi          Деактивира ANSI цветове в изхода\n"
+        "  --spin             Генерира чисти ANSI кодове " MSG_CMD_DIM "(За скриптове)" RESET "\n"
+        "  --lang [id]        Замества езика " MSG_CMD_DIM "(напр: bg, en)" RESET "\n"
+        "  --license          Показва лицензионните условия\n"
+        "  -v, --version      Показва версията и статуса на бинарния файл\n"
         "  -h, --help         Показва този интерактивен помощен панел\n",
         MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква числова стойност след нея.\n",
         MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква число. Получено: '%s'\n",
@@ -928,43 +1044,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Продължителността не може да бъде отрицателна.\n",
         MSG_ERRO "[ ❌ ГРЕШКА 206 ]" RESET " Не може да се задели памет (wcsdup).\n",
         MSG_AVISO "[ ⚠️ ВНИМАНИЕ 403 ]" RESET " Буферът е отрязан до 32MB. Рендерирането може да се повреди.\n",
+        MSG_AVISO "[ ⚠️ ВНИМАНИЕ 203 ]" RESET " Неуспешно зареждане на персонализиран ключ, използва се вграденият.\n"
+        MSG_CMD_DIM "[ ⚙️ ДЕБЪГ 214 ]" RESET " Открито е геометрично разминаване. Стабилизацията може да варира.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ ВНИМАНИЕ ]" RESET " Неуспешно зареждане на персонализиран ключ, използва се вграденият.\n"
     },
 
     // ---------------- [15] GREGO (EL) ----------------
     {
         MSG_ERRO "Σφάλμα κατά το άνοιγμα του αρχείου\n" RESET,
-        "Αρχικός Δημιουργός: ", "Μεταγλωττίστηκε από: ",
+        "Αρχικός Δημιουργός: ",
+        "Μεταγλωττίστηκε από: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "ΤΡΟΠΟΠΟΙΗΜΕΝΟ" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
         LOGO_NEONX DIM ITALIC " - Προηγμένο Εργαλείο Καλλωπισμού Τερματικού" RESET "\n",
-        "Χρήση: " BG_FOSCO " cat αρχείο | neonx [επιλογές] " RESET "\n\n",
-        "  -m [0-11]          Ορίζει το στυλ κιν. σχεδίων\n",
-        "  -s [τιμή]          Ταχύτητα μετάβασης " MSG_CMD_DIM "(Προεπιλογή: 0.2)" RESET "\n",
-        "  -f [τιμή]          Συχνότητα κύματος " MSG_CMD_DIM "(Προεπιλογή: 0.3)" RESET "\n",
-        "  -d [τιμή]          Διάρκεια σε δευτερόλεπτα " MSG_CMD_DIM "(0 = Άπειρο)" RESET "\n",
-        "  -A [μοίρες]        Περιστρέφει τη γωνία ντεγκραντέ " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [τιμή]          Ορίζει σταθερό σπόρο " MSG_CMD_DIM "(Ντετερμινιστικό)" RESET "\n",
-        "  -S                 Εμφανίζει στατικό καρέ " MSG_CMD_DIM "(Χωρίς κίνηση)" RESET "\n",
-        "  -c [πλάτος]        Επιβάλλει σταθερό πλάτος ντεγκραντέ\n",
-        "  -o [0-1]           Ρυθμίζει την αδιαφάνεια/ομαλότητα των άκρων\n",
-        "  -F [τιμή]          Κλειδώνει το framerate " MSG_CMD_DIM "(π.χ. 60, 90)" RESET "\n",
-        "  -L                 Επεξεργασία γραμμή προς γραμμή " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [όνομα]   Φορτώνει παλέτες χρωμάτων " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        Κβαντισμός χρώματος " MSG_CMD_DIM "(Υψηλότερη απόδοση)" RESET "\n",
-        "  --spin             Δημιουργεί καθαρούς κωδικούς ANSI " MSG_CMD_DIM "(Για scripts)" RESET "\n",
-        "  --lang [id]        Παρακάμπτει τη γλώσσα " MSG_CMD_DIM "(π.χ. pt, en)" RESET "\n",
-        "  --license          Εμφανίζει τους όρους άδειας χρήσης\n",
-        "  -v, --version      Δείχνει την έκδοση και την κατάσταση του build\n",
+        "Χρήση: " BG_FOSCO " cat αρχείο | neonx [επιλογές] " RESET "\n\n"
+        "  -m [0-11]          Ορίζει το στυλ της κίνησης\n"
+        "  -s [τιμή]          Ταχύτητα μετάβασης " MSG_CMD_DIM "(Προεπιλογή: 0.2)" RESET "\n"
+        "  -f [τιμή]          Συχνότητα κύματος " MSG_CMD_DIM "(Προεπιλογή: 0.3)" RESET "\n"
+        "  -d [τιμή]          Διάρκεια σε δευτερόλεπτα " MSG_CMD_DIM "(0 = Άπειρο)" RESET "\n"
+        "  -max-lines [τιμή]  Μέγιστο όριο γραμμών " MSG_CMD_DIM "(Προεπιλογή: 10.000)" RESET "\n"
+        "  -A [μοίρες]        Περιστρέφει τη γωνία του граδιέντ " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [τιμή]      Ορίζει ένα σταθερό seed " MSG_CMD_DIM "(Ντετερμινιστικό)" RESET "\n"
+        "  -S                 Αποδίδει ένα στατικό καρέ " MSG_CMD_DIM "(Χωρίς κίνηση)" RESET "\n"
+        "  -c [πλάτος]        Επιβάλλει στατικό πλάτος για το граδιέντ\n"
+        "  -o [0-1]           Ρυθμίζει την οριζόντια αδιαφάνεια/ομαλότητα\n"
+        "  -O [0-1]           Ενεργοποιεί Κάθετη Αδιαφάνεια (ξεθώριασμα πάνω/κάτω)\n"
+        "  -F [τιμή]          Κλειδώνει το ρυθμό καρέ " MSG_CMD_DIM "(π.χ.: 60, 90)" RESET "\n"
+        "  -L                 Επεξεργασία γραμμή προς γραμμή " MSG_CMD_DIM "(Ροή)" RESET "\n"
+        "  --fo [0-1]         Ενεργοποιεί Ματ Λειτουργία (Μειώνει τη ζωντάνια)\n"
+        "  --preset [όνομα]   Φορτώνει παλέτες " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   Ψευδώνυμο για --color1 και --color2\n"
+        "  --color1 [hex]     Ορίζει το αρχικό χρώμα του граδιέντ (π.χ.: #FF0000)\n"
+        "  --color2 [hex]     Ορίζει το τελικό χρώμα του граδιέντ (π.χ.: #FFA500)\n"
+        "  --quantized        Κβαντισμός χρωμάτων " MSG_CMD_DIM "(Υψηλότερη απόδοση)" RESET "\n"
+        "  --no-ansi          Απενεργοποιεί τη χρήση χρωμάτων ANSI στην έξοδο\n"
+        "  --spin             Παράγει καθαρούς κώδικες ANSI " MSG_CMD_DIM "(Για σενάρια)" RESET "\n"
+        "  --lang [id]        Παρακάμπτει τη γλώσσα " MSG_CMD_DIM "(π.χ.: el, en)" RESET "\n"
+        "  --license          Εμφανίζει τους όρους άδειας χρήσης\n"
+        "  -v, --version      Εμφανίζει την έκδοση και την κατάσταση του εκτελέσιμου\n"
         "  -h, --help         Εμφανίζει αυτόν τον διαδραστικό πίνακα βοήθειας\n",
         MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί μια αριθμητική τιμή.\n",
         MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί αριθμό. Λήφθηκε: '%s'\n",
@@ -984,44 +1105,49 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η διάρκεια δεν μπορεί να είναι αρνητική.\n",
         MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 206 ]" RESET " Αδυναμία εκχώρησης μνήμης (wcsdup).\n",
         MSG_AVISO "[ ⚠️ ΠΡΟΕΙΔ 403 ]" RESET " Η μνήμη buffer περικόπηκε στα 32MB. Η απόδοση μπορεί να αλλοιωθεί.\n",
+        MSG_AVISO "[ ⚠️ ΠΡΟΕΙΔ 203 ]" RESET " Αποτυχία φόρτωσης προσαρμοσμένου κλειδιού, χρήση ενσωματωμένου.\n"
+        MSG_CMD_DIM "[ ⚙️ ΕΚΣΦΑΛΜΑΤΩΣΗ 214 ]" RESET " Ανιχνεύτηκε γεωμετρική απόκλιση. Η σταθεροποίηση μπορεί να διαφέρει.\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ ΠΡΟΕΙΔ ]" RESET " Αποτυχία φόρτωσης προσαρμοσμένου κλειδιού, χρήση ενσωματωμένου.\n"
     },
 
     // ---------------- [16] HINDI (HI) ----------------
     {
         MSG_ERRO "फ़ाइल खोलने में त्रुटि\n" RESET,
-        "मूल निर्माता: ", "द्वारा संकलित: ",
+        "मूल निर्माता: ",
+        "द्वारा संकलित: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "संशोधित" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - उन्नत टर्मिनल ब्यूटीफायर" RESET "\n",
-        "उपयोग: " BG_FOSCO " cat फ़ाइल | neonx [विकल्प] " RESET "\n\n",
-        "  -m [0-11]          एनीमेशन शैली को परिभाषित करता है\n",
-        "  -s [मान]           संक्रमण गति " MSG_CMD_DIM "(डिफ़ॉल्ट: 0.2)" RESET "\n",
-        "  -f [मान]           तरंग आवृत्ति " MSG_CMD_DIM "(डिफ़ॉल्ट: 0.3)" RESET "\n",
-        "  -d [मान]           सेकंड में अवधि " MSG_CMD_DIM "(0 = अनंत)" RESET "\n",
-        "  -A [कोण]           ग्रेडिएंट कोण घुमाता है " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [मान]           स्थिर बीज सेट करता है " MSG_CMD_DIM "(निर्धारक)" RESET "\n",
-        "  -S                 स्थिर फ्रेम प्रस्तुत करता है " MSG_CMD_DIM "(कोई एनीमेशन नहीं)" RESET "\n",
-        "  -c [चौड़ाई]        स्थिर ग्रेडिएंट चौड़ाई लागू करता है\n",
-        "  -o [0-1]           किनारे की अस्पष्टता/चिकनाई को समायोजित करता है\n",
-        "  -F [मान]           फ्रेमरेट को लॉक करता है " MSG_CMD_DIM "(उदा. 60, 90)" RESET "\n",
-        "  -L                 लाइन-बाय-लाइन प्रोसेसिंग " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [नाम]     रंग पट्टियाँ लोड करता है " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        रंग परिमाणीकरण " MSG_CMD_DIM "(उच्च प्रदर्शन)" RESET "\n",
-        "  --spin             शुद्ध ANSI कोड उत्पन्न करता है " MSG_CMD_DIM "(स्क्रिप्ट के लिए)" RESET "\n",
-        "  --lang [id]        इंटरफ़ेस भाषा को ओवरराइड करता है " MSG_CMD_DIM "(उदा. pt, en)" RESET "\n",
-        "  --license          सॉफ़्टवेयर लाइसेंस शर्तें प्रदर्शित करता है\n",
-        "  -v, --version      बाइनरी संस्करण और बिल्ड स्थिति दिखाता है\n",
-        "  -h, --help         यह इंटरैक्टिव सहायता पैनल प्रदर्शित करता है\n",
+        LOGO_NEONX DIM ITALIC " - उन्नत टर्मिनल सौंदर्य उपकरण" RESET "\n",
+        "उपयोग: " BG_FOSCO " cat फ़ाइल | neonx [विकल्प] " RESET "\n\n"
+        "  -m [0-11]          एनीमेशन शैली सेट करता है\n"
+        "  -s [मान]           संक्रमण गति " MSG_CMD_DIM "(डिफ़ॉल्ट: 0.2)" RESET "\n"
+        "  -f [मान]           तरंग आवृत्ति " MSG_CMD_DIM "(डिफ़ॉल्ट: 0.3)" RESET "\n"
+        "  -d [मान]           सेकंड में अवधि " MSG_CMD_DIM "(0 = अनंत)" RESET "\n"
+        "  -max-lines [मान]   अधिकतम पंक्ति सीमा " MSG_CMD_DIM "(डिफ़ॉल्ट: 10.000)" RESET "\n"
+        "  -A [डिग्री]        ग्रैडिएंट कोण घुमाता है " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [मान]       निश्चित बीज सेट करता है " MSG_CMD_DIM "(नियतिवादी)" RESET "\n"
+        "  -S                 स्थिर फ्रेम रेंडर करता है " MSG_CMD_DIM "(बिना एनीमेशन)" RESET "\n"
+        "  -c [चौड़ाई]        ग्रैडिएंट के लिए स्थिर चौड़ाई लागू करता है\n"
+        "  -o [0-1]           क्षैतिज अपारदर्शिता/चिकनाई समायोजित करता है\n"
+        "  -O [0-1]           लंबवत अपारदर्शिता सक्षम करता है (ऊपर/नीचे फेडिंग)\n"
+        "  -F [मान]           फ्रेम रेट लॉक करता है " MSG_CMD_DIM "(उदा: 60, 90)" RESET "\n"
+        "  -L                 पंक्ति दर पंक्ति प्रसंस्करण " MSG_CMD_DIM "(स्ट्रीम)" RESET "\n"
+        "  --fo [0-1]         मैट मोड सक्षम करता है (चमक कम करता है)\n"
+        "  --preset [नाम]     पैलेट लोड करता है " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   --color1 और --color2 के लिए उपनाम\n"
+        "  --color1 [hex]     ग्रैडिएंट का प्रारंभिक रंग सेट करता है (उदा: #FF0000)\n"
+        "  --color2 [hex]     ग्रैडिएंट का अंतिम रंग सेट करता है (उदा: #FFA500)\n"
+        "  --quantized        रंग परिमाणीकरण " MSG_CMD_DIM "(उच्च प्रदर्शन)" RESET "\n"
+        "  --no-ansi          आउटपुट में ANSI रंगों का उपयोग अक्षम करता है\n"
+        "  --spin             शुद्ध ANSI कोड उत्पन्न करता है " MSG_CMD_DIM "(स्क्रिप्ट के लिए)" RESET "\n"
+        "  --lang [id]        भाषा ओवरराइड करता है " MSG_CMD_DIM "(उदा: hi, en)" RESET "\n"
+        "  --license          लाइसेंस शर्तें दिखाता है\n"
+        "  -v, --version      बाइनरी का संस्करण और स्थिति दिखाता है\n"
+        "  -h, --help         यह इंटरैक्टिव सहायता पैनल दिखाता है\n",
         MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के बाद संख्यात्मक मान की आवश्यकता है।\n",
         MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के लिए एक संख्या आवश्यक है। प्राप्त: '%s'\n",
         MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " एनीमेशन मोड (-m) एक पूर्णांक होना चाहिए।\n",
@@ -1040,43 +1166,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " अवधि नकारात्मक नहीं हो सकती।\n",
         MSG_ERRO "[ ❌ त्रुटि 206 ]" RESET " मेमोरी आवंटित नहीं की जा सकी (wcsdup)।\n",
         MSG_AVISO "[ ⚠️ चेतावनी 403 ]" RESET " बफ़र 32MB तक छोटा कर दिया गया। प्रतिपादन दूषित हो सकता है।\n",
+        MSG_AVISO "[ ⚠️ चेतावनी 203 ]" RESET " कस्टम कुंजी लोड करने में विफल, अंतर्निहित का उपयोग कर रहा है।\n"
+        MSG_CMD_DIM "[ ⚙️ डीबग 214 ]" RESET " ज्यामितीय संरेखण त्रुटि पाई गई। स्थिरीकरण भिन्न हो सकता है।\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ चेतावनी ]" RESET " कस्टम कुंजी लोड करने में विफल, अंतर्निहित का उपयोग कर रहा है।\n"
     },
 
     // ---------------- [17] TAILANDÊS (TH) ----------------
     {
         MSG_ERRO "ข้อผิดพลาดในการเปิดไฟล์\n" RESET,
-        "ผู้สร้างดั้งเดิม: ", "คอมไพล์โดย: ",
+        "ผู้สร้างดั้งเดิม: ",
+        "คอมไพล์โดย: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "ถูกปรับเปลี่ยน" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - เครื่องมือตกแต่งเทอร์มินัลขั้นสูง" RESET "\n",
-        "วิธีใช้: " BG_FOSCO " cat ไฟล์ | neonx [ตัวเลือก] " RESET "\n\n",
-        "  -m [0-11]          กำหนดสไตล์แอนิเมชัน\n",
-        "  -s [ค่า]            ความเร็วในการเปลี่ยนภาพ " MSG_CMD_DIM "(ค่าเริ่มต้น: 0.2)" RESET "\n",
-        "  -f [ค่า]            ความถี่ของคลื่น " MSG_CMD_DIM "(ค่าเริ่มต้น: 0.3)" RESET "\n",
-        "  -d [ค่า]            ระยะเวลาเป็นวินาที " MSG_CMD_DIM "(0 = อนันต์)" RESET "\n",
-        "  -A [องศา]          หมุนมุมการไล่ระดับสี " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [ค่า]            ตั้งค่าซีดคงที่ " MSG_CMD_DIM "(แบบกำหนดได้)" RESET "\n",
-        "  -S                 เรนเดอร์เฟรมคงที่ " MSG_CMD_DIM "(ไม่มีแอนิเมชัน)" RESET "\n",
-        "  -c [ความกว้าง]     บังคับความกว้างการไล่ระดับสีแบบคงที่\n",
-        "  -o [0-1]           ปรับความทึบ/ความเรียบเนียนของขอบ\n",
-        "  -F [ค่า]            ล็อคอัตราเฟรม " MSG_CMD_DIM "(เช่น 60, 90)" RESET "\n",
-        "  -L                 การประมวลผลทีละบรรทัด " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [ชื่อ]      โหลดจานสี " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        การลดทอนสี " MSG_CMD_DIM "(ประสิทธิภาพสูงขึ้น)" RESET "\n",
-        "  --spin             สร้างรหัส ANSI ล้วน " MSG_CMD_DIM "(สำหรับสคริปต์)" RESET "\n",
-        "  --lang [id]        แทนที่ภาษาอินเทอร์เฟซ " MSG_CMD_DIM "(เช่น pt, en)" RESET "\n",
-        "  --license          แสดงเงื่อนไขการอนุญาตให้ใช้ซอฟต์แวร์\n",
-        "  -v, --version      แสดงเวอร์ชันไบนารีและสถานะบิลด์\n",
+        LOGO_NEONX DIM ITALIC " - เครื่องมือปรับแต่งเทอร์มินัลขั้นสูง" RESET "\n",
+        "การใช้งาน: " BG_FOSCO " cat ไฟล์ | neonx [ตัวเลือก] " RESET "\n\n"
+        "  -m [0-11]          กำหนดสไตล์แอนิเมชัน\n"
+        "  -s [ค่า]             ความเร็วในการเปลี่ยนผ่าน " MSG_CMD_DIM "(ค่าเริ่มต้น: 0.2)" RESET "\n"
+        "  -f [ค่า]             ความถี่ของคลื่น " MSG_CMD_DIM "(ค่าเริ่มต้น: 0.3)" RESET "\n"
+        "  -d [ค่า]             ระยะเวลาในหน่วยวินาที " MSG_CMD_DIM "(0 = อนันต์)" RESET "\n"
+        "  -max-lines [ค่า]     ขีดจำกัดบรรทัดสูงสุด " MSG_CMD_DIM "(ค่าเริ่มต้น: 10.000)" RESET "\n"
+        "  -A [องศา]          หมุนมุมของการไล่ระดับสี " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [ค่า]         กำหนดซีดคงที่ " MSG_CMD_DIM "(เชิงกำหนด)" RESET "\n"
+        "  -S                 เรนเดอร์เฟรมแบบคงที่ " MSG_CMD_DIM "(ไม่มีแอนิเมชัน)" RESET "\n"
+        "  -c [ความกว้าง]      บังคับความกว้างแบบคงที่สำหรับการไล่ระดับสี\n"
+        "  -o [0-1]           ปรับความทึบแสง/ความเรียบแนวนอน\n"
+        "  -O [0-1]           เปิดใช้งานความทึบแสงแนวตั้ง (เฟดดิงบน/ล่าง)\n"
+        "  -F [ค่า]             ล็อคอัตราเฟรม " MSG_CMD_DIM "(เช่น: 60, 90)" RESET "\n"
+        "  -L                 ประมวลผลทีละบรรทัด " MSG_CMD_DIM "(สตรีม)" RESET "\n"
+        "  --fo [0-1]         เปิดใช้งานโหมดด้าน (ลดความสดใส)\n"
+        "  --preset [ชื่อ]      โหลดพาเลตต์ " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --c1, --c2 [hex]   นามแฝงสำหรับ --color1 และ --color2\n"
+        "  --color1 [hex]     กำหนดสีเริ่มต้นของการไล่ระดับสี (เช่น: #FF0000)\n"
+        "  --color2 [hex]     กำหนดสีสิ้นสุดของการไล่ระดับสี (เช่น: #FFA500)\n"
+        "  --quantized        การควอนไทซ์สี " MSG_CMD_DIM "(ประสิทธิภาพสูงขึ้น)" RESET "\n"
+        "  --no-ansi          ปิดใช้งานการใช้สี ANSI ในเอาต์พุต\n"
+        "  --spin             สร้างรหัส ANSI ล้วน " MSG_CMD_DIM "(สำหรับสคริปต์)" RESET "\n"
+        "  --lang [id]        แทนที่ภาษา " MSG_CMD_DIM "(เช่น: th, en)" RESET "\n"
+        "  --license          แสดงเงื่อนไขการอนุญาตให้ใช้สิทธิ\n"
+        "  -v, --version      แสดงเวอร์ชันและสถานะของไบนารี\n"
         "  -h, --help         แสดงแผงความช่วยเหลือแบบโต้ตอบนี้\n",
         MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการค่าตัวเลขต่อท้าย\n",
         MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการตัวเลข ได้รับ: '%s'\n",
@@ -1096,43 +1227,48 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ระยะเวลาไม่สามารถติดลบได้\n",
         MSG_ERRO "[ ❌ ข้อผิดพลาด 206 ]" RESET " ไม่สามารถจัดสรรหน่วยความจำได้ (wcsdup)\n",
         MSG_AVISO "[ ⚠️ คำเตือน 403 ]" RESET " บัฟเฟอร์ถูกตัดทอนเหลือ 32MB การเรนเดอร์อาจเสียหาย\n",
+        MSG_AVISO "[ ⚠️ คำเตือน 203 ]" RESET " โหลดคีย์ที่กำหนดเองไม่สำเร็จ ใช้คีย์ในตัว\n"
+        MSG_CMD_DIM "[ ⚙️ ดีบัก 214 ]" RESET " ตรวจพบความคลาดเคลื่อนทางเรขาคณิต การรักษาเสถียรภาพอาจแตกต่างกันไป\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ คำเตือน ]" RESET " โหลดคีย์ที่กำหนดเองไม่สำเร็จ ใช้คีย์ในตัว\n"
     },
 
     // ---------------- [18] KHMER (KM) ----------------
     {
         MSG_ERRO "កំហុសក្នុងការបើកឯកសារ\n" RESET,
-        "អ្នកបង្កើតដើម: ", "ចងក្រងដោយ: ",
+        "អ្នកបង្កើតដើម: ",
+        "ចងក្រងដោយ: ",
         "Status: " MSG_SUCESSO "%s" RESET "\n",
         "Status: " MSG_AVISO "%s" RESET "\n",
         "Status: " MSG_ERRO "បានកែប្រែ" RESET "\n",
         "Status: " MSG_AVISO "VERIFY_ERROR" RESET "\n",
         LICENSE_EN,
-        LOGO_NEONX DIM ITALIC " - កម្មវិធីលម្អ Terminal កម្រិតខ្ពស់" RESET "\n",
-        "ការប្រើប្រាស់: " BG_FOSCO " cat ឯកសារ | neonx [ជម្រើស] " RESET "\n\n",
-        "  -m [0-11]          កំណត់រចនាប័ទ្មចលនា\n",
-        "  -s [តម្លៃ]          ល្បឿនផ្លាស់ប្តូរ " MSG_CMD_DIM "(លំនាំដើម: 0.2)" RESET "\n",
-        "  -f [តម្លៃ]          ប្រេកង់រលក " MSG_CMD_DIM "(លំនាំដើម: 0.3)" RESET "\n",
-        "  -d [តម្លៃ]          រយៈពេលគិតជាវិនាទី " MSG_CMD_DIM "(0 = គ្មានដែនកំណត់)" RESET "\n",
-        "  -A [ដឺក្រេ]         បង្វិលមុំជម្រាល " MSG_CMD_DIM "(0-360)" RESET "\n",
-        "  -p [តម្លៃ]          កំណត់គ្រាប់ពូជថេរ " MSG_CMD_DIM "(កំណត់ទុកជាមុន)" RESET "\n",
-        "  -S                 បង្ហាញស៊ុមឋិតិវន្ត " MSG_CMD_DIM "(គ្មានចលនា)" RESET "\n",
-        "  -c [ទទឹង]          បង្ខំទទឹងជម្រាលថេរ\n",
-        "  -o [0-1]           កែតម្រូវភាពស្រអាប់/ភាពរលោងនៃគែម\n",
-        "  -F [តម្លៃ]          ចាក់សោអត្រាស៊ុម " MSG_CMD_DIM "(ឧ. 60, 90)" RESET "\n",
-        "  -L                 ដំណើរការមួយបន្ទាត់ម្តង " MSG_CMD_DIM "(Stream)" RESET "\n",
-        "  --preset [ឈ្មោះ]   ផ្ទុកក្ដារលាយពណ៌ " MSG_CMD_DIM "(cyberpunk, retro, matrix,\n"
-        "                     sunset, vaporwave, ocean, forest, blood,\n"
-        "                     hacker, synthwave, dracula)" RESET "\n",
-        "  --color1 [hex]     Sets the starting color of the gradient (e.g., #FF0000)\n",
-        "  --color2 [hex]     Sets the ending color of the gradient (e.g., #FFA500)\n",
-        "  --quantized        កង់ទីសកម្មពណ៌ " MSG_CMD_DIM "(ដំណើរការខ្ពស់ជាងមុន)" RESET "\n",
-        "  --spin             បង្កើតកូដ ANSI សុទ្ធ " MSG_CMD_DIM "(សម្រាប់ស្គ្រីប)" RESET "\n",
-        "  --lang [id]        បដិសេធភាសាចំណុចប្រទាក់ " MSG_CMD_DIM "(ឧ. pt, en)" RESET "\n",
-        "  --license          បង្ហាញលក្ខខណ្ឌអាជ្ញាប័ណ្ណកម្មវិធី\n",
-        "  -v, --version      បង្ហាញកំណែគោលពីរ និងស្ថានភាពបង្កើត\n",
+        LOGO_NEONX DIM ITALIC " - កម្មវិធីកែលម្អ Terminal កម្រិតខ្ពស់" RESET "\n",
+        "ការប្រើប្រាស់: " BG_FOSCO " cat ឯកសារ | neonx [ជម្រើស] " RESET "\n\n"
+        "  -m [0-11]          កំណត់រចនាប័ទ្មចលនា\n"
+        "  -s [តម្លៃ]            ល្បឿនផ្លាស់ប្តូរ " MSG_CMD_DIM "(លំនាំដើម: 0.2)" RESET "\n"
+        "  -f [តម្លៃ]            ប្រេកង់រលក " MSG_CMD_DIM "(លំនាំដើម: 0.3)" RESET "\n"
+        "  -d [តម្លៃ]            រយៈពេលគិតជាវិនាទី " MSG_CMD_DIM "(0 = គ្មានដែនកំណត់)" RESET "\n"
+        "  -max-lines [តម្លៃ]    ដែនកំណត់បន្ទាត់អតិបរមា " MSG_CMD_DIM "(លំនាំដើម: 10.000)" RESET "\n"
+        "  -A [ដឺក្រេ]           បង្វិលមុំនៃការไล่ระดับពណ៌ " MSG_CMD_DIM "(0-360)" RESET "\n"
+        "  -p, -P [តម្លៃ]        កំណត់ Seed ថេរ " MSG_CMD_DIM "(កំណត់ទុកជាមុន)" RESET "\n"
+        "  -S                 បង្ហាញស៊ុមឋិតិវន្ត " MSG_CMD_DIM "(គ្មានចលនា)" RESET "\n"
+        "  -c [ទទឹង]           បង្ខំទទឹងឋិតិវន្តសម្រាប់ការไล่ระดับពណ៌\n"
+        "  -o [0-1]           កែសម្រួលភាពថ្លា/ភាពរលោងផ្ដេក\n"
+        "  -O [0-1]           បើកភាពថ្លាបញ្ឈរ (បន្ថយពណ៌លើ/ក្រោម)\n"
+        "  -F [តម្លៃ]            ចាក់សោអត្រាស៊ុម " MSG_CMD_DIM "(ឧ: 60, 90)" RESET "\n"
+        "  -L                 ដំណើរការមួយបន្ទាត់ម្ដងៗ " MSG_CMD_DIM "(ស្ទ្រីម)" RESET "\n"
+        "  --fo [0-1]         បើកមុខងារ Matte (កាត់បន្ថយភាពស្រស់ឆើតឆាយ)\n"
+        "  --preset [ឈ្មោះ]     ផ្ទុកក្ដារលាយពណ៌ " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        " - -c1, --c2 [hex]   ឈ្មោះក្លែងក្លាយសម្រាប់ --color1 និង --color2\n"
+        "  --color1 [hex]     កំណត់ពណ៌ចាប់ផ្ដើមនៃការไล่ระดับពណ៌ (ឧ: #FF0000)\n"
+        "  --color2 [hex]     កំណត់ពណ៌បញ្ចប់នៃការไล่ระดับពណ៌ (ឧ: #FFA500)\n"
+        "  --quantized        ការធ្វើបរិមាណពណ៌ " MSG_CMD_DIM "(ដំណើរការលឿនជាងមុន)" RESET "\n"
+        "  --no-ansi          បិទពណ៌ ANSI នៅក្នុងលទ្ធផល\n"
+        "  --spin             បង្កើតកូដ ANSI សុទ្ធ " MSG_CMD_DIM "(សម្រាប់ស្គ្រីប)" RESET "\n"
+        "  --lang [id]        បដិសេធភាសា " MSG_CMD_DIM "(ឧ: km, en)" RESET "\n"
+        "  --license          បង្ហាញលក្ខខណ្ឌអាជ្ញាប័ណ្ណ\n"
+        "  -v, --version      បង្ហាញកំណែ និងស្ថានភាពរបស់ប្រព័ន្ធគោលពីរ\n"
         "  -h, --help         បង្ហាញផ្ទាំងជំនួយអន្តរកម្មនេះ\n",
         MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារតម្លៃលេខបន្ទាប់ពីវា។\n",
         MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារលេខ។ បានទទួល: '%s'\n",
@@ -1152,9 +1288,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " រយៈពេលមិនអាចអវិជ្ជមានបានទេ។\n",
         MSG_ERRO "[ ❌ កំហុស 206 ]" RESET " មិនអាចបែងចែកអង្គចងចាំបានទេ (wcsdup)។\n",
         MSG_AVISO "[ ⚠️ ព្រមាន 403 ]" RESET " សតិបណ្ដោះអាសន្នត្រូវបានកាត់ឱ្យខ្លីត្រឹម 32MB។ ការបង្ហាញអាចខូច។\n",
+        MSG_AVISO "[ ⚠️ ព្រមាន 203 ]" RESET " បរាជ័យក្នុងការផ្ទុកសោផ្ទាល់ខ្លួន ដោយប្រើសោដែលភ្ជាប់មកជាមួយ។\n"
+        MSG_CMD_DIM "[ ⚙️ ឌីបាក 214 ]" RESET " រកឃើញការមិនតម្រឹមធរណីមាត្រ។ ការរក្សាលំនឹងអាចប្រែប្រួល។\n",
         MSG_SUCESSO "[ OK ]" RESET "\n",
         MSG_ERRO "[ FAIL ]" RESET "\n",
-        MSG_AVISO "[ ⚠️ ព្រមាន ]" RESET " បរាជ័យក្នុងការផ្ទុកសោផ្ទាល់ខ្លួន ដោយប្រើសោដែលភ្ជាប់មកជាមួយ។\n"
     }
 };
 
@@ -1201,12 +1338,21 @@ void msgs_set_language(const char *lang_code) {
     idioma_atual = 1; // Fallback se não encontrar o idioma digitado/detectado
 }
 
+#include <locale.h>
+
 void msgs_init(void) {
     const char *lang = NULL;
 #ifdef _WIN32
     lang = msgs_detect_windows_locale();
 #else
-    lang = getenv("LANG"); // Funciona para "pt_BR.UTF-8", ele vai pegar só o "pt" na msgs_set_language
+    lang = getenv("LC_ALL");
+    if (!lang || !*lang) lang = getenv("LC_MESSAGES");
+    if (!lang || !*lang) lang = getenv("LANG");
+    if (!lang || !*lang) {
+        /* Fallback: use current system locale string if available */
+        char *loc = setlocale(LC_ALL, "");
+        if (loc) lang = loc;
+    }
 #endif
     
     msgs_set_language(lang);

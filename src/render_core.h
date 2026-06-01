@@ -6,7 +6,7 @@
 #include "render_driver.h"
 
 /** Obtém os componentes RGB para uma coordenada e modo. */
-void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t max_dist, int32_t phase, int *r, int *g, int *b);
+void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t phase, int *r, int *g, int *b);
 
 /** Renderiza uma linha de caracteres utilizando um driver. */
 void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, int mode, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, RenderDriver *driver);
@@ -35,5 +35,15 @@ void neonx_set_custom_gradient(int r1, int g1, int b1, int r2, int g2, int b2);
 /** Ativa ou desativa a redução de cores (quantização). */
 void neonx_set_quantization(bool enable);
 
+/** Ativa ou desativa a opacidade vertical. */
+void neonx_set_vertical_opacity(bool enable);
+
+/** Ativa ou desativa o modo fosco (opacidade global). */
+void neonx_set_matte_mode(bool enabled);
+
+/** Ajusta a intensidade do modo fosco (0.0 - 1.0). */
+void neonx_set_matte_intensity(int32_t intensity);
+
 #endif
+
 

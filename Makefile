@@ -34,7 +34,8 @@ HDRS = $(SRC_DIR)/integrity.h \
        $(SRC_DIR)/math_fixed.h \
        $(SRC_DIR)/shader_effects.h \
        $(SRC_DIR)/render_core.h \
-       $(SRC_DIR)/render_driver.h
+       $(SRC_DIR)/render_driver.h \
+       $(SRC_DIR)/build_config.h
 
 # Sources (excluding WASM main)
 SRCS = $(SRC_DIR)/integrity.c \
@@ -50,14 +51,16 @@ SRCS = $(SRC_DIR)/integrity.c \
 
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-.PHONY: all clean debug release wasm
-
 all: release
 
-release: $(TARGET)
+$(SRC_DIR)/build_config.h: $(SRCS)
+	@echo "Generating build configuration..."
+	@python3 sync_build.py $(SRC_DIR)
+
+release: $(SRC_DIR)/build_config.h $(TARGET)
 
 debug: CFLAGS = -g -O0 -DDEBUG -Isrc -DVERSION=\"$(VERSION)\" -DBUILD_STATUS=\"$(BUILD_STATUS)\" -DBUILD_MAINTAINER=\"$(BUILD_MAINTAINER)\"
-debug: $(TARGET)
+debug: $(SRC_DIR)/build_config.h $(TARGET)
 
 $(TARGET): $(OBJS)
 	@mkdir -p $(BIN_DIR)

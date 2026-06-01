@@ -1,6 +1,6 @@
 # 🌈 NeonX – Ultra-High Performance Terminal Colorizer
 
-[![Versão](https://img.shields.io/badge/version-2.2.3--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.2.4--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
 [![NeonX Web](https://img.shields.io/badge/NeonX-Web_Demo-0a0a0f?style=flat-square&logo=terminal&logoColor=00ffcc)](https://neonx-web.netlify.app/)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Android%20%7C%20Windows%20%7C%20WASM-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
@@ -30,12 +30,12 @@ echo "NeonX Engine" | neonx --preset synthwave -S
 
 ---
 
-## ✨ O que há de novo na v2.2.3-STABLE
+## ✨ O que há de novo na v2.2.4-STABLE
 
-- **Performance de Elite (Caching):** Otimização massiva no loop de renderização com cache de comprimentos de linha, reduzindo drasticamente o uso de CPU.
-- **API Unificada (`neonx.h`):** Nova interface de programação consolidada para desenvolvedores que desejam integrar o motor NeonX em seus próprios projetos.
-- **Arquitetura Transparente:** Adição do `ARCHITECTURE.md` para explicar detalhadamente como o motor funciona, do ponto fixo aos drivers de saída.
-- **Robustez de Integridade:** Refatoração do sistema de carregamento de chaves para garantir segurança e estabilidade.
+- **Sincronização de Fase:** Novo sistema de estabilização cromática para renderização ultra-precisa.
+- **Build ID Técnico:** Identificadores únicos para cada variante de compilação do motor.
+- **Performance de Elite (Caching):** Otimização massiva no loop de renderização com cache de comprimentos de linha.
+- **Proteção TTY:** Detecção inteligente para prevenir execuções vazias e limpar logs.
 
 ---
 

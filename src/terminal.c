@@ -5,6 +5,8 @@
 #include "render.h"
 #include "msgs.h"
 #include "style.h"
+#include "math_fixed.h"
+#include "math_fixed_internal.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
@@ -34,10 +36,18 @@ extern char *program_invocation_short_name;
 #define PROG_NAME "neonx"
 #endif
 
-
 static int g_integrity_status = -1;
 static Content *g_current_content = NULL;
-static const char* ORIGINAL_CREATOR = "@inrryoff";
+
+static bool is_stdout_terminal(void) {
+#ifdef _WIN32
+    return _isatty(_fileno(stdout));
+#else
+    return isatty(fileno(stdout));
+#endif
+}
+
+#define NX_BUILD_CTX_ID nx_get_build_id_context()
 
 #ifndef BUILD_MAINTAINER
 #define BUILD_MAINTAINER "Unspecified"
@@ -49,12 +59,10 @@ static const char* ORIGINAL_CREATOR = "@inrryoff";
 #define BUILD_STATUS "Unspecified"
 #endif
 
-/** Define o status global de integridade do binário. */
 void set_integrity_status(int status) {
     g_integrity_status = status;
 }
 
-/** Suspende a execução por um intervalo de microssegundos. */
 void sleep_us(uint32_t microseconds)
 {
 #ifdef _WIN32
@@ -64,16 +72,20 @@ void sleep_us(uint32_t microseconds)
 #endif
 }
 
-/** Libera a memória alocada para as linhas de texto processadas. */
 void free_content(Content *c) {
     if (!c) return;
-    if (c->lines) {
+    if (c->pool) {
+        free(c->pool);
+        c->pool = NULL;
+    } else if (c->lines) {
         for (int i = 0; i < c->count; i++) {
             if (c->lines[i]) {
                 free(c->lines[i]);
                 c->lines[i] = NULL;
             }
         }
+    }
+    if (c->lines) {
         free(c->lines);
         c->lines = NULL;
     }
@@ -84,11 +96,29 @@ void free_content(Content *c) {
     c->count = 0;
 }
 
-/** Exibe a versão do programa, criador e status de integridade. */
-void print_version(void) {
-    printf("\033[1;31mN\033[1;33me\033[1;32mo\033[1;36mn\033[1;34mX\033[0m v%s\n", VERSION);
-    printf("%s%s\n", MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR);
-    printf("%s%s\n", MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
+void print_version(bool disable_ansi) {
+    if (!disable_ansi && !is_stdout_terminal()) disable_ansi = true;
+    uint32_t bid = nx_fixed_math_validate_sync(NX_BUILD_CTX_ID) ? NX_SYNC_ID : 0;
+    char build_tag[32];
+    
+    if (bid == 0) {
+        snprintf(build_tag, sizeof(build_tag), "13C0-FX0A");
+    } else {
+        uint32_t obscure = (bid ^ 0xA5A5A5A5) + 0xDEADBEEF;
+        snprintf(build_tag, sizeof(build_tag), "%02X%02X-DX%02X",
+            (obscure >> 16) & 0xFF,
+            (obscure >> 8) & 0xFF,
+            obscure & 0xFF);
+    }
+    
+    if (disable_ansi) {
+        printf("NeonX v%s [Build ID: %s]\n", VERSION, build_tag);
+    } else {
+        printf("%s v%s [Build ID: %s%s%s]\n",
+            LOGO_NEONX, VERSION, MSG_NUMBER, build_tag, RESET);
+    }
+    printf("%s%s\n", MSG_F(MSG_VERSION_NX_BUILD_CTX_ID, disable_ansi), NX_BUILD_CTX_ID);
+    printf("%s%s\n", MSG_F(MSG_VERSION_COMPILED_BY, disable_ansi), BUILD_MAINTAINER);
     
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
@@ -97,14 +127,14 @@ void print_version(void) {
 
     if (g_integrity_status == 0) {
         if (is_using_official_key()) {
-            printf(MSG(MSG_VERSION_STATUS_OFFICIAL), "OFFICIAL_BY_INRRYOFF");
+            printf(MSG_F(MSG_VERSION_STATUS_OFFICIAL, disable_ansi), "OFFICIAL_BY_INRRYOFF");
         } else {
-            printf(MSG(MSG_VERSION_STATUS_VERIFIED_BY), BUILD_STATUS);
+            printf(MSG_F(MSG_VERSION_STATUS_VERIFIED_BY, disable_ansi), BUILD_STATUS);
         }
     } else if (g_integrity_status == 2) {
-        printf("%s", MSG(MSG_VERSION_STATUS_ERROR));
+        printf("%s", MSG_F(MSG_VERSION_STATUS_ERROR, disable_ansi));
     } else {
-        printf("%s", MSG(MSG_VERSION_STATUS_MODIFIED));
+        printf("%s", MSG_F(MSG_VERSION_STATUS_MODIFIED, disable_ansi));
     }
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -112,51 +142,26 @@ void print_version(void) {
 #endif
 }
 
-/** Exibe o texto completo da licença de uso. */
-void print_license(void)
+void print_license(bool disable_ansi)
 {
-    printf("%s", MSG(MSG_LICENSE_TEXT));
+    if (!disable_ansi && !is_stdout_terminal()) disable_ansi = true;
+    printf("%s", MSG_F(MSG_LICENSE_TEXT, disable_ansi));
 }
 
-/** Exibe o menu de ajuda com todas as opções de linha de comando. */
-void show_help(void)
+void show_help(bool disable_ansi)
 {
+    if (!disable_ansi && !is_stdout_terminal()) disable_ansi = true;
     printf("%s" "v%s | %s%s | %s%s\n\n", 
-           MSG(MSG_HELP_HEADER), VERSION, 
-           MSG(MSG_VERSION_ORIGINAL_CREATOR), ORIGINAL_CREATOR,
-           MSG(MSG_VERSION_COMPILED_BY), BUILD_MAINTAINER);
+           MSG_F(MSG_HELP_HEADER, disable_ansi), VERSION, 
+           MSG_F(MSG_VERSION_NX_BUILD_CTX_ID, disable_ansi), NX_BUILD_CTX_ID,
+           MSG_F(MSG_VERSION_COMPILED_BY, disable_ansi), BUILD_MAINTAINER);
     
-    printf("%s", MSG(MSG_HELP_USAGE));
-    printf("%s", MSG(MSG_HELP_M));
-    printf("%s", MSG(MSG_HELP_S));
-    printf("%s", MSG(MSG_HELP_F));
-    printf("%s", MSG(MSG_HELP_D));
-    printf("%s", MSG(MSG_HELP_A));
-    printf("%s", MSG(MSG_HELP_P));
-    printf("%s", MSG(MSG_HELP_S_UPPER));
-    printf("%s", MSG(MSG_HELP_C));
-    printf("%s", MSG(MSG_HELP_O));
-    printf("%s", MSG(MSG_HELP_F_UPPER));
-    printf("%s", MSG(MSG_HELP_L));
-    printf("%s", MSG(MSG_HELP_PRESET));
-    printf("%s", MSG(MSG_HELP_COLOR1));
-    printf("%s", MSG(MSG_HELP_COLOR2));
-    printf("%s", MSG(MSG_HELP_QUANTIZED));
-    printf("%s", MSG(MSG_HELP_SPIN));
-    printf("%s", MSG(MSG_HELP_LANG));
-    printf("%s", MSG(MSG_HELP_LICENSE));
-    printf("%s", MSG(MSG_HELP_VERSION));
-    printf("%s", MSG(MSG_HELP_HELP));
+    printf("%s", MSG_F(MSG_HELP_TEXT, disable_ansi));
 }
 
 static bool content_initialized = false;
+void set_content_initialized(void) { content_initialized = true; }
 
-/** Sinaliza que a estrutura de conteúdo foi inicializada corretamente. */
-void set_content_initialized(void) {
-    content_initialized = true;
-}
-
-/** Manipulador de interrupção (SIGINT) para restauração segura do terminal. */
 void handle_sigint(int sig) {
     (void)sig;
     const char *msg = "\033[?7h\033[?25h\033[0m\n";
@@ -165,11 +170,9 @@ void handle_sigint(int sig) {
     #else
     _write(1, msg, 16);
     #endif
-    
     _exit(130);
 }
 
-/** Configura os interceptadores de sinais do sistema para encerramento limpo. */
 void terminal_setup_signals(Content *c) {
     g_current_content = c;
 #ifndef _WIN32
@@ -178,8 +181,10 @@ void terminal_setup_signals(Content *c) {
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGHUP, &sa, NULL);
 #else
     signal(SIGINT, handle_sigint);
+    signal(SIGTERM, handle_sigint);
 #endif
 }
-

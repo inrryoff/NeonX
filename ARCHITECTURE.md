@@ -6,7 +6,10 @@ This document describes the internal structure and design principles of the **Ne
 
 1.  **Fixed-Point Arithmetic (16.16)**: To ensure consistent performance and visual results across different platforms (including those without an FPU, like some embedded systems or specific WASM environments), NeonX uses fixed-point math for all shader calculations.
 2.  **Driver-Based Rendering**: The rendering logic is decoupled from the output method. A `RenderDriver` structure defines how to set colors and print characters, allowing the same core to render to a terminal, a WASM buffer, or a GUI.
-3.  **Performance Optimization**:
+3.  **TTY Intelligence**:
+    *   **Input Protection**: Prevents the program from hanging when run interactively without piped data. It detects `STDIN` as a TTY and prompts for usage.
+    *   **Output Sanitization**: Detects if `STDOUT` is redirected to a file or pipe. In such cases, it automatically disables ANSI escape sequences (colors and terminal control codes), producing clean text output (e.g., for `neonx --license > LICENSE.txt`).
+4.  **Performance Optimization**:
     *   **Length Caching**: String lengths are cached in the `Content` structure to avoid redundant `wcslen` calls during animation.
     *   **LUT (Look-Up Tables)**: Fast trigonometric functions use precomputed tables.
     *   **Buffered Output**: Frames are built in memory and written to the terminal in a single operation to minimize syscall overhead and flickering.

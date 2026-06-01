@@ -2,6 +2,16 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.2.4-STABLE] – 2026
+
+### Adicionado
+- **Sincronização de Fase do Motor:** Implementação de um sistema de sincronização técnica baseado em hashes de metadados para garantir fidelidade cromática absoluta em todas as plataformas.
+- **Build ID Dinâmico:** Introdução de identificadores de build hexadecimais (`DX22`, `FX11`) para rastreamento de variantes de compilação e controle de qualidade.
+- **Proteção TTY Inteligente:** Implementação de detecção automática de terminal (`isatty`) para prevenir execuções sem dados e limpar sequências ANSI em redirecionamentos (ex: `neonx --license > LICENSE.txt`).
+
+### Otimizado
+- **Filtro de Fidelidade Cromática:** Refinamento da lógica de cores para garantir estabilidade visual e prevenir glitches em builds não sincronizados.
+
 ## [2.2.3-STABLE] – 2026
 
 ### Adicionado

@@ -67,15 +67,33 @@ static void sanitize_ansi_escapes_w(wchar_t *buf) {
 /** Lê os dados da entrada padrão e os armazena na estrutura de conteúdo. */
 void load_input_data(struct neonx_options *opts, Content *content_ptr)
 {
+    /* Evita que o programa trave esperando entrada se nada for passado via pipe. */
+#ifdef _WIN32
+    if (_isatty(_fileno(stdin))) {
+#else
+    if (isatty(fileno(stdin))) {
+#endif
+        fprintf(stderr, "%s", MSG(MSG_ERR_NO_DATA));
+        cleanup_and_exit(content_ptr, 1);
+    }
+
     if (opts->stream_mode) return;
 
     wchar_t buf[MAX_LINE_LEN];
     content_ptr->count = 0;
     content_ptr->max_line_len = 0;
+    
+    size_t pool_cap = 131072; // Initial pool: 128k wide chars
+    content_ptr->pool = malloc(pool_cap * sizeof(wchar_t));
+    if (!content_ptr->pool) {
+        fprintf(stderr, "%s", MSG(MSG_ERR_MEMORY_ALLOC));
+        cleanup_and_exit(content_ptr, 6);
+    }
+    size_t pool_used = 0;
 
     while (fgetws(buf, MAX_LINE_LEN, stdin)) {
         if (content_ptr->count >= (g_max_lines_limit - 1)) {
-            fprintf(stderr, "%s", MSG(MSG_ERR_LEN_LIMIT));
+            fprintf(stderr, "%s", MSG(MSG_ERR_FILE_TOO_LARGE));
             sleep_us(1000000); 
             opts->stream_mode = true;
             break;
@@ -93,18 +111,35 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr)
 
         sanitize_ansi_escapes_w(buf);
 
-        wchar_t *dup_buf = wcsdup(buf);
-        if (!dup_buf) {
-            fprintf(stderr, "%s", MSG(MSG_ERR_MEMORY_ALLOC));
-            cleanup_and_exit(content_ptr, 6);
+        /* Garante espaço no pool de memória contígua */
+        if (pool_used + len + 1 > pool_cap) {
+            size_t new_cap = pool_cap * 2;
+            if (new_cap < pool_used + len + 1) new_cap = pool_used + len + 1;
+            wchar_t *new_pool = realloc(content_ptr->pool, new_cap * sizeof(wchar_t));
+            if (!new_pool) {
+                fprintf(stderr, "%s", MSG(MSG_ERR_MEMORY_ALLOC));
+                cleanup_and_exit(content_ptr, 6);
+            }
+            /* Corrige os ponteiros existentes caso o pool tenha mudado de endereço */
+            if (new_pool != content_ptr->pool) {
+                for (int i = 0; i < content_ptr->count; i++) {
+                    content_ptr->lines[i] = new_pool + (content_ptr->lines[i] - content_ptr->pool);
+                }
+                content_ptr->pool = new_pool;
+            }
+            pool_cap = new_cap;
         }
 
+        wchar_t *target = content_ptr->pool + pool_used;
+        memcpy(target, buf, (len + 1) * sizeof(wchar_t));
+        
         content_ptr->line_lens[content_ptr->count] = len;
-        content_ptr->lines[content_ptr->count++] = dup_buf;
+        content_ptr->lines[content_ptr->count++] = target;
+        pool_used += (len + 1);
     }
     
     if (content_ptr->count == 0 && !opts->stream_mode) {
-        fprintf(stderr, "%s", MSG(MSG_ERR_SEM_DADOS));
+        fprintf(stderr, "%s", MSG(MSG_ERR_NO_DATA));
         cleanup_and_exit(content_ptr, 0);
     }
 }
@@ -121,8 +156,8 @@ static size_t safe_append(char *ptr, size_t rem, const char *fmt, ...)
     int n = vsnprintf(ptr, rem, fmt, args);
     va_end(args);
     if (n < 0) return 0;
-    if ((size_t)n >= rem) return rem - 1;
-    return (size_t)n;
+    size_t written = (size_t)n < rem ? (size_t)n : rem - 1;
+    return written;
 }
 
 typedef struct {
@@ -135,9 +170,14 @@ typedef struct {
 static void cli_set_color(RenderDriver *self, int r, int g, int b) {
     CliDriverCtx *ctx = (CliDriverCtx*)self->ctx;
     if (r == ctx->last_r && g == ctx->last_g && b == ctx->last_b) return;
-    if (ctx->buf_ptr && ctx->rem_ptr) {
+    if (ctx->buf_ptr && ctx->rem_ptr && *ctx->rem_ptr > 0) {
         int n = snprintf(*ctx->buf_ptr, *ctx->rem_ptr, "\033[38;2;%d;%d;%dm", r, g, b);
-        if (n > 0) { *ctx->buf_ptr += n; *ctx->rem_ptr -= (size_t)n; }
+        if (n > 0) {
+            size_t written = (size_t)n;
+            if (written >= *ctx->rem_ptr) written = *ctx->rem_ptr - 1;
+            *ctx->buf_ptr += written;
+            *ctx->rem_ptr -= written;
+        }
     } else {
         printf("\033[38;2;%d;%d;%dm", r, g, b);
     }
@@ -147,9 +187,14 @@ static void cli_set_color(RenderDriver *self, int r, int g, int b) {
 /** Reseta os atributos de cor do terminal. */
 static void cli_reset_color(RenderDriver *self) {
     CliDriverCtx *ctx = (CliDriverCtx*)self->ctx;
-    if (ctx->buf_ptr && ctx->rem_ptr) {
+    if (ctx->buf_ptr && ctx->rem_ptr && *ctx->rem_ptr > 0) {
         int n = snprintf(*ctx->buf_ptr, *ctx->rem_ptr, "\033[0m");
-        if (n > 0) { *ctx->buf_ptr += n; *ctx->rem_ptr -= (size_t)n; }
+        if (n > 0) {
+            size_t written = (size_t)n;
+            if (written >= *ctx->rem_ptr) written = *ctx->rem_ptr - 1;
+            *ctx->buf_ptr += written;
+            *ctx->rem_ptr -= written;
+        }
     } else {
         printf("\033[0m");
     }
@@ -158,9 +203,14 @@ static void cli_reset_color(RenderDriver *self) {
 /** Imprime um caractere largo utilizando o driver de renderização. */
 static void cli_put_char(RenderDriver *self, wchar_t c) {
     CliDriverCtx *ctx = (CliDriverCtx*)self->ctx;
-    if (ctx->buf_ptr && ctx->rem_ptr) {
+    if (ctx->buf_ptr && ctx->rem_ptr && *ctx->rem_ptr > 0) {
         int n = snprintf(*ctx->buf_ptr, *ctx->rem_ptr, "%lc", (wint_t)c);
-        if (n > 0) { *ctx->buf_ptr += n; *ctx->rem_ptr -= (size_t)n; }
+        if (n > 0) {
+            size_t written = (size_t)n;
+            if (written >= *ctx->rem_ptr) written = *ctx->rem_ptr - 1;
+            *ctx->buf_ptr += written;
+            *ctx->rem_ptr -= written;
+        }
     } else {
         printf("%lc", (wint_t)c);
     }
@@ -196,7 +246,6 @@ int run_stream_mode(struct neonx_options *opts, Content *content_ptr)
         fflush(stdout);
         phase += opts->speed_fixed;
         phase &= 0x7FFFFFFF;
-        free(content_ptr->lines[i]);
     }
     content_ptr->count = 0;
 
@@ -231,12 +280,10 @@ int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
     }
     if (opts->fixed_width > 0) max_w = opts->fixed_width;
     content_ptr->max_line_len = max_w;
-    size_t buf_size = (size_t)(max_w + 1) * (size_t)content_ptr->count * 36 + 512;
-    const size_t MAX_BUF = 32 * 1024 * 1024;
-    if (buf_size > MAX_BUF) {
-        buf_size = MAX_BUF;
-        fprintf(stderr, "%s", MSG(MSG_ERR_BUFFER_TRUNCATED));
-    }
+    
+    /* Remoção do limite rígido de 32MB para suportar resoluções altíssimas */
+    size_t buf_size = (size_t)(max_w + 1) * (size_t)content_ptr->count * 48 + 2048;
+    
     char *frame_buf = malloc(buf_size);
     if (!frame_buf) {
         fprintf(stderr, "%s", MSG(MSG_ERR_MEMORY_ALLOC));
@@ -286,7 +333,7 @@ int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
         ptr += w; rem -= w;
         if (write(STDOUT_FILENO, frame_buf, (unsigned int)(ptr - frame_buf)) == -1) {
             free(frame_buf);
-            exit(0);
+            cleanup_and_exit(content_ptr, 1);
         }
         if (opts->static_mode) break;
         phase += opts->speed_fixed;

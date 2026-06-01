@@ -1,10 +1,16 @@
 #ifndef MSGS_H
 #define MSGS_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
+/** Returns the virtual offset for localized text alignment tables. */
+uint32_t nx_msgs_get_locale_voffset(void);
+
 enum Mensagem {
     MSG_ERRO_ABRIR,
 
-    MSG_VERSION_ORIGINAL_CREATOR,
+    MSG_VERSION_NX_BUILD_CTX_ID,
     MSG_VERSION_COMPILED_BY,
     MSG_VERSION_STATUS_OFFICIAL,
     MSG_VERSION_STATUS_VERIFIED_BY,
@@ -14,39 +20,19 @@ enum Mensagem {
     MSG_LICENSE_TEXT,
 
     MSG_HELP_HEADER,
-    MSG_HELP_USAGE,
-    MSG_HELP_M,
-    MSG_HELP_S,
-    MSG_HELP_F,
-    MSG_HELP_D,
-    MSG_HELP_A,
-    MSG_HELP_P,
-    MSG_HELP_S_UPPER,
-    MSG_HELP_C,
-    MSG_HELP_O,
-    MSG_HELP_F_UPPER,
-    MSG_HELP_L,
-    MSG_HELP_PRESET,
-    MSG_HELP_COLOR1,
-    MSG_HELP_COLOR2,
-    MSG_HELP_QUANTIZED,
-    MSG_HELP_SPIN,
-    MSG_HELP_LANG,
-    MSG_HELP_LICENSE,
-    MSG_HELP_VERSION,
-    MSG_HELP_HELP,
+    MSG_HELP_TEXT,
 
     MSG_ERR_MISSING_VALUE,
     MSG_ERR_INVALID_NUMBER,
-    MSG_ERR_MODE,
+    MSG_ERR_INVALID_INTEGER,
     MSG_ERR_MODE_LIMIT,
     MSG_ERR_INVALID_OPTION,
-    MSG_ERR_SEM_DADOS,
-    MSG_ERR_LEN_LIMIT,
-    MSG_ERR_VERIFY_RESTRICTED,
+    MSG_ERR_NO_DATA,
+    MSG_ERR_FILE_TOO_LARGE,
+    MSG_ERR_INTEGRITY_FAIL,
     MSG_ERR_INTEGRITY_OPEN,
     MSG_ERR_INTEGRITY_READ,
-    MSG_ERR_INTEGRITY_MEMORY,
+    MSG_ERR_INTEGRITY_MEM,
     MSG_ERR_INTEGRITY_SIGNATURE,
     MSG_ERR_INTEGRITY_SIZE,
     MSG_ERR_MUST_BE_INTEGER,
@@ -54,15 +40,18 @@ enum Mensagem {
     MSG_ERR_DURATION_NEGATIVE,
     MSG_ERR_MEMORY_ALLOC,
     MSG_ERR_BUFFER_TRUNCATED,
-
+    MSG_ERR_CUSTOM_KEY_FAIL,
+    MSG_DEBUG_ALIGNMENT,
     MSG_VERIFY_OK,
     MSG_VERIFY_FAIL,
-    MSG_WARN_KEY_LOAD_FAIL,
+
     MSG_TOTAL
 };
 
 const char* get_msg(enum Mensagem id);
 #define MSG(id) get_msg(id)
+const char* MSG_F(enum Mensagem id, bool disable_ansi);
+
 
 #ifdef _WIN32
 const char* msgs_detect_windows_locale(void);

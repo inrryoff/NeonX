@@ -11,6 +11,11 @@ struct neonx_options {
     bool stream_mode;
     int anim_mode;
     int32_t speed_fixed;
+    bool speed_set;
+    int32_t freq_fixed;
+    bool freq_set;
+    int32_t angle_fixed;
+    bool angle_set;
     int32_t duration_fixed;
     uint64_t duration_us;
     int32_t phase_fixed;
@@ -22,6 +27,9 @@ struct neonx_options {
     bool show_license_flag;
     bool verify_sig_flag;
     bool spin_flag;
+    bool disable_ansi;
+    bool vertical_opacity;
+    bool matte_mode;
     int c1_r, c1_g, c1_b;
     int c2_r, c2_g, c2_b;
     bool c1_set, c2_set;

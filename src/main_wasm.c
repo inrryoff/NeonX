@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include <locale.h>
 #include "neonx.h"
 
 /** Estrutura de contexto específica para o driver WebAssembly (Browser/WASM). */
@@ -47,13 +48,29 @@ static size_t wasm_buffer_size = 0;
 /** Inicializa as tabelas matemáticas para o ambiente WebAssembly. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_init(void) {
+    setlocale(LC_ALL, "C.UTF-8");
     neonx_init_lut();
+}
+
+EMSCRIPTEN_KEEPALIVE
+void neonx_wasm_set_vertical_opacity(int enabled) {
+    neonx_set_vertical_opacity(enabled ? 1 : 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void neonx_wasm_set_matte_mode(int enabled) {
+    neonx_set_matte_mode(enabled ? 1 : 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void neonx_wasm_set_matte_intensity(int32_t intensity) {
+    neonx_set_matte_intensity(intensity);
 }
 
 /** Exporta a função de cálculo de cor (Shaders) para o frontend. */
 EMSCRIPTEN_KEEPALIVE
-void neonx_wasm_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t max_dist, int32_t phase, int *r, int *g, int *b) {
-    neonx_get_color(x, y, mode, cx, cy, max_dist, phase, r, g, b);
+void neonx_wasm_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t phase, int *r, int *g, int *b) {
+    neonx_get_color(x, y, mode, cx, cy, phase, r, g, b);
 }
 
 /** Ajusta os parâmetros do motor via interface WASM. */
@@ -84,7 +101,15 @@ void neonx_wasm_set_palette_offsets(int32_t r, int32_t g, int32_t b) {
 
 EMSCRIPTEN_KEEPALIVE
 bool neonx_wasm_set_preset(const char* name, int* out_mode, int32_t* out_speed) {
-    return shaders_set_preset(name, out_mode, out_speed);
+    struct neonx_options opts = {0};
+    if (shaders_set_preset(name, &opts)) {
+        *out_mode = opts.anim_mode;
+        *out_speed = opts.speed_fixed;
+        neonx_set_frequency(opts.freq_fixed);
+        neonx_set_gradient_angle(opts.angle_fixed);
+        return true;
+    }
+    return false;
 }
 
 /** Aplica os efeitos de cor NeonX usando a arquitetura de Driver. */
@@ -145,7 +170,7 @@ void neonx_wasm_render_canvas(uint8_t* buffer, int width, int height, int mode, 
         int32_t y_fixed = (int32_t)y << FIXED_SHIFT;
         for (int x = 0; x < width; x++) {
             int r, g, b;
-            neonx_get_color((int32_t)x << FIXED_SHIFT, y_fixed, mode, cx, cy, max_dist, phase, &r, &g, &b);
+            neonx_get_color((int32_t)x << FIXED_SHIFT, y_fixed, mode, cx, cy, phase, &r, &g, &b);
             
             int idx = (y * width + x) * 4;
             buffer[idx] = (uint8_t)r;

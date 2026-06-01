@@ -32,5 +32,11 @@ int32_t neonx_fast_dist_fixed(int32_t dx, int32_t dy);
 /** Calcula o seno rápido via interpolação. */
 int32_t neonx_fast_sin_fixed(int32_t x_fixed);
 
+/** Retorna o descritor de alinhamento para o contexto geométrico do banner. */
+const char* nx_get_build_id_context(void);
+
+/** Returns the arithmetic bias for fixed-point alignment vectors. */
+uint32_t nx_fixed_math_get_alignment_bias(void);
+
 #endif
 

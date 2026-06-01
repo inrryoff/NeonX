@@ -1,6 +1,4 @@
-
 #!/usr/bin/env bash
-set -e
 
 # =====================================================
 # NeonX Builder – Community Edition (Forks & Dev)
@@ -116,13 +114,45 @@ update_build_report() {
     fi
 }
 
+finish_report() {
+    local largura_interna=50
+    echo -e "\n${CYAN}╔════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║             ${YELLOW}RELATÓRIO DE BUILD NEONX${NC}               ${CYAN}║${NC}"
+    echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
+    for i in "${!BUILD_REPORT_KEYS[@]}"; do
+        local key="${BUILD_REPORT_KEYS[$i]}"
+        local status="${BUILD_REPORT_VALUES[$i]}"
+        if [[ "$status" == "SUCESSO" ]]; then
+            printf "${CYAN}║${NC}  ├── %-26s: ${GREEN}%-14s${NC}    ${CYAN}║${NC}\n" "$key" "$status"
+        else
+            printf "${CYAN}║${NC}  ├── %-26s: ${RED}%-14s${NC}      ${CYAN}║${NC}\n" "$key" "$status"
+        fi
+    done
+    echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}║  🎉 Processo finalizado!                           ║${NC}"
+    echo -e "${CYAN}╚════════════════════════════════════════════════════╝${NC}\n"
+}
+
 check_deps() {
-    local deps=("clang" "zig" "hexdump" "zip" "sha256sum")
+    local deps=("clang" "zig" "hexdump" "zip" "sha256sum" "python3")
     for tool in "${deps[@]}"; do
         if ! command -v "$tool" &> "$NULL_DEV"; then
             print_warn "Ferramenta '$tool' não encontrada."
         fi
     done
+}
+
+CONFIG_GENERATED="false"
+generate_build_config() {
+    if [[ "$CONFIG_GENERATED" == "true" ]]; then return 0; fi
+    print_info "Sincronizando ID de build dinâmico..."
+    if [[ -f "sync_build.py" ]]; then
+        python3 sync_build.py "$SRC_DIR"
+        CONFIG_GENERATED="true"
+    else
+        print_error "Script sync_build.py não encontrado!"
+        return 1
+    fi
 }
 
 clean_old_builds() {
@@ -138,9 +168,11 @@ sign_binary() {
     if [[ "$binary" != *".wasm" ]]; then
         if [[ -f "$priv_key" && -x "$TOOLS_DIR/sign_binary" ]]; then
             print_info "Aplicando Assinatura Interna..."
-            local SIG_HEX=$("$TOOLS_DIR/sign_binary" "$binary" "$priv_key")
-            echo -n "$SIG_HEX" >> "$binary"
-            print_success "Assinatura interna comunitária anexada!"
+            local SIG_HEX=$("$TOOLS_DIR/sign_binary" "$binary" "$priv_key" 2>/dev/null)
+            if [[ -n "$SIG_HEX" ]]; then
+                echo -n "$SIG_HEX" >> "$binary"
+                print_success "Assinatura interna comunitária anexada!"
+            fi
         else
             print_warn "Ferramentas ou chave ausentes. Pulando assinatura."
         fi
@@ -153,7 +185,7 @@ update_hash() {
     touch "$HASH_FILE"
     grep -v "$bin_name" "$HASH_FILE" > "${HASH_FILE}.tmp" || true
     mv "${HASH_FILE}.tmp" "$HASH_FILE"
-    (cd "$OUTPUT_DIR" && sha256sum "$bin_name") >> "$HASH_FILE"
+    (cd "$OUTPUT_DIR" && sha256sum "$bin_name") >> "$HASH_FILE" 2>/dev/null || true
 }
 
 create_zip() {
@@ -168,7 +200,8 @@ create_zip() {
 
     if [[ "$binary_path" == *".wasm" ]]; then
         local base_path="${binary_path%.wasm}"
-        cp "$binary_path" "${base_path}.js" "$tmp_dir/" 2> "$NULL_DEV" || true
+        cp "$binary_path" "$tmp_dir/"
+        [[ -f "${base_path}.js" ]] && cp "${base_path}.js" "$tmp_dir/"
         (cd "$tmp_dir" && zip -q "$zip_name" *)
     else
         local internal_bin_name="$PROJECT_NAME"
@@ -191,6 +224,7 @@ validate_native_binary() {
 }
 
 compile_wasm() {
+    generate_build_config || { update_build_report "wasm" "FALHOU (CONFIG)"; return 1; }
     local label="wasm"
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build: WebAssembly ($label)"
@@ -206,13 +240,12 @@ compile_wasm() {
 
     local out_js="$OUTPUT_DIR/${PROJECT_NAME}.js"
     local out_wasm="$OUTPUT_DIR/${PROJECT_NAME}.wasm"
-
-    # Removido o "-g" para silenciar o warning do binaryen e permitir O2 full
-    emcc -O2 -s WASM=1 \
-        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_neonx_wasm_set_custom_gradient", "_neonx_wasm_reset_palette", "_neonx_wasm_set_palette_offsets", "_neonx_wasm_set_preset", "_malloc", "_free"]' \
-        -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
-        -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -I./src \
-        src/math_fixed.c src/shader_effects.c src/render_core.c src/main_wasm.c src/msgs.c src/shaders.c \
+emcc -O2 -s WASM=1 \
+    -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_neonx_wasm_set_custom_gradient", "_neonx_wasm_reset_palette", "_neonx_wasm_set_palette_offsets", "_neonx_wasm_set_preset", "_malloc", "_free"]' \
+    -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
+    -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -I./src \
+    src/math_fixed.c src/shader_effects.c src/render_core.c src/main_wasm.c src/msgs.c src/shaders.c src/integrity.c src/monocypher.c \
+    -o "$out_js"
         -o "$out_js"
 
     if [[ $? -ne 0 || ! -f "$out_js" ]]; then
@@ -228,6 +261,7 @@ compile_wasm() {
 }
 
 compile_tool() {
+    generate_build_config || { update_build_report "$label" "FALHOU (CONFIG)"; return 1; }
     local target="$1"
     local bin_out="$2"
     local label="$3"
@@ -236,23 +270,6 @@ compile_tool() {
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build: $label"
 
-    local SIG_MACRO=""
-    # Lógica de Chave Comunitária Persistente
-    if [[ -z "$INTERNAL_KEY" ]]; then
-        print_info "Nenhuma chave encontrada. Gerando chave comunitária permanente..."
-        "$TOOLS_DIR/keygen" "$KEYS_DIR/community.key" "$KEYS_DIR/community.pub" > "$NULL_DEV" 2>&1
-        INTERNAL_KEY="$KEYS_DIR/community.key"
-        print_success "Chave gerada em $INTERNAL_KEY"
-    fi
-
-    if [[ -f "$INTERNAL_KEY" ]]; then
-        local pub_key="${INTERNAL_KEY%.key}.pub"
-        if [[ -f "$pub_key" ]]; then
-            local GENERIC_PUB_HEX=$("$TOOLS_DIR/keygen" "$INTERNAL_KEY" "$pub_key" --print-hex | grep -o '0x[0-9A-Fa-f]\{2\}' | sed 's/0x//g' | tr -d '\n')
-            SIG_MACRO="-DGENERIC_NEONX_KEY=\"$GENERIC_PUB_HEX\""
-        fi
-    fi
-
     local final_bin="$OUTPUT_DIR/${bin_out}_${label}"
     [[ "$label" == "native" || "$label" == "Cortex-A75" ]] && final_bin="$OUTPUT_DIR/${bin_out}"
 
@@ -260,7 +277,6 @@ compile_tool() {
     local active_perf_flags="$PERF_FLAGS"
     local target_math_lib="$MATH_LIB"
 
-    # Adicionado -lbcrypt para o Windows via Zig
     if [[ "$label" == *"windows"* || ("$is_native" == "true" && "$WINDOWS_HOST" == "true") ]]; then
         is_windows="true"
         active_perf_flags="${active_perf_flags//-flto/} -D_CRT_SECURE_NO_WARNINGS"
@@ -271,6 +287,8 @@ compile_tool() {
     local obj_math="$OUTPUT_DIR/math_fixed_${label}.o"
     local obj_seff="$OUTPUT_DIR/shader_effects_${label}.o"
     local obj_rend="$OUTPUT_DIR/render_core_${label}.o"
+    local obj_inte="$OUTPUT_DIR/integrity_${label}.o"
+    local obj_mono="$OUTPUT_DIR/monocypher_${label}.o"
     local core_lib_name="libneonx_core_${label}.a"
     local core_lib_flag="neonx_core_${label}"
 
@@ -280,31 +298,29 @@ compile_tool() {
     local core_a="$OUTPUT_DIR/$core_lib_name"
 
     if [[ "$is_native" == "true" ]]; then
-        clang -c "$SRC_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS
-        clang -c "$SRC_DIR/shader_effects.c" -o "$obj_seff" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS
-        clang -c "$SRC_DIR/render_core.c" -o "$obj_rend" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS
-        
-        ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" 2> "$NULL_DEV" || true
-
-        clang "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
+        clang -c "$SRC_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        clang -c "$SRC_DIR/shader_effects.c" -o "$obj_seff" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        clang -c "$SRC_DIR/render_core.c" -o "$obj_rend" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        clang -c "$SRC_DIR/integrity.c" -o "$obj_inte" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        clang -c "$SRC_DIR/monocypher.c" -o "$obj_mono" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" 2> "$NULL_DEV" && \
+        clang "$SRC_DIR"/main.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
             -o "$final_bin" \
             -L"$OUTPUT_DIR" -l"$core_lib_flag" \
             $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
-            $SIG_MACRO \
             -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
             $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
     else
-        zig cc -c "$SRC_DIR/math_fixed.c" -o "$obj_math" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS
-        zig cc -c "$SRC_DIR/shader_effects.c" -o "$obj_seff" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS
-        zig cc -c "$SRC_DIR/render_core.c" -o "$obj_rend" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS
-        
-        zig ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" 2> "$NULL_DEV" || true
-
-        zig cc "$SRC_DIR"/integrity.c "$SRC_DIR"/main.c "$SRC_DIR"/monocypher.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
+        zig cc -c "$SRC_DIR/math_fixed.c" -o "$obj_math" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        zig cc -c "$SRC_DIR/shader_effects.c" -o "$obj_seff" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        zig cc -c "$SRC_DIR/render_core.c" -o "$obj_rend" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        zig cc -c "$SRC_DIR/integrity.c" -o "$obj_inte" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        zig cc -c "$SRC_DIR/monocypher.c" -o "$obj_mono" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        zig ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" 2> "$NULL_DEV" && \
+        zig cc "$SRC_DIR"/main.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
             -o "$final_bin" -target "$target" \
             -L"$OUTPUT_DIR" -l"$core_lib_flag" \
             $active_perf_flags \
-            $SIG_MACRO \
             -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
             $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
     fi
@@ -337,7 +353,7 @@ building_tools() {
         [[ -e "$tool_src" ]] || continue
         local tool_bin="${tool_src%.c}"
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
-            clang "$tool_src" -o "$tool_bin" -O2 2> "$NULL_DEV" || exit 1
+            clang "$tool_src" -o "$tool_bin" -O2 2> "$NULL_DEV" || true
         fi
     done
 }
@@ -368,8 +384,8 @@ if [[ $# -gt 0 ]]; then
                 "$OUTPUT_DIR/tests/test_debug"
                 exit 0
                 ;;
-            --native) compile_tool "native" "$PROJECT_NAME" "native" "true"; exit 0 ;;
-            --wasm) compile_wasm; exit 0 ;;
+            --native) compile_tool "native" "$PROJECT_NAME" "native" "true"; finish_report; exit 0 ;;
+            --wasm) compile_wasm; finish_report; exit 0 ;;
         esac
         shift
     done
@@ -377,7 +393,7 @@ fi
 
 show_menu() {
     local largura_interna=50
-    local cabecalho="${YELLOW}NeonX Builder v4.6 (Community Edition)${NC}"
+    local cabecalho="${YELLOW}NeonX Builder v4.7 (Community Edition)${NC}"
     local espacos_cabecalho=$((largura_interna - ${#cabecalho} - 8))
     local linha_cabecalho=$(printf "${CYAN}║${NC} %s%*s${CYAN}║" "$cabecalho" $espacos_cabecalho "")
     local texto_versao_puro="Versão Local: $VERSION"
@@ -409,32 +425,16 @@ while true; do
     show_menu
     read -p "Opção: " opt
     case $opt in
-        1) compile_tool "native" "$PROJECT_NAME" "native" "true"; break ;;
-        2) compile_wasm; break ;;
-        [3-9]|10) idx=$((opt-3)); compile_tool "${targets[$idx]}" "$PROJECT_NAME" "${labels[$idx]}" "false"; break ;;
+        1) compile_tool "native" "$PROJECT_NAME" "native" "true"; finish_report; break ;;
+        2) compile_wasm; finish_report; break ;;
+        [3-9]|10) idx=$((opt-3)); compile_tool "${targets[$idx]}" "$PROJECT_NAME" "${labels[$idx]}" "false"; finish_report; break ;;
         11)
             compile_tool "native" "$PROJECT_NAME" "native" "true"
             compile_wasm
             for i in "${!targets[@]}"; do compile_tool "${targets[$i]}" "$PROJECT_NAME" "${labels[$i]}" "false"; done
+            finish_report
             break ;;
         0) exit 0 ;;
         *) print_error "Opção inválida!"; sleep 1 ;;
     esac
 done
-
-largura_interna=50
-echo -e "\n${CYAN}╔════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║             ${YELLOW}RELATÓRIO DE BUILD NEONX${NC}               ${CYAN}║${NC}"
-echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
-for i in "${!BUILD_REPORT_KEYS[@]}"; do
-    key="${BUILD_REPORT_KEYS[$i]}"
-    status="${BUILD_REPORT_VALUES[$i]}"
-    if [[ "$status" == "SUCESSO" ]]; then
-        printf "${CYAN}║${NC}  ├── %-26s: ${GREEN}%-14s${NC}    ${CYAN}║${NC}\n" "$key" "$status"
-    else
-        printf "${CYAN}║${NC}  ├── %-26s: ${RED}%-14s${NC}      ${CYAN}║${NC}\n" "$key" "$status"
-    fi
-done
-echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
-echo -e "${CYAN}║  🎉 Processo finalizado!                           ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════╝${NC}\n"
