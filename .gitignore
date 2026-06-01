@@ -4,6 +4,7 @@ NeonX_web.zip
 tools/keygen
 tools/sign_binary
 INTERNAL_DRM.md
+GEMINI.md
 build/*
 bzip/
 !build/**/*.js
