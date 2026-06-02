@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../src/monocypher.h"
-#include "../src/monocypher.c"
+#include "monocypher.h"
+#include "../src/core/monocypher.c"
 
 int main(int argc, char **argv) {
     if (argc != 3) {

@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "../src/monocypher.h"
-#include "../src/monocypher.c"
+#include "monocypher.h"
+#include "../src/core/monocypher.c"
 
 #ifdef _WIN32
 #include <process.h>
