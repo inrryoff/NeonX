@@ -330,7 +330,7 @@ compile_tool() {
     local obj_inte="$OUTPUT_DIR/integrity_${label}.o"
     local obj_mono="$OUTPUT_DIR/monocypher_${label}.o"
     local core_lib_name="libneonx_core_${label}.a"
-    local core_lib_flag=":libneonx_core_${label}.a"   # Corrigido para vincular corretamente no Windows/MinGW
+    local core_lib_flag="neonx_core_${label}"
 
     if [[ "$is_windows" == "true" ]]; then
         # No Windows com zig/clang, usamos a mesma convenção .a ou .lib. O linker aceita .a.
@@ -410,15 +410,25 @@ labels=("linux-x64" "linux-x86" "linux-arm64" "linux-arm32" "windows-x64" "windo
 if [[ $# -gt 0 ]]; then
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --test)
+                --test)
                 mkdir -p "$OUTPUT_DIR/tests"
-                clang $INCLUDE tests/unit/test_comprehensive.c "$CORE_DIR"/shaders.c "$CORE_DIR"/math_fixed.c "$CORE_DIR"/shader_effects.c "$CORE_DIR"/render_core.c "$CORE_DIR"/msgs.c -o "$OUTPUT_DIR/tests/test_unit" -Isrc $MATH_LIB $PERF_FLAGS
+                clang $INCLUDE tests/unit/test_comprehensive.c \
+                "$CORE_DIR"/shaders.c \
+                "$CORE_DIR"/math_fixed.c \
+                "$CORE_DIR"/shader_effects.c \
+                "$CORE_DIR"/render_core.c \
+                "$CORE_DIR"/integrity.c \
+                "$CORE_DIR"/monocypher.c \
+                "$CORE_DIR"/msgs.c \
+                -o "$OUTPUT_DIR/tests/test_unit" \
+                -Isrc $MATH_LIB $PERF_FLAGS
                 "$OUTPUT_DIR/tests/test_unit"
 
                 compile_tool "native" "$PROJECT_NAME" "native" "true"
                 [[ -f tests/integration_test.sh ]] && chmod +x tests/integration_test.sh && ./tests/integration_test.sh
-                finish_report   # <-- agora chama o relatório
+                finish_report
                 exit 0
+                ;;
                 ;;
             --native) compile_tool "native" "$PROJECT_NAME" "native" "true"; finish_report; exit 0 ;;
             --wasm) compile_wasm; finish_report; exit 0 ;;
