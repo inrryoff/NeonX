@@ -55,7 +55,19 @@ PROJECT_NAME="neonx"
 HASH_FILE="$KEYS_DIR/SHA256SUMS.txt"
 
 mkdir -p "$KEYS_DIR"
-# Busca a primeira chave disponível no diretório, ou fica vazio se não existir
+
+# Gera chave efêmera se não existir
+if [[ ! -f "$KEYS_DIR/NeonX.key" ]]; then
+    print_info "Gerando chave efêmera para este build..."
+    # Garante que a ferramenta de geração está compilada
+    if [[ ! -x "$TOOLS_DIR/keygen" ]]; then
+        clang "$TOOLS_DIR/keygen.c" -o "$TOOLS_DIR/keygen" -O2 2> "$NULL_DEV"
+    fi
+    "$TOOLS_DIR/keygen" "$KEYS_DIR/NeonX.key" "$KEYS_DIR/NeonX.pub"
+    print_success "Chave efêmera gerada em $KEYS_DIR/"
+fi
+
+# Busca a primeira chave disponível no diretório
 INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
 
 # --------------------------------------------------
