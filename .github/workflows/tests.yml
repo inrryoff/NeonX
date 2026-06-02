@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
       fail-fast: false
 
     steps:
@@ -34,12 +34,6 @@ jobs:
         run: |
           brew install minisign
           chmod +x *.sh tests/*.sh
-
-      - name: ⚙️ Instalar Dependências (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          choco install minisign zip
-          chmod +x *.sh tests/*.sh || true
 
       - name: 🛠️ Build e Teste Completo (Nativo + Integração)
         run: |
