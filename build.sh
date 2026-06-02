@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 
 # =====================================================
 # NeonX Builder – Community Edition (Forks & Dev)
@@ -29,13 +28,6 @@ print_warn()    { echo -e "${YELLOW}⚠ $1${NC}"; }
 print_error()   { echo -e "${RED}✗ $1${NC}"; }
 
 # --------------------------------------------------
-# hexdump em Bash puro (sem dependência externa)
-# --------------------------------------------------
-hexdump() {
-    python3 -c "import sys; data = sys.stdin.buffer.read(); print(''.join(['%02x' % b for b in data]))"
-}
-
-# --------------------------------------------------
 # Gestão de Versão Local (Sem chamadas de rede)
 # --------------------------------------------------
 VERSION_FILE="version.txt"
@@ -48,12 +40,13 @@ else
     print_warn "Arquivo $VERSION_FILE não encontrado. Usando padrão: $VERSION"
 fi
 
-BUILD_STATUS="UNOFFICIAL_BUILD"
+BUILD_STATUS="STABLE_RELEASE"
 BUILD_MAINTAINER="@community"
 MAINTAINER_CLEAN=$(echo "$BUILD_MAINTAINER" | tr -d '@' | tr 'a-z' 'A-Z')
 BUILD_STATUS="VALID_SIG_BY_${MAINTAINER_CLEAN}"
 
 SRC_DIR="src"
+CORE_DIR="$SRC_DIR/core"
 TOOLS_DIR="tools"
 OUTPUT_DIR="build"
 ZIP_DIR="bzip"
@@ -62,53 +55,10 @@ PROJECT_NAME="neonx"
 HASH_FILE="$KEYS_DIR/SHA256SUMS.txt"
 
 mkdir -p "$KEYS_DIR"
-INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
 
 # --------------------------------------------------
-# Flags de Compilação & Performance
+# DEFINIÇÃO DE FUNÇÕES
 # --------------------------------------------------
-if [[ "$PORTABLE" == "1" ]]; then
-    TUNE_FLAGS="-march=x86-64"
-    PERF_FLAGS="-O3 -fno-math-errno -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
-else
-    TUNE_FLAGS="-march=native"
-    PERF_FLAGS="-O3 -ffast-math -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
-fi
-
-HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wno-format-nonliteral -Wstrict-overflow=5 -Wno-unused-command-line-argument"
-if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "linux-android"* ]]; then
-    HARDENING_CFLAGS="$HARDENING_CFLAGS -fstack-clash-protection"
-fi
-
-HARDENING_LDFLAGS=""
-ARCH=$(uname -m)
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    HARDENING_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--as-needed"
-    if [[ "$ARCH" == "x86_64" || "$ARCH" == "i686" ]]; then
-        HARDENING_CFLAGS="$HARDENING_CFLAGS -fcf-protection=full"
-    fi
-fi
-
-MATH_LIB="-lm"
-if [[ "$WINDOWS_HOST" == "true" ]]; then
-    MATH_LIB=""
-fi
-
-SAN_FLAGS=""
-if [[ "$SANITIZE" == "1" ]]; then
-    print_info "MODO SANITIZE ATIVADO"
-    SAN_FLAGS="-fsanitize=address,undefined -g -O1 -fno-omit-frame-pointer"
-    PERF_FLAGS="${PERF_FLAGS//-flto/}"
-fi
-
-# Suprime warnings de fopen no Windows
-if [[ "$WINDOWS_HOST" == "true" ]]; then
-    SECURE_FLAG="-D_CRT_SECURE_NO_WARNINGS"
-else
-    SECURE_FLAG=""
-fi
-
-# Relatório
 BUILD_REPORT_KEYS=()
 BUILD_REPORT_VALUES=()
 update_build_report() {
@@ -139,7 +89,7 @@ finish_report() {
         if [[ "$status" == "SUCESSO" ]]; then
             printf "${CYAN}║${NC}  ├── %-26s: ${GREEN}%-14s${NC}    ${CYAN}║${NC}\n" "$key" "$status"
         else
-            printf "${CYAN}║${NC}  ├── %-26s: ${RED}%-14s${NC}      ${CYAN}║${NC}\n" "$key" "$status"
+            printf "${CYAN}║${NC}  ├── %-26s: ${RED}%-12s${NC}      ${CYAN}║${NC}\n" "$key" "$status"
         fi
     done
     echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
@@ -148,12 +98,25 @@ finish_report() {
 }
 
 check_deps() {
-    local deps=("clang" "zig" "zip" "sha256sum" "python3")
+    local deps=("clang" "zig" "hexdump" "zip" "sha256sum" "python3")
     for tool in "${deps[@]}"; do
         if ! command -v "$tool" &> "$NULL_DEV"; then
             print_warn "Ferramenta '$tool' não encontrada."
         fi
     done
+}
+
+CONFIG_GENERATED="false"
+generate_build_config() {
+    if [[ "$CONFIG_GENERATED" == "true" ]]; then return 0; fi
+    print_info "Sincronizando ID de build dinâmico..."
+    if [[ -f "sync_build.py" ]]; then
+        python3 sync_build.py "$SRC_DIR"
+        CONFIG_GENERATED="true"
+    else
+        print_error "Script sync_build.py não encontrado!"
+        return 1
+    fi
 }
 
 clean_old_builds() {
@@ -165,15 +128,25 @@ clean_old_builds() {
 sign_binary() {
     local binary="$1"
     local priv_key="$2"
+    
+    local tool_bin="$TOOLS_DIR/sign_binary"
+    [[ "$WINDOWS_HOST" == "true" ]] && tool_bin="${tool_bin}.exe"
 
     if [[ "$binary" != *".wasm" ]]; then
-        if [[ -f "$priv_key" && -x "$TOOLS_DIR/sign_binary" ]]; then
+        # COMPILAÇÃO INLINE PARA O SIGN_BINARY (Caso building_tools falhe)
+        if [[ ! -x "$tool_bin" ]]; then
+            clang -I./src/headers "$TOOLS_DIR/sign_binary.c" -o "$tool_bin" -O2 2> "$NULL_DEV" || true
+        fi
+
+        if [[ -f "$priv_key" && -x "$tool_bin" ]]; then
             print_info "Aplicando Assinatura Interna..."
-            local SIG_HEX=$("$TOOLS_DIR/sign_binary" "$binary" "$priv_key")
-            echo -n "$SIG_HEX" >> "$binary"
-            print_success "Assinatura interna comunitária anexada!"
+            local SIG_HEX=$("$tool_bin" "$binary" "$priv_key" 2>/dev/null)
+            if [[ -n "$SIG_HEX" ]]; then
+                echo -n "$SIG_HEX" >> "$binary"
+                print_success "Assinatura interna comunitária anexada!"
+            fi
         else
-            print_warn "Ferramentas ou chave ausentes. Pulando assinatura."
+            print_warn "Ferramentas ou chave ausentes. Pulando assinatura interna."
         fi
     fi
 }
@@ -184,7 +157,17 @@ update_hash() {
     touch "$HASH_FILE"
     grep -v "$bin_name" "$HASH_FILE" > "${HASH_FILE}.tmp" || true
     mv "${HASH_FILE}.tmp" "$HASH_FILE"
-    (cd "$OUTPUT_DIR" && sha256sum "$bin_name") >> "$HASH_FILE"
+    (cd "$OUTPUT_DIR" && sha256sum "$bin_name") >> "$HASH_FILE" 2>/dev/null || true
+}
+
+create_temp_dir() {
+    if command -v mktemp &> "$NULL_DEV"; then
+        mktemp -d
+    else
+        local temp_dir="/tmp/neonx.$$"
+        mkdir -p "$temp_dir"
+        echo "$temp_dir"
+    fi
 }
 
 create_zip() {
@@ -195,7 +178,7 @@ create_zip() {
     if ! command -v zip &> "$NULL_DEV"; then return 1; fi
 
     local zip_name="${PROJECT_NAME}_${label}.zip"
-    local tmp_dir=$(mktemp -d)
+    local tmp_dir=$(create_temp_dir)
 
     if [[ "$binary_path" == *".wasm" ]]; then
         local base_path="${binary_path%.wasm}"
@@ -223,6 +206,7 @@ validate_native_binary() {
 }
 
 compile_wasm() {
+    generate_build_config || { update_build_report "wasm" "FALHOU (CONFIG)"; return 1; }
     local label="wasm"
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build: WebAssembly ($label)"
@@ -238,13 +222,33 @@ compile_wasm() {
 
     local out_js="$OUTPUT_DIR/${PROJECT_NAME}.js"
     local out_wasm="$OUTPUT_DIR/${PROJECT_NAME}.wasm"
-
     emcc -O2 -s WASM=1 \
-        -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_malloc", "_free"]' \
-        -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
-        -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -I./src \
-        src/math_fixed.c src/shader_effects.c src/render_core.c src/main_wasm.c src/msgs.c \
-        -o "$out_js"
+      -s EXPORTED_FUNCTIONS='[
+        "_neonx_wasm_init",
+        "_neonx_wasm_get_color",
+        "_neonx_wasm_set_frequency",
+        "_neonx_wasm_set_gradient_angle",
+        "_neonx_wasm_set_opacity",
+        "_neonx_wasm_set_quantization",
+        "_neonx_wasm_set_custom_gradient",
+        "_neonx_wasm_reset_palette",
+        "_neonx_wasm_set_palette_offsets",
+        "_neonx_wasm_set_preset",
+        "_neonx_apply_colors",
+        "_neonx_wasm_render_canvas",
+        "_neonx_wasm_set_vertical_opacity",
+        "_neonx_wasm_set_matte_mode",
+        "_neonx_wasm_set_matte_intensity",
+        "_malloc",
+        "_free"
+      ]' \
+      -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
+      -s ALLOW_MEMORY_GROWTH=1 \
+      -s NO_EXIT_RUNTIME=1 \
+      $INCLUDE \
+      src/core/*.c \
+      src/main_wasm.c \
+      -o "$out_js"
 
     if [[ $? -ne 0 || ! -f "$out_js" ]]; then
         update_build_report "$label" "FALHOU"
@@ -264,30 +268,16 @@ compile_tool() {
     local label="$3"
     local is_native="$4"
 
+    generate_build_config || { update_build_report "$label" "FALHOU (CONFIG)"; return 1; }
+
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build: $label"
-
-    local SIG_MACRO=""
-    if [[ -z "$INTERNAL_KEY" ]]; then
-        print_info "Nenhuma chave encontrada. Gerando chave comunitária permanente..."
-        "$TOOLS_DIR/keygen" "$KEYS_DIR/community.key" "$KEYS_DIR/community.pub" > "$NULL_DEV" 2>&1
-        INTERNAL_KEY="$KEYS_DIR/community.key"
-        print_success "Chave gerada em $INTERNAL_KEY"
-    fi
-
-    if [[ -f "$INTERNAL_KEY" ]]; then
-        local pub_key="${INTERNAL_KEY%.key}.pub"
-        if [[ -f "$pub_key" ]]; then
-            local GENERIC_PUB_HEX=$("$TOOLS_DIR/keygen" "$INTERNAL_KEY" "$pub_key" --print-hex | grep -o '0x[0-9A-Fa-f]\{2\}' | sed 's/0x//g' | tr -d '\n')
-            SIG_MACRO="-DGENERIC_NEONX_KEY=\"$GENERIC_PUB_HEX\""
-        fi
-    fi
 
     local final_bin="$OUTPUT_DIR/${bin_out}_${label}"
     [[ "$label" == "native" || "$label" == "Cortex-A75" ]] && final_bin="$OUTPUT_DIR/${bin_out}"
 
     local is_windows="false"
-    local active_perf_flags="$PERF_FLAGS $SECURE_FLAG"
+    local active_perf_flags="$PERF_FLAGS"
     local target_math_lib="$MATH_LIB"
 
     if [[ "$label" == *"windows"* || ("$is_native" == "true" && "$WINDOWS_HOST" == "true") ]]; then
@@ -297,51 +287,47 @@ compile_tool() {
         final_bin="${final_bin}.exe"
     fi
 
-    # Compilar objetos da core
     local obj_math="$OUTPUT_DIR/math_fixed_${label}.o"
     local obj_seff="$OUTPUT_DIR/shader_effects_${label}.o"
     local obj_rend="$OUTPUT_DIR/render_core_${label}.o"
     local obj_inte="$OUTPUT_DIR/integrity_${label}.o"
     local obj_mono="$OUTPUT_DIR/monocypher_${label}.o"
-    local obj_msgs="$OUTPUT_DIR/msgs_${label}.o"
-    local obj_render="$OUTPUT_DIR/render_${label}.o"
-    local obj_shaders="$OUTPUT_DIR/shaders_${label}.o"
-    local obj_term="$OUTPUT_DIR/terminal_${label}.o"
-    local core_a="$OUTPUT_DIR/libneonx_core_${label}.a"
+    local core_lib_name="libneonx_core_${label}.a"
+    local core_lib_flag="neonx_core_${label}"
 
-    local compile_cmd
-    if [[ "$is_native" == "true" ]]; then
-        compile_cmd="clang"
-    else
-        compile_cmd="zig cc -target $target"
+    if [[ "$is_windows" == "true" ]]; then
+        core_lib_name="libneonx_core_${label}.a"
+        core_lib_flag=":libneonx_core_${label}.a"
     fi
+    local core_a="$OUTPUT_DIR/$core_lib_name"
 
-    # Compilar cada arquivo .c da core
-    $compile_cmd -c "$SRC_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-    $compile_cmd -c "$SRC_DIR/shader_effects.c" -o "$obj_seff" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-    $compile_cmd -c "$SRC_DIR/render_core.c" -o "$obj_rend" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-    $compile_cmd -c "$SRC_DIR/integrity.c" -o "$obj_inte" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-    $compile_cmd -c "$SRC_DIR/monocypher.c" -o "$obj_mono" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-    $compile_cmd -c "$SRC_DIR/msgs.c" -o "$obj_msgs" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-    $compile_cmd -c "$SRC_DIR/render.c" -o "$obj_render" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-    $compile_cmd -c "$SRC_DIR/shaders.c" -o "$obj_shaders" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-    $compile_cmd -c "$SRC_DIR/terminal.c" -o "$obj_term" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $SECURE_FLAG
-
-    # Criar biblioteca estática
     if [[ "$is_native" == "true" ]]; then
-        ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" "$obj_msgs" "$obj_render" "$obj_shaders" "$obj_term" 2> "$NULL_DEV"
+        clang -c "$CORE_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/shader_effects.c" -o "$obj_seff" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/render_core.c" -o "$obj_rend" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/integrity.c" -o "$obj_inte" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/monocypher.c" -o "$obj_mono" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" 2> "$NULL_DEV" && \
+        clang $INCLUDE "$SRC_DIR"/main.c "$CORE_DIR"/msgs.c "$CORE_DIR"/render.c "$CORE_DIR"/shaders.c "$CORE_DIR"/terminal.c \
+            -o "$final_bin" \
+            -L"$OUTPUT_DIR" -l"$core_lib_flag" \
+            $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
+            -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
+            $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
     else
-        zig ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" "$obj_msgs" "$obj_render" "$obj_shaders" "$obj_term" 2> "$NULL_DEV"
+        zig cc -c "$CORE_DIR/math_fixed.c" -o "$obj_math" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/shader_effects.c" -o "$obj_seff" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/render_core.c" -o "$obj_rend" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/integrity.c" -o "$obj_inte" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/monocypher.c" -o "$obj_mono" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" 2> "$NULL_DEV" && \
+        zig cc $INCLUDE "$SRC_DIR"/main.c "$CORE_DIR"/msgs.c "$CORE_DIR"/render.c "$CORE_DIR"/shaders.c "$CORE_DIR"/terminal.c \
+            -o "$final_bin" -target "$target" \
+            -L"$OUTPUT_DIR" -l"$core_lib_flag" \
+            $active_perf_flags \
+            -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
+            $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
     fi
-
-    # Linkar o executável principal
-    $compile_cmd "$SRC_DIR"/main.c \
-        "$core_a" \
-        -o "$final_bin" \
-        $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
-        $SIG_MACRO \
-        -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-        $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
 
     if [[ $? -ne 0 ]]; then
         update_build_report "$label" "FALHOU"
@@ -369,44 +355,124 @@ building_tools() {
     mkdir -p "$TOOLS_DIR"
     for tool_src in "$TOOLS_DIR"/*.c; do
         [[ -e "$tool_src" ]] || continue
+        
         local tool_bin="${tool_src%.c}"
+        [[ "$WINDOWS_HOST" == "true" ]] && tool_bin="${tool_bin}.exe"
+        
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
-            clang "$tool_src" -o "$tool_bin" -O2 $SECURE_FLAG 2> "$NULL_DEV" || exit 1
+            print_info "Compilando ferramenta: $(basename "$tool_src")..."
+            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" -O2; then
+                print_error "O CLANG FALHOU ao compilar $tool_src"
+                return 1
+            fi
         fi
     done
 }
 
+# --------------------------------------------------
+# EXECUÇÃO INICIAL
+# --------------------------------------------------
 check_deps
 clean_old_builds
 building_tools
 
+# --------------------------------------------------
+# GERAÇÃO DA CHAVE EFÊMERA (Com Auto-Compilação)
+# --------------------------------------------------
+if [[ ! -f "$KEYS_DIR/NeonX.key" ]]; then
+    print_info "Gerando chave efêmera para este build..."
+    local_keygen="$TOOLS_DIR/keygen"
+    [[ "$WINDOWS_HOST" == "true" ]] && local_keygen="${local_keygen}.exe"
+    
+    # Se não existe, tenta compilar agora e mostra o erro se falhar
+    if [[ ! -x "$local_keygen" ]]; then
+        print_info "Tentando compilar keygen manualmente..."
+        clang -I./src/headers "$TOOLS_DIR/keygen.c" -o "$local_keygen" -O2
+    fi
+
+    # Checa se agora o binário existe antes de rodar
+    if [[ -x "$local_keygen" ]]; then
+        "$local_keygen" "$KEYS_DIR/NeonX.key" "$KEYS_DIR/NeonX.pub"
+        print_success "Chave efêmera gerada em $KEYS_DIR/"
+    else
+        print_error "FATAL: Binário $local_keygen não foi criado. Verifique se o clang está instalado corretamente no Termux (pkg install clang)."
+        exit 1
+    fi
+fi
+
+# --------------------------------------------------
+# SETUP DE CFLAGS E INJEÇÃO DA MACRO
+# --------------------------------------------------
+INCLUDE="-I./src/headers"
+
+if [[ "$PORTABLE" == "1" ]]; then
+    TUNE_FLAGS="-march=x86-64"
+    PERF_FLAGS="-O3 -fno-math-errno -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
+else
+    TUNE_FLAGS="-march=native"
+    PERF_FLAGS="-O3 -ffast-math -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
+fi
+
+HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wno-format-nonliteral -Wstrict-overflow=5 -Wno-unused-command-line-argument"
+if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "linux-android"* ]]; then
+    HARDENING_CFLAGS="$HARDENING_CFLAGS -fstack-clash-protection"
+fi
+
+INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
+if [[ -n "$INTERNAL_KEY" ]]; then
+    INTERNAL_PUB="${INTERNAL_KEY%.key}.pub"
+    if [[ -f "$INTERNAL_PUB" ]]; then
+        PUB_KEY_HEX=$(hexdump -v -e '/1 "%02x"' "$INTERNAL_PUB")
+        HARDENING_CFLAGS="$HARDENING_CFLAGS -DGENERIC_NEONX_KEY=\"$PUB_KEY_HEX\""
+    fi
+fi
+
+HARDENING_LDFLAGS=""
+ARCH=$(uname -m)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    HARDENING_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--as-needed"
+    if [[ "$ARCH" == "x86_64" || "$ARCH" == "i686" ]]; then
+        HARDENING_CFLAGS="$HARDENING_CFLAGS -fcf-protection=full"
+    fi
+fi
+
+MATH_LIB="-lm"
+if [[ "$WINDOWS_HOST" == "true" ]]; then
+    MATH_LIB=""
+fi
+
+SAN_FLAGS=""
+if [[ "$SANITIZE" == "1" ]]; then
+    print_info "MODO SANITIZE ATIVADO"
+    SAN_FLAGS="-fsanitize=address,undefined -g -O1 -fno-omit-frame-pointer"
+    PERF_FLAGS="${PERF_FLAGS//-flto/}"
+fi
+
+# --------------------------------------------------
+# TARGETS E MENUS
+# --------------------------------------------------
 targets=("x86_64-linux-musl" "x86-linux-musl" "aarch64-linux-musl" "arm-linux-musleabihf" "x86_64-windows-gnu" "x86-windows-gnu" "aarch64-macos" "x86_64-macos")
 labels=("linux-x64" "linux-x86" "linux-arm64" "linux-arm32" "windows-x64" "windows-x86" "macos-arm64" "macos-x64")
 
 if [[ $# -gt 0 ]]; then
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --test)
+                --test)
                 mkdir -p "$OUTPUT_DIR/tests"
-                clang tests/unit/test_comprehensive.c \
-                    src/shaders.c src/math_fixed.c src/shader_effects.c src/render_core.c \
-                    src/msgs.c src/integrity.c src/monocypher.c \
-                    -o "$OUTPUT_DIR/tests/test_unit" -Isrc $MATH_LIB $PERF_FLAGS $SECURE_FLAG
+                clang $INCLUDE tests/unit/test_comprehensive.c \
+                "$CORE_DIR"/shaders.c \
+                "$CORE_DIR"/math_fixed.c \
+                "$CORE_DIR"/shader_effects.c \
+                "$CORE_DIR"/render_core.c \
+                "$CORE_DIR"/integrity.c \
+                "$CORE_DIR"/monocypher.c \
+                "$CORE_DIR"/msgs.c \
+                -o "$OUTPUT_DIR/tests/test_unit" \
+                -Isrc $MATH_LIB $PERF_FLAGS
                 "$OUTPUT_DIR/tests/test_unit"
 
                 compile_tool "native" "$PROJECT_NAME" "native" "true"
                 [[ -f tests/integration_test.sh ]] && chmod +x tests/integration_test.sh && ./tests/integration_test.sh
-                finish_report
-                exit 0
-                ;;
-            --test-debug)
-                mkdir -p "$OUTPUT_DIR/tests"
-                print_info "Compilando Testes em Modo Debug (Verbose)..."
-                clang tests/unit/test_comprehensive.c \
-                    src/shaders.c src/math_fixed.c src/shader_effects.c src/render_core.c \
-                    src/msgs.c src/integrity.c src/monocypher.c \
-                    -DVERBOSE_DEBUG -o "$OUTPUT_DIR/tests/test_debug" -Isrc $MATH_LIB $PERF_FLAGS $SECURE_FLAG
-                "$OUTPUT_DIR/tests/test_debug"
                 finish_report
                 exit 0
                 ;;
