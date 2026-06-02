@@ -8,7 +8,7 @@ Olá! Ficamos muito felizes que você queira ajudar o **NeonX**. Não importa se
 
 ### 1. Sendo um Apoiador (Doações)
 Se você gosta do projeto and quer ajudar a manter os servidores ou o café do desenvolvedor, você pode fazer uma doação! Isso nos ajuda a dedicar mais tempo a melhorias e novos recursos.
-- **Link para Doação:** [Clique aqui para apoiar via PayPal/Pix/etc]
+- **Link para Doação:** [Clique aqui para apoiar](https://tipa.ai/TIPARYITV51W4R3SLEG22KVVK9I1)
 
 ### 2. Reportando Bugs e Sugerindo Ideias
 Encontrou algo errado ou tem uma ideia para um novo preset? Abra uma **Issue** no GitHub! Descreva o que aconteceu e como podemos melhorar.
@@ -39,7 +39,7 @@ Sempre rode os testes antes de enviar uma alteração:
  * **Linguagem:** C puro (C99/C11).
  * **Arquitetura:** Leia o ARCHITECTURE.md antes de modificar o núcleo.
  * **Matemática:** Use as macros de ponto fixo em headers/math_fixed.h. **Não utilize float ou double**.
- * **API:** Utilize sempre o cabeçalho mestre headers/neonx.h para expor novas funcionalidades.
+ * **API:** Utilize sempre o cabeçalho mestre `headers/neonx.h` para expor novas funcionalidades.
  * **Performance:** Respeite o sistema de **Length Caching**. Evite chamadas a wcslen dentro de loops de renderização.
  * **Commits:** Seja claro no que mudou (ex: feat: adiciona preset ocean, fix: corrige bug no parser).
 ## 🔒 Assinatura e Integridade
