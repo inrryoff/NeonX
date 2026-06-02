@@ -429,7 +429,6 @@ if [[ $# -gt 0 ]]; then
                 finish_report
                 exit 0
                 ;;
-                ;;
             --native) compile_tool "native" "$PROJECT_NAME" "native" "true"; finish_report; exit 0 ;;
             --wasm) compile_wasm; finish_report; exit 0 ;;
         esac
