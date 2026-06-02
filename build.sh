@@ -29,6 +29,20 @@ print_warn()    { echo -e "${YELLOW}⚠ $1${NC}"; }
 print_error()   { echo -e "${RED}✗ $1${NC}"; }
 
 # --------------------------------------------------
+# Wrapper para flags de linkagem
+# --------------------------------------------------
+link_library_flags() {
+    local lib_name="$1"
+    local lib_path="$2"
+    local is_windows="$3"
+    if [[ "$is_windows" == "true" ]]; then
+        echo "-L\"$lib_path\" -l\"$lib_name\""
+    else
+        echo "\"$lib_path/lib${lib_name}.a\""
+    fi
+}
+
+# --------------------------------------------------
 # Versão
 # --------------------------------------------------
 VERSION_FILE="version.txt"
@@ -93,7 +107,6 @@ if [[ "$SANITIZE" == "1" ]]; then
     PERF_FLAGS="${PERF_FLAGS//-flto/}"
 fi
 
-# Silencia warnings do fopen no Windows
 SECURE_FLAG=""
 [[ "$WINDOWS_HOST" == "true" ]] && SECURE_FLAG="-D_CRT_SECURE_NO_WARNINGS"
 
@@ -272,7 +285,7 @@ compile_tool() {
         final_bin="${final_bin}.exe"
     fi
 
-    # Arquivos fonte da core (todos em CORE_DIR)
+    # Arquivos fonte da core
     local core_srcs=(
         "math_fixed.c"
         "shader_effects.c"
@@ -285,7 +298,7 @@ compile_tool() {
         "terminal.c"
     )
 
-    # Compilar objetos e guardar em array
+    # Compilar objetos
     local objects=()
     for src in "${core_srcs[@]}"; do
         local base="${src%.c}"
@@ -299,49 +312,39 @@ compile_tool() {
         objects+=("$obj")
     done
 
-    # Nome da biblioteca estática
-    local core_lib=""
+    # Nome da biblioteca (sem prefixo lib, sem extensão)
+    local core_lib_flag="neonx_core_${label}"
+    local core_lib_name
     if [[ "$is_windows" == "true" ]]; then
-        core_lib="$OUTPUT_DIR/neonx_core_${label}.lib"
+        core_lib_name="${core_lib_flag}.lib"
     else
-        core_lib="$OUTPUT_DIR/libneonx_core_${label}.a"
+        core_lib_name="lib${core_lib_flag}.a"
     fi
+    local core_a="$OUTPUT_DIR/$core_lib_name"
 
     # Criar biblioteca
     if [[ "$is_native" == "true" ]]; then
-        ar rcs "$core_lib" "${objects[@]}" 2> "$NULL_DEV"
+        ar rcs "$core_a" "${objects[@]}" 2> "$NULL_DEV"
     else
-        zig ar rcs "$core_lib" "${objects[@]}" 2> "$NULL_DEV"
+        zig ar rcs "$core_a" "${objects[@]}" 2> "$NULL_DEV"
     fi
 
-    # Linkagem do executável
+    # Obter flags de link via wrapper
+    local link_flags=$(link_library_flags "$core_lib_flag" "$OUTPUT_DIR" "$is_windows")
+
+    # Linkagem
     if [[ "$is_native" == "true" ]]; then
-        # Windows nativo: usa -l com nome da biblioteca (sem lib, sem extensão)
-        if [[ "$is_windows" == "true" ]]; then
-            # No Windows, a biblioteca se chama neonx_core_native.lib
-            # A flag -lneonx_core_native fará o linker procurar por neonx_core_native.lib
-            local lib_name="neonx_core_${label}"
-            clang "$SRC_DIR"/main.c \
-                -L"$OUTPUT_DIR" -l"$lib_name" \
-                -o "$final_bin" \
-                $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
-                $SIG_MACRO \
-                -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-                $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
-        else
-            # Unix nativo: passa a biblioteca diretamente (evita qualquer -l)
-            clang "$SRC_DIR"/main.c \
-                "$core_lib" \
-                -o "$final_bin" \
-                $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
-                $SIG_MACRO \
-                -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-                $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
-        fi
+        # No nativo, usamos clang e as flags do wrapper
+        eval clang "$SRC_DIR"/main.c $link_flags \
+            -o "$final_bin" \
+            $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
+            $SIG_MACRO \
+            -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
+            $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
     else
-        # Cross-compilação com Zig: passa a biblioteca diretamente
+        # Cross-compilação: zig cc, usamos o arquivo diretamente (mais seguro)
         zig cc "$SRC_DIR"/main.c \
-            "$core_lib" \
+            "$core_a" \
             -o "$final_bin" -target "$target" \
             $active_perf_flags \
             $SIG_MACRO \
