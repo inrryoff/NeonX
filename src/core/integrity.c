@@ -119,7 +119,6 @@ int check_integrity(void) {
 #ifndef __wasm__
         return 2;
 #else
-        // No WASM, ignore falhas de permissão (ambiente sandbox)
         if (errno == EACCES || errno == EPERM) return 0;
         return 2;
 #endif

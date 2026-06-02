@@ -3,44 +3,46 @@ import os
 import sys
 import random
 
-def get_source_hash(src_dir):
+def get_source_hash(base_dir):
     h = hashlib.sha256()
-    files = []
-    for f in os.listdir(src_dir):
-        if f.endswith('.c') or f.endswith('.h'):
-            if f != 'build_config.h':
-                files.append(f)
+    source_files = []
     
-    for f in sorted(files):
-        with open(os.path.join(src_dir, f), 'rb') as file:
+    # os.walk percorre a raiz, diretórios e arquivos recursivamente
+    for root, _, files in os.walk(base_dir):
+        for f in files:
+            if (f.endswith('.c') or f.endswith('.h')) and f != 'build_config.h':
+                # Salva o caminho completo para ler o arquivo corretamente
+                source_files.append(os.path.join(root, f))
+    
+    # Ordenar os caminhos garante que o hash seja sempre determinístico
+    for filepath in sorted(source_files):
+        with open(filepath, 'rb') as file:
             h.update(file.read())
     return h.hexdigest()
 
-def generate_header(src_dir):
-    s_hash = get_source_hash(src_dir)
-    # Use the source hash to seed the random generator for this build
+def generate_header(base_dir):
+    s_hash = get_source_hash(base_dir)
+    # Usa o hash dos códigos fontes como seed para o gerador pseudoaleatório
     random.seed(s_hash)
     
     sync_id = int(s_hash[:6], 16)
-    
-    # Target sum: hash of "@inrryoff"
     target_sig = 0x17A2DF74
     
-    # Generate 3 random fragments
-    # We keep them in similar ranges to the originals to avoid suspicion
-    # a ~ 0x05E3C000
-    # b ~ 0x11BC0000
-    # c ~ 0x00001F00
-    # d ~ 0x00030074
-    
+    # Gera 3 fragmentos aleatórios
     a = random.randint(0x01000000, 0x07000000) & 0xFFFFFF00
     b = random.randint(0x08000000, 0x14000000) & 0xFFFFFF00
     c = random.randint(0x00001000, 0x0000FFFF) & 0xFFFFFF00
     
-    # d is the remainder
+    # 'd' é a diferença para fechar a assinatura exata
     d = (target_sig - (a + b + c)) & 0xFFFFFFFF
     
-    header_path = os.path.join(src_dir, 'build_config.h')
+    # Garante que o header será salvo dentro de src/headers/
+    header_dir = os.path.join(base_dir, 'headers')
+    if not os.path.exists(header_dir):
+        os.makedirs(header_dir)
+        
+    header_path = os.path.join(header_dir, 'build_config.h')
+    
     with open(header_path, 'w') as f:
         f.write('/* Auto-generated build configuration - DO NOT EDIT */\n')
         f.write('#ifndef BUILD_CONFIG_H\n#define BUILD_CONFIG_H\n\n')
@@ -55,6 +57,7 @@ def generate_header(src_dir):
     print(f"Generated {header_path} with SyncID: {sync_id:06X}")
 
 if __name__ == "__main__":
+    # O build.sh passa "src" como argumento via $SRC_DIR
     src_path = 'src'
     if len(sys.argv) > 1:
         src_path = sys.argv[1]

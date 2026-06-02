@@ -2,6 +2,11 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+## [2.2.5-STABLE] – 2026
+
+### Adicionado
+- **Assinatura Efêmera Automática:** O sistema de build agora gera chaves criptográficas temporárias automaticamente caso não existam, garantindo que o binário esteja sempre assinado para verificações de integridade sem configuração manual.
+
 ## [2.2.4-STABLE] – 2026
 
 ### Adicionado

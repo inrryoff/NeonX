@@ -47,7 +47,8 @@ Sempre rode os testes antes de enviar uma alteração:
 
 ## 🔒 Assinatura e Integridade
 
-Para que o NeonX aceite seu binário como seguro, ele precisa ser assinado. O script `build.sh` faz isso automaticamente com uma chave temporária para testes locais. Se você quiser se tornar um mantenedor oficial ou criar um fork persistente, consulte a seção de assinaturas no `DEVELOPMENT.md`.
+O NeonX utiliza uma arquitetura de verificação de payload para garantir que o binário não foi alterado. O script `build.sh` agora gerencia isso automaticamente: ele gera chaves efêmeras para assinatura se nenhuma for encontrada na pasta `keys/`. Você não precisa se preocupar com isso para testes de desenvolvimento, a menos que esteja criando um fork oficial com sua própria infraestrutura de distribuição.
+
 
 ---
 **Obrigado por fazer parte da comunidade NeonX!** 🚀

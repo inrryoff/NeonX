@@ -11,18 +11,23 @@ A organização de pastas separa o código-fonte dos artefatos de compilação e
 ```text
 NeonX/
 ├── src/                 # Código-fonte principal da Engine
-│   ├── neonx.h          # API Pública Unificada (Cabeçalho mestre)
 │   ├── main.c           # Ponto de entrada, parsing e loop principal
-│   ├── math_fixed.c     # Matemática de ponto fixo e entropia segura
-│   ├── shader_effects.c # Lógica interna dos efeitos de shader
-│   ├── render_core.c    # Motor de renderização e abstração de cores
-│   ├── render_driver.h  # Interface agnóstica para drivers de saída
-│   ├── integrity.c/.h   # Lógica de validação criptográfica (Ed25519)
-│   ├── monocypher.c/.h  # Motor de criptografia leve
-│   ├── shaders.c/.h     # Gerenciamento de presets
-│   ├── terminal.c/.h    # Gerenciamento ANSI e sinais de sistema
-│   └── style.h          # Estilos predefinidos e a logo do NeonX
-├── tools/               # Ferramentas auxiliares
+│   ├── main_wasm.c      # Bridge para WebAssembly
+│   ├── build_config.h   # Configurações de build
+│   ├── core/            # Núcleo da lógica de processamento
+│   │   ├── integrity.c  # Validação de payload
+│   │   ├── math_fixed.c # Matemática de ponto fixo
+│   │   ├── monocypher.c # Motor de criptografia
+│   │   ├── msgs.c       # Internacionalização
+│   │   ├── render.c     # Abstrações de renderização
+│   │   ├── render_core.c# Motor de renderização core
+│   │   ├── shader_effects.c # Efeitos de shader
+│   │   ├── shaders.c    # Gerenciamento de presets
+│   │   └── terminal.c   # Gerenciamento ANSI
+│   └── headers/         # Cabeçalhos e definições de API
+│       ├── neonx.h      # API Pública Unificada
+│       └── ...          # Outros cabeçalhos de suporte
+├── tools/               # Ferramentas auxiliares (incluindo gerador de chaves)
 ├── build/               # Binários compilados
 ├── ARCHITECTURE.md      # Explicação detalhada da estrutura da engine
 ├── Makefile             # Sistema de build estruturado (Clang/Make)
