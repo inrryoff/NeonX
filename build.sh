@@ -67,8 +67,14 @@ if [[ ! -f "$KEYS_DIR/NeonX.key" ]]; then
     print_success "Chave efêmera gerada em $KEYS_DIR/"
 fi
 
-# Busca a primeira chave disponível no diretório
 INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
+if [[ -n "$INTERNAL_KEY" ]]; then
+    INTERNAL_PUB="${INTERNAL_KEY%.key}.pub"
+    if [[ -f "$INTERNAL_PUB" ]]; then
+        PUB_KEY_HEX=$(cat "$INTERNAL_PUB" | tr -d '[:space:]')
+        HARDENING_CFLAGS="$HARDENING_CFLAGS -DGENERIC_NEONX_KEY=\"$PUB_KEY_HEX\""
+    fi
+fi
 
 # --------------------------------------------------
 # Flags de Compilação & Performance
@@ -179,11 +185,14 @@ clean_old_builds() {
 sign_binary() {
     local binary="$1"
     local priv_key="$2"
+    
+    local tool_bin="$TOOLS_DIR/sign_binary"
+    [[ "$WINDOWS_HOST" == "true" ]] && tool_bin="${tool_bin}.exe"
 
     if [[ "$binary" != *".wasm" ]]; then
-        if [[ -f "$priv_key" && -x "$TOOLS_DIR/sign_binary" ]]; then
+        if [[ -f "$priv_key" && -x "$tool_bin" ]]; then
             print_info "Aplicando Assinatura Interna..."
-            local SIG_HEX=$("$TOOLS_DIR/sign_binary" "$binary" "$priv_key" 2>/dev/null)
+            local SIG_HEX=$("$tool_bin" "$binary" "$priv_key" 2>/dev/null)
             if [[ -n "$SIG_HEX" ]]; then
                 echo -n "$SIG_HEX" >> "$binary"
                 print_success "Assinatura interna comunitária anexada!"
@@ -405,7 +414,10 @@ building_tools() {
     mkdir -p "$TOOLS_DIR"
     for tool_src in "$TOOLS_DIR"/*.c; do
         [[ -e "$tool_src" ]] || continue
+        
         local tool_bin="${tool_src%.c}"
+        [[ "$WINDOWS_HOST" == "true" ]] && tool_bin="${tool_bin}.exe"
+        
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
             clang "$tool_src" -o "$tool_bin" -O2 2> "$NULL_DEV" || true
         fi
