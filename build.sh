@@ -67,15 +67,6 @@ if [[ ! -f "$KEYS_DIR/NeonX.key" ]]; then
     print_success "Chave efêmera gerada em $KEYS_DIR/"
 fi
 
-INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
-if [[ -n "$INTERNAL_KEY" ]]; then
-    INTERNAL_PUB="${INTERNAL_KEY%.key}.pub"
-    if [[ -f "$INTERNAL_PUB" ]]; then
-        PUB_KEY_HEX=$(cat "$INTERNAL_PUB" | tr -d '[:space:]')
-        HARDENING_CFLAGS="$HARDENING_CFLAGS -DGENERIC_NEONX_KEY=\"$PUB_KEY_HEX\""
-    fi
-fi
-
 # --------------------------------------------------
 # Flags de Compilação & Performance
 # --------------------------------------------------
@@ -89,9 +80,21 @@ else
     PERF_FLAGS="-O3 -ffast-math -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
 fi
 
+# 1. Primeiro inicializamos a variável de forma limpa
 HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wno-format-nonliteral -Wstrict-overflow=5 -Wno-unused-command-line-argument"
 if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "linux-android"* ]]; then
     HARDENING_CFLAGS="$HARDENING_CFLAGS -fstack-clash-protection"
+fi
+
+# 2. AGORA SIM injetamos a macro convertendo a chave binária para string hexadecimal pura!
+INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
+if [[ -n "$INTERNAL_KEY" ]]; then
+    INTERNAL_PUB="${INTERNAL_KEY%.key}.pub"
+    if [[ -f "$INTERNAL_PUB" ]]; then
+        # Converte os bytes brutos da chave pública efêmera para uma string hexadecimal limpa
+        PUB_KEY_HEX=$(hexdump -v -e '/1 "%02x"' "$INTERNAL_PUB")
+        HARDENING_CFLAGS="$HARDENING_CFLAGS -DGENERIC_NEONX_KEY=\"$PUB_KEY_HEX\""
+    fi
 fi
 
 HARDENING_LDFLAGS=""
@@ -212,10 +215,6 @@ update_hash() {
     (cd "$OUTPUT_DIR" && sha256sum "$bin_name") >> "$HASH_FILE" 2>/dev/null || true
 }
 
-# --------------------------------------------------
-# Função auxiliar para criar diretório temporário
-# compatível com Windows e Unix
-# --------------------------------------------------
 create_temp_dir() {
     if command -v mktemp &> "$NULL_DEV"; then
         mktemp -d
@@ -319,13 +318,11 @@ compile_wasm() {
 }
 
 compile_tool() {
-    # Declara todas as variáveis locais no início (evita expansão prematura)
     local target="$1"
     local bin_out="$2"
     local label="$3"
     local is_native="$4"
 
-    # Agora chama generate_build_config e verifica falha
     generate_build_config || { update_build_report "$label" "FALHOU (CONFIG)"; return 1; }
 
     echo -e "${YELLOW}--------------------------------------------------${NC}"
@@ -354,7 +351,6 @@ compile_tool() {
     local core_lib_flag="neonx_core_${label}"
 
     if [[ "$is_windows" == "true" ]]; then
-        # No Windows com zig/clang, usamos a mesma convenção .a ou .lib. O linker aceita .a.
         core_lib_name="libneonx_core_${label}.a"
         core_lib_flag=":libneonx_core_${label}.a"
     fi
@@ -460,9 +456,6 @@ if [[ $# -gt 0 ]]; then
     done
 fi
 
-# --------------------------------------------------
-# Função show_menu com proteção contra largura negativa
-# --------------------------------------------------
 show_menu() {
     local largura_interna=50
     local cabecalho="${YELLOW}NeonX Builder v4.7 (Community Edition)${NC}"
