@@ -1,5 +1,4 @@
-#include "math_fixed.h"
-#include "math_fixed_internal.h"
+#include "neonx.h"
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>

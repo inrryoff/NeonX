@@ -46,6 +46,7 @@ MAINTAINER_CLEAN=$(echo "$BUILD_MAINTAINER" | tr -d '@' | tr 'a-z' 'A-Z')
 BUILD_STATUS="VALID_SIG_BY_${MAINTAINER_CLEAN}"
 
 SRC_DIR="src"
+CORE_DIR="$SRC_DIR/core"
 TOOLS_DIR="tools"
 OUTPUT_DIR="build"
 ZIP_DIR="bzip"
@@ -60,6 +61,8 @@ INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
 # --------------------------------------------------
 # Flags de Compilação & Performance
 # --------------------------------------------------
+INCLUDE="-I./src/headers"
+
 if [[ "$PORTABLE" == "1" ]]; then
     TUNE_FLAGS="-march=x86-64"
     PERF_FLAGS="-O3 -fno-math-errno -DNDEBUG -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wno-unused-result"
@@ -125,7 +128,7 @@ finish_report() {
         if [[ "$status" == "SUCESSO" ]]; then
             printf "${CYAN}║${NC}  ├── %-26s: ${GREEN}%-14s${NC}    ${CYAN}║${NC}\n" "$key" "$status"
         else
-            printf "${CYAN}║${NC}  ├── %-26s: ${RED}%-14s${NC}      ${CYAN}║${NC}\n" "$key" "$status"
+            printf "${CYAN}║${NC}  ├── %-26s: ${RED}%-12s${NC}      ${CYAN}║${NC}\n" "$key" "$status"
         fi
     done
     echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
@@ -188,6 +191,20 @@ update_hash() {
     (cd "$OUTPUT_DIR" && sha256sum "$bin_name") >> "$HASH_FILE" 2>/dev/null || true
 }
 
+# --------------------------------------------------
+# Função auxiliar para criar diretório temporário
+# compatível com Windows e Unix
+# --------------------------------------------------
+create_temp_dir() {
+    if command -v mktemp &> "$NULL_DEV"; then
+        mktemp -d
+    else
+        local temp_dir="/tmp/neonx.$$"
+        mkdir -p "$temp_dir"
+        echo "$temp_dir"
+    fi
+}
+
 create_zip() {
     local binary_path="$1"
     local label="$2"
@@ -196,7 +213,7 @@ create_zip() {
     if ! command -v zip &> "$NULL_DEV"; then return 1; fi
 
     local zip_name="${PROJECT_NAME}_${label}.zip"
-    local tmp_dir=$(mktemp -d)
+    local tmp_dir=$(create_temp_dir)
 
     if [[ "$binary_path" == *".wasm" ]]; then
         local base_path="${binary_path%.wasm}"
@@ -240,13 +257,33 @@ compile_wasm() {
 
     local out_js="$OUTPUT_DIR/${PROJECT_NAME}.js"
     local out_wasm="$OUTPUT_DIR/${PROJECT_NAME}.wasm"
-emcc -O2 -s WASM=1 \
-    -s EXPORTED_FUNCTIONS='["_neonx_wasm_init", "_neonx_apply_colors", "_neonx_wasm_set_frequency", "_neonx_wasm_set_opacity", "_neonx_wasm_set_quantization", "_neonx_wasm_set_custom_gradient", "_neonx_wasm_reset_palette", "_neonx_wasm_set_palette_offsets", "_neonx_wasm_set_preset", "_malloc", "_free"]' \
-    -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
-    -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -I./src \
-    src/math_fixed.c src/shader_effects.c src/render_core.c src/main_wasm.c src/msgs.c src/shaders.c src/integrity.c src/monocypher.c \
-    -o "$out_js"
-        -o "$out_js"
+    emcc -O2 -s WASM=1 \
+      -s EXPORTED_FUNCTIONS='[
+        "_neonx_wasm_init",
+        "_neonx_wasm_get_color",
+        "_neonx_wasm_set_frequency",
+        "_neonx_wasm_set_gradient_angle",
+        "_neonx_wasm_set_opacity",
+        "_neonx_wasm_set_quantization",
+        "_neonx_wasm_set_custom_gradient",
+        "_neonx_wasm_reset_palette",
+        "_neonx_wasm_set_palette_offsets",
+        "_neonx_wasm_set_preset",
+        "_neonx_apply_colors",
+        "_neonx_wasm_render_canvas",
+        "_neonx_wasm_set_vertical_opacity",
+        "_neonx_wasm_set_matte_mode",
+        "_neonx_wasm_set_matte_intensity",
+        "_malloc",
+        "_free"
+      ]' \
+      -s EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString"]' \
+      -s ALLOW_MEMORY_GROWTH=1 \
+      -s NO_EXIT_RUNTIME=1 \
+      $INCLUDE \
+      src/core/*.c \
+      src/main_wasm.c \
+      -o "$out_js"
 
     if [[ $? -ne 0 || ! -f "$out_js" ]]; then
         update_build_report "$label" "FALHOU"
@@ -261,11 +298,14 @@ emcc -O2 -s WASM=1 \
 }
 
 compile_tool() {
-    generate_build_config || { update_build_report "$label" "FALHOU (CONFIG)"; return 1; }
+    # Declara todas as variáveis locais no início (evita expansão prematura)
     local target="$1"
     local bin_out="$2"
     local label="$3"
     local is_native="$4"
+
+    # Agora chama generate_build_config e verifica falha
+    generate_build_config || { update_build_report "$label" "FALHOU (CONFIG)"; return 1; }
 
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     print_info "Iniciando build: $label"
@@ -290,34 +330,36 @@ compile_tool() {
     local obj_inte="$OUTPUT_DIR/integrity_${label}.o"
     local obj_mono="$OUTPUT_DIR/monocypher_${label}.o"
     local core_lib_name="libneonx_core_${label}.a"
-    local core_lib_flag="neonx_core_${label}"
+    local core_lib_flag=":libneonx_core_${label}.a"   # Corrigido para vincular corretamente no Windows/MinGW
 
     if [[ "$is_windows" == "true" ]]; then
-        core_lib_name="neonx_core_${label}.lib"
+        # No Windows com zig/clang, usamos a mesma convenção .a ou .lib. O linker aceita .a.
+        core_lib_name="libneonx_core_${label}.a"
+        core_lib_flag=":libneonx_core_${label}.a"
     fi
     local core_a="$OUTPUT_DIR/$core_lib_name"
 
     if [[ "$is_native" == "true" ]]; then
-        clang -c "$SRC_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
-        clang -c "$SRC_DIR/shader_effects.c" -o "$obj_seff" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
-        clang -c "$SRC_DIR/render_core.c" -o "$obj_rend" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
-        clang -c "$SRC_DIR/integrity.c" -o "$obj_inte" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
-        clang -c "$SRC_DIR/monocypher.c" -o "$obj_mono" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        clang -c "$CORE_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/shader_effects.c" -o "$obj_seff" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/render_core.c" -o "$obj_rend" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/integrity.c" -o "$obj_inte" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/monocypher.c" -o "$obj_mono" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
         ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" 2> "$NULL_DEV" && \
-        clang "$SRC_DIR"/main.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
+        clang $INCLUDE "$SRC_DIR"/main.c "$CORE_DIR"/msgs.c "$CORE_DIR"/render.c "$CORE_DIR"/shaders.c "$CORE_DIR"/terminal.c \
             -o "$final_bin" \
             -L"$OUTPUT_DIR" -l"$core_lib_flag" \
             $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
             -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
             $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
     else
-        zig cc -c "$SRC_DIR/math_fixed.c" -o "$obj_math" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
-        zig cc -c "$SRC_DIR/shader_effects.c" -o "$obj_seff" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
-        zig cc -c "$SRC_DIR/render_core.c" -o "$obj_rend" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
-        zig cc -c "$SRC_DIR/integrity.c" -o "$obj_inte" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
-        zig cc -c "$SRC_DIR/monocypher.c" -o "$obj_mono" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS && \
+        zig cc -c "$CORE_DIR/math_fixed.c" -o "$obj_math" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/shader_effects.c" -o "$obj_seff" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/render_core.c" -o "$obj_rend" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/integrity.c" -o "$obj_inte" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/monocypher.c" -o "$obj_mono" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
         zig ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" 2> "$NULL_DEV" && \
-        zig cc "$SRC_DIR"/main.c "$SRC_DIR"/msgs.c "$SRC_DIR"/render.c "$SRC_DIR"/shaders.c "$SRC_DIR"/terminal.c \
+        zig cc $INCLUDE "$SRC_DIR"/main.c "$CORE_DIR"/msgs.c "$CORE_DIR"/render.c "$CORE_DIR"/shaders.c "$CORE_DIR"/terminal.c \
             -o "$final_bin" -target "$target" \
             -L"$OUTPUT_DIR" -l"$core_lib_flag" \
             $active_perf_flags \
@@ -342,7 +384,7 @@ compile_tool() {
     sign_binary "$final_bin" "$INTERNAL_KEY"
     update_hash "$final_bin"
     create_zip "$final_bin" "$label" "$is_windows"
-    
+
     update_build_report "$label" "SUCESSO"
     print_success "Build $label concluída!"
 }
@@ -370,18 +412,12 @@ if [[ $# -gt 0 ]]; then
         case $1 in
             --test)
                 mkdir -p "$OUTPUT_DIR/tests"
-                clang tests/unit/test_comprehensive.c src/shaders.c src/math_fixed.c src/shader_effects.c src/render_core.c src/msgs.c -o "$OUTPUT_DIR/tests/test_unit" -Isrc $MATH_LIB $PERF_FLAGS
+                clang $INCLUDE tests/unit/test_comprehensive.c "$CORE_DIR"/shaders.c "$CORE_DIR"/math_fixed.c "$CORE_DIR"/shader_effects.c "$CORE_DIR"/render_core.c "$CORE_DIR"/msgs.c -o "$OUTPUT_DIR/tests/test_unit" -Isrc $MATH_LIB $PERF_FLAGS
                 "$OUTPUT_DIR/tests/test_unit"
-                
+
                 compile_tool "native" "$PROJECT_NAME" "native" "true"
                 [[ -f tests/integration_test.sh ]] && chmod +x tests/integration_test.sh && ./tests/integration_test.sh
-                exit 0
-                ;;
-            --test-debug)
-                mkdir -p "$OUTPUT_DIR/tests"
-                print_info "Compilando Testes em Modo Debug (Verbose)..."
-                clang tests/unit/test_comprehensive.c src/shaders.c src/math_fixed.c src/shader_effects.c src/render_core.c src/msgs.c -DVERBOSE_DEBUG -o "$OUTPUT_DIR/tests/test_debug" -Isrc $MATH_LIB $PERF_FLAGS
-                "$OUTPUT_DIR/tests/test_debug"
+                finish_report   # <-- agora chama o relatório
                 exit 0
                 ;;
             --native) compile_tool "native" "$PROJECT_NAME" "native" "true"; finish_report; exit 0 ;;
@@ -391,15 +427,23 @@ if [[ $# -gt 0 ]]; then
     done
 fi
 
+# --------------------------------------------------
+# Função show_menu com proteção contra largura negativa
+# --------------------------------------------------
 show_menu() {
     local largura_interna=50
     local cabecalho="${YELLOW}NeonX Builder v4.7 (Community Edition)${NC}"
-    local espacos_cabecalho=$((largura_interna - ${#cabecalho} - 8))
+    local cabecalho_sem_cor="NeonX Builder v4.7 (Community Edition)"
+    local tamanho_cabecalho=${#cabecalho_sem_cor}
+    local espacos_cabecalho=$((largura_interna - tamanho_cabecalho - 8))
+    if (( espacos_cabecalho < 0 )); then espacos_cabecalho=0; fi
+
     local linha_cabecalho=$(printf "${CYAN}║${NC} %s%*s${CYAN}║" "$cabecalho" $espacos_cabecalho "")
     local texto_versao_puro="Versão Local: $VERSION"
     local espacos_versao=$((largura_interna - ${#texto_versao_puro} + 1))
+    if (( espacos_versao < 0 )); then espacos_versao=0; fi
     local linha_versao=$(printf "${CYAN}║${NC} Versão Local: ${GREEN}%s${NC}%*s${CYAN}║" "$VERSION" $espacos_versao "")
-    
+
     echo -e "\n${CYAN}╔════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}${linha_cabecalho}${NC}"
     echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
@@ -427,13 +471,21 @@ while true; do
     case $opt in
         1) compile_tool "native" "$PROJECT_NAME" "native" "true"; finish_report; break ;;
         2) compile_wasm; finish_report; break ;;
-        [3-9]|10) idx=$((opt-3)); compile_tool "${targets[$idx]}" "$PROJECT_NAME" "${labels[$idx]}" "false"; finish_report; break ;;
+        [3-9]|10)
+            idx=$((opt-3))
+            compile_tool "${targets[$idx]}" "$PROJECT_NAME" "${labels[$idx]}" "false"
+            finish_report
+            break
+            ;;
         11)
             compile_tool "native" "$PROJECT_NAME" "native" "true"
             compile_wasm
-            for i in "${!targets[@]}"; do compile_tool "${targets[$i]}" "$PROJECT_NAME" "${labels[$i]}" "false"; done
+            for i in "${!targets[@]}"; do
+                compile_tool "${targets[$i]}" "$PROJECT_NAME" "${labels[$i]}" "false"
+            done
             finish_report
-            break ;;
+            break
+            ;;
         0) exit 0 ;;
         *) print_error "Opção inválida!"; sleep 1 ;;
     esac

@@ -1,5 +1,4 @@
-#include "shaders.h"
-#include "msgs.h"
+#include "neonx.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -17,17 +16,17 @@ struct PresetConfig {
 };
 
 static const struct PresetConfig presets[] = {
-    {"cyberpunk", 0,  19660, 32768, 2949120, true, 0, 0, 0},
-    {"retro",     4,  13107, 52428, 0,       true, 0, 0, 0},
-    {"matrix",    10, 32768, 78643, 5898240, true, 0, 0, 0},
-    {"sunset",    1,  9830,  19660, 1966080, true, 0, 0, 0},
-    {"vaporwave", 3,  16384, 45875, 4915200, true, 0, 0, 0},
-    {"ocean",     6,  6553,  26214, 3276800, true, 0, 0, 0},
-    {"forest",    2,  8192,  39321, 1638400, true, 0, 0, 0},
-    {"blood",     8,  26214, 65536, 0,       true, 0, 0, 0},
-    {"hacker",    0,  13107, 78643, 0,       true,  0, 137233, 0}, // Mais verde
-    {"synthwave", 3,  22937, 39321, 5898240, true,  350000, 0, 150000}, // Rosa/Azul neon
-    {"dracula",   1,  9830,  32768, 2949120, true,  380000, 200000, 30000} // Roxo/Rosa sombrio
+    {"cyberpunk", 0,  19660, 32768, 2949120, true, 0, 137233, 274466},
+    {"retro",     4,  13107, 52428, 0,       true, 274466, 137233, 0},
+    {"matrix",    10, 6553,  78643, 5898240, true, 0, 137233, 0},
+    {"sunset",    1,  9830,  19660, 1966080, true, 274466, 68616, 0},
+    {"vaporwave", 3,  16384, 45875, 4915200, true, 200000, 0, 300000},
+    {"ocean",     6,  6553,  26214, 3276800, true, 0, 100000, 300000},
+    {"forest",    2,  8192,  39321, 1638400, true, 50000, 200000, 0},
+    {"blood",     8,  26214, 65536, 0,       true, 250000, 0, 0},
+    {"hacker",    0,  13107, 78643, 0,       true, 0, 137233, 0},
+    {"synthwave", 3,  22937, 39321, 5898240, true, 350000, 0, 150000},
+    {"dracula",   1,  9830,  32768, 2949120, true,  380000, 200000, 30000}
 };
 
 #define NUM_PRESETS (sizeof(presets) / sizeof(presets[0]))

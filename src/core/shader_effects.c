@@ -1,5 +1,4 @@
-#include "shader_effects.h"
-#include "math_fixed.h"
+#include "neonx.h"
 
 /** Implementa o efeito visual 'sunset' utilizando ondas senoidais compostas. */
 int32_t shader_sunset_fixed(int32_t x, int32_t y, int32_t phase) {

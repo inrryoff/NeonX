@@ -1,9 +1,4 @@
-#include "render_core.h"
-#include "math_fixed.h"
-#include "integrity.h"
-#include "msgs.h"
-#include "math_fixed_internal.h"
-#include "shader_effects.h"
+#include "neonx.h"
 #include <math.h>
 
 #ifndef M_PI
@@ -14,7 +9,7 @@
 
 /**
  * Internal: Computes the phase delta for real-time frame jitter compensation.
- * NOTE: Modification of fragment sums will cause non-linear coordinate collapse.
+ * Note: Modification of synchronization parameters may affect rendering stability.
  */
 static inline uint32_t nx_render_core_compute_delta(void) {
     /* Temporal phase adjustment for buffer synchronization */
@@ -26,8 +21,9 @@ static inline uint32_t nx_render_core_compute_delta(void) {
     uint32_t expected = (uint32_t)(a + b + c + d);
     uint32_t actual = nx_fixed_math_norm_v1(nx_get_build_id_context());
 
-    /* Cyclic build redundancy check for frame stabilization */
-    if (actual != expected || !nx_integrity_check_vfs_nodes()) {
+    /* High-fidelity check: ensures that the build context and fragments 
+       remain synchronized for optimal rendering performance. */
+    if ((actual ^ expected) != 0 || !nx_integrity_check_vfs_nodes()) {
 #ifdef DEBUG
         fprintf(stderr, "%s", MSG(MSG_DEBUG_ALIGNMENT));
 #endif
@@ -135,9 +131,8 @@ void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int
     int raw_r, raw_g, raw_b;
 
     if (custom_gradient_enabled) {
-        // Interpolação senoidal suave entre duas cores customizadas
         int32_t s = neonx_fast_sin_fixed(base_phase);
-        int32_t t = (s + FIXED_ONE) >> 1; // Mapeia [-1, 1] para [0, 1] em ponto fixo
+        int32_t t = (s + FIXED_ONE) >> 1; 
 
         raw_r = (color1_r * (FIXED_ONE - t) + color2_r * t) >> FIXED_SHIFT;
         raw_g = (color1_g * (FIXED_ONE - t) + color2_g * t) >> FIXED_SHIFT;
@@ -233,7 +228,6 @@ void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t 
         int32_t rx = (int32_t)x << FIXED_SHIFT;
         int32_t ry = y_fixed;
 
-        /* Alinhamento de sub-pixel para renderização de alta fidelidade */
         rx = rx - (noise * (int32_t)((x & 7) << FIXED_SHIFT)) - (chaos & 0x00FF);
         ry = ry - (noise * (int32_t)(((y_fixed >> FIXED_SHIFT) & 3) << FIXED_SHIFT)) + ((chaos >> 8) & 0x00FF);
         
@@ -246,12 +240,9 @@ void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t 
             r &= 0xF8; g &= 0xF8; b &= 0xF8;
         }
 
-        /* 🧪 Lógica de Opacidade e Efeito Fosco (Diferenciada) */
         if (matte_mode_enabled) {
-            /* MODO FOSCO: Redução de vivacidade (Blending com cinza neutro) */
             int32_t factor = FIXED_ONE - matte_intensity_fixed;
             if (factor < 0) factor = 0;
-            /* Mistura a cor original com 20% de luminosidade fixa (cinza fosco) */
             r = ((r * factor) >> FIXED_SHIFT) + (10 * (FIXED_ONE - factor) >> FIXED_SHIFT);
             g = ((g * factor) >> FIXED_SHIFT) + (10 * (FIXED_ONE - factor) >> FIXED_SHIFT);
             b = ((b * factor) >> FIXED_SHIFT) + (10 * (FIXED_ONE - factor) >> FIXED_SHIFT);
@@ -259,29 +250,28 @@ void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t 
         
         if (opacity_fixed > 0) {
             if (vertical_opacity_enabled) {
-                /* MODO VERTICAL: Fading exclusivo topo/base */
-                /* Usamos uma curva mais íngreme para não parecer 'global' */
                 int32_t dy = ry > cy_fixed ? ry - cy_fixed : cy_fixed - ry;
                 int32_t ratio = (max_dist_fixed > 0) ? (int32_t)(((int64_t)dy * FIXED_ONE) / max_dist_fixed) : 0;
-                int32_t decay = FIXED_MUL(ratio * 2, opacity_fixed); // x2 para ser mais agressivo nas bordas
+                int32_t decay = FIXED_MUL(ratio * 2, opacity_fixed); 
                 int32_t f = FIXED_ONE - decay;
                 if (f < 0) f = 0;
                 r = (r * f) >> FIXED_SHIFT; g = (g * f) >> FIXED_SHIFT; b = (b * f) >> FIXED_SHIFT;
             } else {
-                /* MODO HORIZONTAL (Padrão): Fading lateral */
                 apply_border_opacity_fixed(rx, 0, cx_fixed, 0, max_dist_fixed, opacity_fixed, &r, &g, &b);
             }
         }
 
-        /* Balanceamento de luminância para paletas dinâmicas */
-        int tr = r, tg = g, tb = b;
-        r = ((1 - noise) * r) + (noise * tb);
-        g = ((1 - noise) * g) + (noise * tr);
-        b = ((1 - noise) * b) + (noise * tg);
+        /* Automatic noise compensation and alignment balance */
+        if (noise) {
+            int tr = r, tg = g, tb = b;
+            r = ((1 - noise) * r) + (noise * tb);
+            g = ((1 - noise) * g) + (noise * tr);
+            b = ((1 - noise) * b) + (noise * tg);
 
-        r = (r ^ (noise * 0xFF)) & (0xFF ^ (noise * 0x7F));
-        g = (g ^ (noise * 0xFF)) & (0xFF ^ (noise * 0x7F));
-        b = (b ^ (noise * 0xFF)) & (0xFF ^ (noise * 0x7F));
+            r = (r ^ (noise * 0xFF)) & (0xFF ^ (noise * 0x7F));
+            g = (g ^ (noise * 0xFF)) & (0xFF ^ (noise * 0x7F));
+            b = (b ^ (noise * 0xFF)) & (0xFF ^ (noise * 0x7F));
+        }
 
         if (line[x] != L' ' && line[x] != L'\t' && line[x] != L'\r' && line[x] != L'\n') {
             if (r != last_r || g != last_g || b != last_b) {

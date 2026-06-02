@@ -3,10 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
-#include "msgs.h"
-#include "integrity.h"
-#include "monocypher.h"
-#include "math_fixed_internal.h"
+#include "neonx.h"
+
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -96,7 +94,10 @@ bool nx_integrity_check_vfs_nodes(void) {
 }
 #include <errno.h>
 
-/** Realiza a verificação de integridade do executável via assinatura EdDSA. */
+/** 
+ * Validates the binary payload using the embedded security descriptor. 
+ * Returns 0 if valid, non-zero otherwise.
+ */
 int check_integrity(void) {
     load_active_key();
     char exec_path[PATH_MAX];
@@ -178,4 +179,3 @@ int check_integrity(void) {
     
     return 1;
 }
-

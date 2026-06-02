@@ -1,12 +1,6 @@
 #define _XOPEN_SOURCE 700
 #define _DEFAULT_SOURCE
-#include "integrity.h"
-#include "terminal.h"
-#include "render.h"
-#include "msgs.h"
-#include "style.h"
-#include "math_fixed.h"
-#include "math_fixed_internal.h"
+#include "neonx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
@@ -102,20 +96,19 @@ void print_version(bool disable_ansi) {
     char build_tag[32];
     
     if (bid == 0) {
-        snprintf(build_tag, sizeof(build_tag), "13C0-FX0A");
+        snprintf(build_tag, sizeof(build_tag), "0000-FX00");
     } else {
+        /* Vetor de transformação para representação semântica de build */
         uint32_t obscure = (bid ^ 0xA5A5A5A5) + 0xDEADBEEF;
-        snprintf(build_tag, sizeof(build_tag), "%02X%02X-DX%02X",
-            (obscure >> 16) & 0xFF,
-            (obscure >> 8) & 0xFF,
-            obscure & 0xFF);
+        snprintf(build_tag, sizeof(build_tag), "%X.%X.%X", 
+                (obscure >> 16) & 0xFF, (obscure >> 8) & 0xFF, obscure & 0xFF);
     }
-    
+
     if (disable_ansi) {
         printf("NeonX v%s [Build ID: %s]\n", VERSION, build_tag);
     } else {
-        printf("%s v%s [Build ID: %s%s%s]\n",
-            LOGO_NEONX, VERSION, MSG_NUMBER, build_tag, RESET);
+        printf("%s v%s [Build ID: %s%s%s]\n", 
+               LOGO_NEONX, VERSION, MSG_NUMBER, build_tag, RESET);
     }
     printf("%s%s\n", MSG_F(MSG_VERSION_NX_BUILD_CTX_ID, disable_ansi), NX_BUILD_CTX_ID);
     printf("%s%s\n", MSG_F(MSG_VERSION_COMPILED_BY, disable_ansi), BUILD_MAINTAINER);

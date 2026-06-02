@@ -1,6 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _DEFAULT_SOURCE
 
+#include "neonx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,11 +15,6 @@
 #ifndef _WIN32
 #include <unistd.h>
 #endif
-
-#include "integrity.h"
-#include "msgs.h"
-#include "render.h"
-#include "neonx.h"
 
 #ifdef _WIN32
 #include <windows.h>
