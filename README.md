@@ -1,6 +1,6 @@
 # 🌈 NeonX – Ultra-High Performance Terminal Colorizer
 
-[![Versão](https://img.shields.io/badge/version-2.2.4--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.2.5--STABLE-blue)](https://github.com/inrryoff/NeonX/releases)
 [![NeonX Web](https://img.shields.io/badge/NeonX-Web_Demo-0a0a0f?style=flat-square&logo=terminal&logoColor=00ffcc)](https://neonx-web.netlify.app/)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Android%20%7C%20Windows%20%7C%20WASM-brightgreen)]()
 [![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red)](./LICENSE)
@@ -53,11 +53,11 @@ echo "NeonX Engine" | neonx --preset synthwave -S
 | `-A [graus]` | Ângulo do gradiente (0-360) | 0 |
 | `-o [0-1]` | Opacidade das bordas (Vignette) | 0.0 |
 | `-F [fps]` | Taxa de quadros por segundo | 20 |
-| `--color1 [hex]`| Cor inicial do gradiente (ex: #FF0000) | - |
-| `--color2 [hex]`| Cor final do gradiente (ex: #FFA500) | - |
+| `--color1, --c1 [hex]`| Cor inicial do gradiente (ex: #FF0000) | - |
+| `--color2, --c2 [hex]`| Cor final do gradiente (ex: #FFA500) | - |
 | `-L` | **Modo Stream:** Coloriza linha a linha (ideal para logs) | OFF |
 | `-S` | **Modo Estático:** Renderiza apenas o primeiro frame | OFF |
-| `--preset` | Presets: `cyberpunk`, `retro`, `matrix`, `sunset`, `dracula`, `hacker`, etc. | - |
+| `--preset` | Presets: `cyberpunk`, `retro`, `matrix`, `sunset`, `dracula`, `hacker`, `vaporwave` | - |
 | `--quantized`| Ativa modo 15-bit (retrô/blocos) | OFF |
 | `--lang [id]` | Seleciona o idioma: `pt`, `en`, `es`, `zh`, `ja`, etc. | auto |
 
@@ -96,7 +96,7 @@ Consulte o [ARCHITECTURE.md](./ARCHITECTURE.md) para mais detalhes.
 
 Se o **NeonX** é útil para você ou para sua equipe, considere apoiar o desenvolvimento contínuo!
 
-- **Doações:** [Clique aqui para apoiar via PayPal/Pix/etc]()
+- **Doações:** [Clique aqui para apoiar](https://tipa.ai/TIPARYITV51W4R3SLEG22KVVK9I1)
 - **Siga o autor:** [@inrryoff](https://github.com/inrryoff)
 - **Dê uma estrela:** ⭐ No GitHub para ajudar na visibilidade!
 
