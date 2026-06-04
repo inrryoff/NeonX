@@ -127,7 +127,9 @@ static uint32_t lcg_range(uint32_t lo, uint32_t hi) {
 }
 
 #define MAX_FILES 512
-#define MAX_PATH  1024
+#ifndef MAX_PATH
+#define MAX_PATH 1024
+#endif
 
 static char file_list[MAX_FILES][MAX_PATH];
 static int  file_count = 0;
