@@ -1,9 +1,6 @@
 #define _XOPEN_SOURCE 700
 #define _DEFAULT_SOURCE
 
-#ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 #include "neonx.h"
 #include <stdio.h>
 #include <stdlib.h>
