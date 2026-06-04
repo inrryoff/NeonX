@@ -13,7 +13,4 @@ GEMINI.md
 build/*
 bzip/
 obj/
-!build/**/*.js
-!build/**/*.wasm
 !build/**/*.a
-!build/**/*.o
