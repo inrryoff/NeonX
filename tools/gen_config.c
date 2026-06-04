@@ -141,7 +141,6 @@ static int ends_with(const char *s, const char *suf) {
 }
 
 static void collect_files(const char *dir) {
-static void collect_files(const char *dir) {
 #ifdef _WIN32
     WIN32_FIND_DATA find_data;
     char path_pattern[MAX_PATH];

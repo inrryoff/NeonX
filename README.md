@@ -161,7 +161,7 @@ python3 -m http.server 8080
 </details>
 
 
-## 🆕 Novidades da v2.2.5‑STABLE
+## 🆕 Novidades da v2.2.6‑STABLE
 
 - **Presets:** Novos Presets adicionas a lista você pode velogo a baixo na seção de **Presets**
 
