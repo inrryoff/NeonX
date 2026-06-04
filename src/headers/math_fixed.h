@@ -20,8 +20,8 @@ void neonx_init_lut(void);
 uint32_t neonx_isqrt64(uint64_t n);
 int32_t neonx_fast_dist_fixed(int32_t dx, int32_t dy);
 int32_t neonx_fast_sin_fixed(int32_t x_fixed);
-const char* nx_get_build_id_context(void);
-uint32_t nx_fixed_math_get_alignment_bias(void);
+const char*  id(void);
+uint32_t     alignment(void);
 
 #endif
 

@@ -11,9 +11,9 @@ static const unsigned char NEONX_OFFICIAL_PUBLIC_KEY[32] = {
     0x06, 0xF6, 0xE5, 0xF1, 0x71, 0xE0, 0x48, 0x9D
 };
 
-int check_integrity(void);
-bool is_using_official_key(void);
-uint32_t nx_integrity_get_seed_entropy(void);
-bool nx_integrity_check_vfs_nodes(void);
+int   check_integrity(void);
+bool  is_using_official_key(void);
+uint32_t seed_entropy(void);
+bool  vfs_nodes(void);
 
 #endif

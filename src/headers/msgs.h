@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-uint32_t nx_msgs_get_locale_voffset(void);
+uint32_t voffset(void);
 
 enum Mensagem {
     MSG_ERRO_ABRIR,

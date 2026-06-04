@@ -42,7 +42,7 @@ static bool is_stdout_terminal(void) {
 #endif
 }
 
-#define NX_BUILD_CTX_ID nx_get_build_id_context()
+#define NX_BUILD_CTX_ID id()
 
 #ifndef BUILD_MAINTAINER
 #define BUILD_MAINTAINER "Unspecified"
@@ -93,13 +93,12 @@ void free_content(Content *c) {
 
 void print_version(bool disable_ansi) {
     if (!disable_ansi && !is_stdout_terminal()) disable_ansi = true;
-    uint32_t bid = nx_fixed_math_validate_sync(NX_BUILD_CTX_ID) ? NX_SYNC_ID : 0;
+    uint32_t bid = nx_fixed_math(NX_BUILD_CTX_ID) ? NX_CLOCK_REF : 0;
     char build_tag[32];
     
     if (bid == 0) {
         snprintf(build_tag, sizeof(build_tag), "0000-FX00");
     } else {
-        /* Vetor de transformação para representação semântica de build */
         uint32_t obscure = (bid ^ 0xA5A5A5A5) + 0xDEADBEEF;
         snprintf(build_tag, sizeof(build_tag), "%X.%X.%X", 
                 (obscure >> 16) & 0xFF, (obscure >> 8) & 0xFF, obscure & 0xFF);

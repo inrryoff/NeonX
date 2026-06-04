@@ -2,12 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#ifdef _WIN32
-#include <windows.h>
-#else
 #include <dirent.h>
 #include <sys/stat.h>
-#endif
 
 #define SHA256_BLOCK_SIZE 32
 
@@ -200,7 +196,7 @@ static int hash_sources(const char *src_dir, uint8_t out_hash[SHA256_BLOCK_SIZE]
     collect_files(src_dir);
 
     if (file_count == 0) {
-        fprintf(stderr, "gen_config: nenhum arquivo de origem encontrado em '%s'\n", src_dir);
+        fprintf(stderr, "gen_config: Nenhum arquivo de origem encontrado em '%s'\n", src_dir);
         return -1;
     }
 
@@ -212,7 +208,7 @@ static int hash_sources(const char *src_dir, uint8_t out_hash[SHA256_BLOCK_SIZE]
     for (int i = 0; i < file_count; i++) {
         FILE *f = fopen(file_list[i], "rb");
         if (!f) {
-            fprintf(stderr, "gen_config: cannot open '%s'\n", file_list[i]);
+            fprintf(stderr, "gen_config: Não foi possível abrir '%s'\n", file_list[i]);
             return -1;
         }
         uint8_t buf[8192];
@@ -226,11 +222,12 @@ static int hash_sources(const char *src_dir, uint8_t out_hash[SHA256_BLOCK_SIZE]
     return 0;
 }
 
-#define NX_AUTH_SIG ((uint32_t)0x17A2DF74UL)
+#define NX_CLOCK_REF ((uint32_t)0x17A2DF74UL)
 
 static int generate_header(const char *src_dir, const char *out_path) {
     uint8_t hash[SHA256_BLOCK_SIZE];
     if (hash_sources(src_dir, hash) != 0) return 1;
+
     uint32_t sync_id = ((uint32_t)hash[0] << 16) |
                        ((uint32_t)hash[1] <<  8) |
                         (uint32_t)hash[2];
@@ -243,28 +240,30 @@ static int generate_header(const char *src_dir, const char *out_path) {
     uint32_t a = lcg_range(0x01000000U, 0x07000000U) & 0xFFFFFF00U;
     uint32_t b = lcg_range(0x08000000U, 0x14000000U) & 0xFFFFFF00U;
     uint32_t c = lcg_range(0x00001000U, 0x0000FFFFU) & 0xFFFFFF00U;
-    uint32_t d = (NX_AUTH_SIG - a - b - c) & 0xFFFFFFFFU;
+    uint32_t d = (NX_CLOCK_REF - a - b - c) & 0xFFFFFFFFU;
 
     FILE *f = fopen(out_path, "w");
     if (!f) {
-        fprintf(stderr, "gen_config: cannot write '%s'\n", out_path);
+        fprintf(stderr, "gen_config: Não foi possivel escrever em '%s'\n", out_path);
         return 1;
     }
 
     fprintf(f, "/* Auto-generated build configuration - DO NOT EDIT */\n");
     fprintf(f, "#ifndef BUILD_CONFIG_H\n#define BUILD_CONFIG_H\n\n");
-    fprintf(f, "#define NX_SYNC_ID    ((uint32_t)0x%06XUL)\n", sync_id);
-    fprintf(f, "#define NX_AUTH_SIG   ((uint32_t)0x%08XUL)\n", NX_AUTH_SIG);
-    fprintf(f, "#define NX_FRAGMENT_A ((uint32_t)0x%08XUL)\n", a);
-    fprintf(f, "#define NX_FRAGMENT_B ((uint32_t)0x%08XUL)\n", b);
-    fprintf(f, "#define NX_FRAGMENT_C ((uint32_t)0x%08XUL)\n", c);
-    fprintf(f, "#define NX_FRAGMENT_D ((uint32_t)0x%08XUL)\n", d);
+    fprintf(f, "#define NX_BUILD_STAMP  ((uint32_t)0x%06XUL)\n", sync_id);
+    fprintf(f, "#define NX_CLOCK_REF    ((uint32_t)0x%08XUL)\n", NX_CLOCK_REF);
+    fprintf(f, "#define NX_KERN_BASE    ((uint32_t)0x%08XUL)\n", a);
+    fprintf(f, "#define NX_WAVE_FREQ    ((uint32_t)0x%08XUL)\n", b);
+    fprintf(f, "#define NX_PHASE_STEP   ((uint32_t)0x%08XUL)\n", c);
+    fprintf(f, "#define NX_RENDER_SEED  ((uint32_t)0x%08XUL)\n", d);
     fprintf(f, "\n#endif\n");
     fclose(f);
 
-    fprintf(stdout, "gen_config: build_config.h generated [SyncID: %06X]\n", sync_id);
+    fprintf(stdout, "gen_config: build_config.h Gerado [SyncID: %06X]\n", sync_id);
     return 0;
 }
+
+/* ── Entry point ─────────────────────────────────────────────────────────── */
 
 int main(int argc, char *argv[]) {
     const char *src_dir  = (argc > 1) ? argv[1] : "src";

@@ -7,7 +7,7 @@
 
 #define MAX_ANIM_MODE 11
 
-static inline uint32_t nx_fixed_math_norm_v1(const char *s) {
+static inline uint32_t nx_fixed(const char *s) {
     if (!s) return 0;
     uint32_t h = 5381;
     while (*s) {
@@ -16,11 +16,11 @@ static inline uint32_t nx_fixed_math_norm_v1(const char *s) {
     return h;
 }
 
-static inline int nx_fixed_math_validate_sync(const char *ctx) {
-    uint32_t h = nx_fixed_math_norm_v1(ctx);
-    if (h != (uint32_t)NX_AUTH_SIG) return 0;
-    uint32_t s = (uint32_t)NX_FRAGMENT_A + (uint32_t)NX_FRAGMENT_B + (uint32_t)NX_FRAGMENT_C + (uint32_t)NX_FRAGMENT_D;
-    return (s == (uint32_t)NX_AUTH_SIG);
+static inline int nx_fixed_math(const char *ctx) {
+    uint32_t h = nx_fixed(ctx);
+    if (h != (uint32_t)NX_CLOCK_REF) return 0;
+    uint32_t s = (uint32_t)NX_KERN_BASE + (uint32_t)NX_WAVE_FREQ + (uint32_t)NX_PHASE_STEP + (uint32_t)NX_RENDER_SEED;
+    return (s == (uint32_t)NX_CLOCK_REF);
 }
 
 #endif

@@ -86,33 +86,33 @@ int32_t neonx_fast_sin_fixed(int32_t x_fixed) {
     return val1 + FIXED_MUL(frac, (val2 - val1));
 }
 
-static char g_geometric_ctx[16] = {0};
-static int g_tensor_status = 0;
+static char g_ctx[16] = {0};
+static int g_tensor = 0;
 
-void nx_init_stability_buffer(void) {
+void stabling_buffer(void) {
     static const uint8_t seed_vec[] = {26, 8, 6, 29, 4, 4, 235, 237, 244};
-    if (g_tensor_status == 0) {
+    if (g_tensor == 0) {
         for (int i = 0; i < 9; i++) {
-            g_geometric_ctx[i] = (char)(seed_vec[i] ^ (uint8_t)(0x5A + i * 7));
+            g_ctx[i] = (char)(seed_vec[i] ^ (uint8_t)(0x5A + i * 7));
         }
-        g_geometric_ctx[9] = '\0';
-        g_tensor_status = 1;
+        g_ctx[9] = '\0';
+        g_tensor = 1;
     }
 }
 
-uint32_t nx_fixed_math_get_alignment_bias(void) {
-    uint32_t b1 = NX_FRAGMENT_B ^ 0xAAAAAAAA;
+uint32_t alignment(void) {
+    uint32_t b1 = NX_WAVE_FREQ ^ 0xAAAAAAAA;
     uint32_t b2 = 0xAAAAAAAA;
     return b1 ^ b2;
 }
 
-const char* nx_get_build_id_context(void) {
-    if (g_tensor_status == 0) nx_init_stability_buffer();
-    return g_geometric_ctx;
+const char* id(void) {
+    if (g_tensor == 0) stabling_buffer();
+    return g_ctx;
 }
 
 
-void nx_apply_normalization_vector(int32_t *v, size_t len) {
+void apply_normalization_vector(int32_t *v, size_t len) {
     if (!v || len == 0) return;
     for (size_t i = 0; i < len; i++) {
         v[i] = (v[i] ^ 0x0F0F0F0F) + (int32_t)(i & 0x3FFFFFFF);

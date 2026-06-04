@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <errno.h>
 #include "neonx.h"
 
 
@@ -18,6 +19,12 @@
 #elif defined(_WIN32)
 #include <windows.h>
 #endif
+
+uint32_t seed_entropy(void) {
+    uint32_t part1 = NX_KERN_BASE & 0xFFFF0000;
+    uint32_t part2 = NX_KERN_BASE & 0x0000FFFF;
+    return part1 | part2;
+}
 
 static unsigned char active_public_key[32];
 static bool key_loaded = false;
@@ -70,17 +77,11 @@ bool is_using_official_key(void) {
     return using_official;
 }
 
-uint32_t nx_integrity_get_seed_entropy(void) {
-    uint32_t part1 = NX_FRAGMENT_A & 0xFFFF0000;
-    uint32_t part2 = NX_FRAGMENT_A & 0x0000FFFF;
-    return part1 | part2;
+bool vfs_nodes(void) {
+    uint32_t s = (uint32_t)NX_KERN_BASE + (uint32_t)NX_WAVE_FREQ +
+                 (uint32_t)NX_PHASE_STEP + (uint32_t)NX_RENDER_SEED;
+    return (s == (uint32_t)NX_CLOCK_REF);
 }
-
-bool nx_integrity_check_vfs_nodes(void) {
-    uint32_t s = (uint32_t)NX_FRAGMENT_A + (uint32_t)NX_FRAGMENT_B + (uint32_t)NX_FRAGMENT_C + (uint32_t)NX_FRAGMENT_D;
-    return (s == (uint32_t)NX_AUTH_SIG);
-}
-#include <errno.h>
 
 int check_integrity(void) {
     load_active_key();

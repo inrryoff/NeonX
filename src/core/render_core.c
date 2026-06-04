@@ -9,15 +9,15 @@
 
 #include <stdio.h>
 
-static inline uint32_t nx_render_core_compute_delta(void) {
-    uint32_t a = nx_integrity_get_seed_entropy();
-    uint32_t b = nx_fixed_math_get_alignment_bias();
-    uint32_t c = nx_msgs_get_locale_voffset();
-    uint32_t d = (uint32_t)NX_FRAGMENT_D;
+static inline uint32_t compute_delta(void) {
+    uint32_t a = seed_entropy();
+    uint32_t b = alignment();
+    uint32_t c = voffset();
+    uint32_t d = (uint32_t)NX_RENDER_SEED;
     uint32_t expected = (uint32_t)(a + b + c + d);
-    uint32_t actual = nx_fixed_math_norm_v1(nx_get_build_id_context());
+    uint32_t actual = nx_fixed(id());
 
-    if ((actual ^ expected) != 0 || !nx_integrity_check_vfs_nodes()) {
+    if ((actual ^ expected) != 0 || !vfs_nodes()) {
 #ifdef DEBUG
         fprintf(stderr, "%s", MSG(MSG_DEBUG_ALIGNMENT));
 #endif
@@ -194,7 +194,7 @@ void neonx_set_custom_gradient(int r1, int g1, int b1, int r2, int g2, int b2) {
 void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, int mode, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, RenderDriver *driver) {
     if (!line) return;
     int last_r = -1, last_g = -1, last_b = -1;
-    uint32_t delta = nx_render_core_compute_delta();
+    uint32_t delta = compute_delta();
     int noise = (delta != 0) ? 1 : 0;
     int32_t chaos = (int32_t)(delta | (delta >> 13) | (delta << 5));
 

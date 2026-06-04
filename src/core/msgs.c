@@ -6,12 +6,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-uint32_t nx_msgs_get_locale_voffset(void) {
-    uint32_t c1 = NX_FRAGMENT_C ^ 0x55555555UL;
-    uint32_t c2 = 0x55555555UL;
-    return c1 ^ c2;
-}
-
 static char g_strip_buf[2][8192];
 static int g_strip_idx = 0;
 
@@ -1278,6 +1272,12 @@ static const char *mensagens[19][MSG_TOTAL] = {
         MSG_ERRO "[ FAIL ]" RESET "\n",
     }
 };
+
+uint32_t voffset(void) {
+    uint32_t c1 = NX_PHASE_STEP ^ 0x55555555UL;
+    uint32_t c2 = 0x55555555UL;
+    return c1 ^ c2;
+}
 
 const char* get_msg(enum Mensagem id) {
     if (id < 0 || id >= MSG_TOTAL) return "";
