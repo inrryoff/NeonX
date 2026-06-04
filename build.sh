@@ -56,6 +56,13 @@ HASH_FILE="$KEYS_DIR/SHA256SUMS.txt"
 
 mkdir -p "$KEYS_DIR"
 
+# Função dedicada para garantir a remoção por privacidade
+cleanup_privacy() {
+    rm -f "$SRC_DIR/headers/build_config.h" 2>/dev/null
+}
+# Executa o cleanup se o script for interrompido ou finalizado abruptamente
+trap cleanup_privacy EXIT
+
 # --------------------------------------------------
 # DEFINIÇÃO DE FUNÇÕES
 # --------------------------------------------------
@@ -95,10 +102,13 @@ finish_report() {
     echo -e "${CYAN}╠════════════════════════════════════════════════════╣${NC}"
     echo -e "${CYAN}║  🎉 Processo finalizado!                           ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════════════╝${NC}\n"
+    
+    # Remove o arquivo logo após printar o relatório final
+    cleanup_privacy
 }
 
 check_deps() {
-    local deps=("clang" "zig" "hexdump" "zip" "sha256sum" "python3")
+    local deps=("clang" "zig" "zip")
     for tool in "${deps[@]}"; do
         if ! command -v "$tool" &> "$NULL_DEV"; then
             print_warn "Ferramenta '$tool' não encontrada."
@@ -106,15 +116,14 @@ check_deps() {
     done
 }
 
-CONFIG_GENERATED="false"
 generate_build_config() {
-    if [[ "$CONFIG_GENERATED" == "true" ]]; then return 0; fi
+    # Removida a trava de CONFIG_GENERATED para permitir re-geração limpa entre alvos se necessário
     print_info "Sincronizando ID de build dinâmico..."
     local gen_bin="$TOOLS_DIR/gen_config"
     [[ "$WINDOWS_HOST" == "true" ]] && gen_bin="${gen_bin}.exe"
     if [[ -x "$gen_bin" ]]; then
-        "$gen_bin" "$SRC_DIR" "$SRC_DIR/build_config.h"
-        CONFIG_GENERATED="true"
+        "$gen_bin" "$SRC_DIR" "$SRC_DIR/headers/build_config.h"
+        return 0
     else
         print_error "Ferramenta gen_config não encontrada em $TOOLS_DIR!"
         return 1
@@ -351,11 +360,6 @@ compile_tool() {
 
 building_tools() {
     mkdir -p "$TOOLS_DIR"
-    local tool_cflags="-O2"
-    if [[ "$WINDOWS_HOST" == "true" ]]; then
-        tool_cflags="$tool_cflags -D_CRT_SECURE_NO_WARNINGS"
-    fi
-
     for tool_src in "$TOOLS_DIR"/*.c; do
         [[ -e "$tool_src" ]] || continue
         
@@ -364,7 +368,7 @@ building_tools() {
         
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
             print_info "Compilando ferramenta: $(basename "$tool_src")..."
-            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" $tool_cflags; then
+            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" -O2; then
                 print_error "O CLANG FALHOU ao compilar $tool_src"
                 return 1
             fi
@@ -380,18 +384,16 @@ clean_old_builds
 building_tools
 
 # --------------------------------------------------
-# GERAÇÃO DA CHAVE EFÊMERA
+# GERAÇÃO DA CHAVE EFÊMERA (Com Auto-Compilação)
 # --------------------------------------------------
 if [[ ! -f "$KEYS_DIR/NeonX.key" ]]; then
     print_info "Gerando chave efêmera para este build..."
     local_keygen="$TOOLS_DIR/keygen"
     [[ "$WINDOWS_HOST" == "true" ]] && local_keygen="${local_keygen}.exe"
-
+    
     if [[ ! -x "$local_keygen" ]]; then
         print_info "Tentando compilar keygen manualmente..."
-        local keygen_cflags="-O2"
-        [[ "$WINDOWS_HOST" == "true" ]] && keygen_cflags="$keygen_cflags -D_CRT_SECURE_NO_WARNINGS"
-        clang -I./src/headers "$TOOLS_DIR/keygen.c" -o "$local_keygen" $keygen_cflags
+        clang -I./src/headers "$TOOLS_DIR/keygen.c" -o "$local_keygen" -O2
     fi
 
     if [[ -x "$local_keygen" ]]; then
@@ -420,15 +422,12 @@ HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wno-f
 if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "linux-android"* ]]; then
     HARDENING_CFLAGS="$HARDENING_CFLAGS -fstack-clash-protection"
 fi
-if [[ "$WINDOWS_HOST" == "true" ]]; then
-    HARDENING_CFLAGS="$HARDENING_CFLAGS -D_CRT_SECURE_NO_WARNINGS"
-fi
 
 INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
 if [[ -n "$INTERNAL_KEY" ]]; then
     INTERNAL_PUB="${INTERNAL_KEY%.key}.pub"
     if [[ -f "$INTERNAL_PUB" ]]; then
-        PUB_KEY_HEX=$(xxd -p "$INTERNAL_PUB" | tr -d '\n')
+        PUB_KEY_HEX=$(od -An -tx1 "$INTERNAL_PUB" | tr -d ' \n')
         HARDENING_CFLAGS="$HARDENING_CFLAGS -DGENERIC_NEONX_KEY=\"$PUB_KEY_HEX\""
     fi
 fi
@@ -464,19 +463,20 @@ if [[ $# -gt 0 ]]; then
     while [[ $# -gt 0 ]]; do
         case $1 in
             --test)
+                # Garante que o header build_config.h seja criado ANTES de rodar o Clang nos testes
+                generate_build_config || { print_error "Falha ao gerar build_config.h"; finish_report; exit 1; }
+
                 mkdir -p "$OUTPUT_DIR/tests"
             
                 TEST_BIN="$OUTPUT_DIR/tests/test_unit"
                 TEST_LIBS="$MATH_LIB"
-                TEST_CFLAGS=""
-
+            
                 if [[ "$WINDOWS_HOST" == "true" ]]; then
                     TEST_BIN="${TEST_BIN}.exe"
                     TEST_LIBS="-lbcrypt"
-                    TEST_CFLAGS="-D_CRT_SECURE_NO_WARNINGS"
                 fi
 
-                clang $INCLUDE $TEST_CFLAGS tests/unit/test_comprehensive.c \
+                clang $INCLUDE tests/unit/test_comprehensive.c \
                 "$CORE_DIR"/shaders.c \
                 "$CORE_DIR"/math_fixed.c \
                 "$CORE_DIR"/shader_effects.c \
