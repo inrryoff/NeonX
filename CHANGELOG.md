@@ -2,6 +2,10 @@
 
 Todas as funcionalidades e melhorias do **NeonX** (versão C, multiplataforma) estão documentadas abaixo.
 
+# [2.2.6-STABLE] – 2026
+- **Adição de Presets:** O arquivo `shaders.c` foi atualizado e para incluir novos Presets.
+- **Adição de Ferramentas:** A pasta `tools/` agora tem um arquivo `gen_config.c` que substitui o script em python `sync_build.py`, que cuida da geração de IDs de build.
+
 ## [2.2.5-STABLE] – 2026
 
 ### Adicionado
