@@ -2,8 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <dirent.h>
 #include <sys/stat.h>
+#endif
 
 #define SHA256_BLOCK_SIZE 32
 
@@ -137,32 +141,57 @@ static int ends_with(const char *s, const char *suf) {
 }
 
 static void collect_files(const char *dir) {
+static void collect_files(const char *dir) {
+#ifdef _WIN32
+    WIN32_FIND_DATA find_data;
+    char path_pattern[MAX_PATH];
+    snprintf(path_pattern, sizeof(path_pattern), "%s\\*", dir);
+
+    HANDLE hFind = FindFirstFile(path_pattern, &find_data);
+    if (hFind == INVALID_HANDLE_VALUE) return;
+
+    do {
+        if (strcmp(find_data.cFileName, ".") == 0 || strcmp(find_data.cFileName, "..") == 0)
+            continue;
+
+        char path[MAX_PATH];
+        snprintf(path, sizeof(path), "%s\\%s", dir, find_data.cFileName);
+
+        if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            collect_files(path);
+        } else {
+            if ((ends_with(find_data.cFileName, ".c") || ends_with(find_data.cFileName, ".h")) &&
+                strcmp(find_data.cFileName, "build_config.h") != 0) {
+                if (file_count < MAX_FILES) {
+                    snprintf(file_list[file_count++], MAX_PATH, "%s", path);
+                }
+            }
+        }
+    } while (FindNextFile(hFind, &find_data));
+    FindClose(hFind);
+#else
     DIR *d = opendir(dir);
     if (!d) return;
-
     struct dirent *ent;
     while ((ent = readdir(d)) != NULL) {
         if (ent->d_name[0] == '.') continue;
-
         char path[MAX_PATH];
         snprintf(path, sizeof(path), "%s/%s", dir, ent->d_name);
-
         struct stat st;
         if (stat(path, &st) != 0) continue;
-
         if (S_ISDIR(st.st_mode)) {
             collect_files(path);
         } else if (S_ISREG(st.st_mode)) {
             if ((ends_with(ent->d_name, ".c") || ends_with(ent->d_name, ".h")) &&
                 strcmp(ent->d_name, "build_config.h") != 0) {
                 if (file_count < MAX_FILES) {
-                    snprintf(file_list[file_count], MAX_PATH, "%s", path);
-                    file_count++;
+                    snprintf(file_list[file_count++], MAX_PATH, "%s", path);
                 }
             }
         }
     }
     closedir(d);
+#endif
 }
 
 static int hash_sources(const char *src_dir, uint8_t out_hash[SHA256_BLOCK_SIZE]) {

@@ -1,3 +1,6 @@
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include "neonx.h"
 
 int32_t shader_sunset_fixed(int32_t x, int32_t y, int32_t phase) {
