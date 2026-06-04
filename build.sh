@@ -465,10 +465,12 @@ if [[ $# -gt 0 ]]; then
             
                 TEST_BIN="$OUTPUT_DIR/tests/test_unit"
                 TEST_LIBS="$MATH_LIB"
-            
+                TEST_CFLAGS=""
+
                 if [[ "$WINDOWS_HOST" == "true" ]]; then
                     TEST_BIN="${TEST_BIN}.exe"
                     TEST_LIBS="-lbcrypt"
+                    TEST_CFLAGS="-D_CRT_SECURE_NO_WARNINGS"
                 fi
 
                 clang $INCLUDE tests/unit/test_comprehensive.c \
