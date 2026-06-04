@@ -117,7 +117,6 @@ check_deps() {
 }
 
 generate_build_config() {
-    # Removida a trava de CONFIG_GENERATED para permitir re-geração limpa entre alvos se necessário
     print_info "Sincronizando ID de build dinâmico..."
     local gen_bin="$TOOLS_DIR/gen_config"
     [[ "$WINDOWS_HOST" == "true" ]] && gen_bin="${gen_bin}.exe"
@@ -145,7 +144,9 @@ sign_binary() {
 
     if [[ "$binary" != *".wasm" ]]; then
         if [[ ! -x "$tool_bin" ]]; then
-            clang -I./src/headers "$TOOLS_DIR/sign_binary.c" -o "$tool_bin" -O2 2> "$NULL_DEV" || true
+            local sign_cflags="-O2"
+            [[ "$WINDOWS_HOST" == "true" ]] && sign_cflags="$sign_cflags -D_CRT_SECURE_NO_WARNINGS"
+            clang -I./src/headers "$TOOLS_DIR/sign_binary.c" -o "$tool_bin" $sign_cflags 2> "$NULL_DEV" || true
         fi
 
         if [[ -f "$priv_key" && -x "$tool_bin" ]]; then
@@ -289,10 +290,12 @@ compile_tool() {
     local is_windows="false"
     local active_perf_flags="$PERF_FLAGS"
     local target_math_lib="$MATH_LIB"
+    local active_hardening_cflags="$HARDENING_CFLAGS"
 
     if [[ "$label" == *"windows"* || ("$is_native" == "true" && "$WINDOWS_HOST" == "true") ]]; then
         is_windows="true"
         active_perf_flags="${active_perf_flags//-flto/} -D_CRT_SECURE_NO_WARNINGS"
+        active_hardening_cflags="$active_hardening_cflags -D_CRT_SECURE_NO_WARNINGS"
         target_math_lib="-lbcrypt"
         final_bin="${final_bin}.exe"
     fi
@@ -303,36 +306,35 @@ compile_tool() {
     local obj_inte="$OUTPUT_DIR/integrity_${label}.o"
     local obj_mono="$OUTPUT_DIR/monocypher_${label}.o"
     local core_lib_name="libneonx_core_${label}.a"
-    local core_lib_flag="neonx_core_${label}"
     
     local core_a="$OUTPUT_DIR/$core_lib_name"
 
     if [[ "$is_native" == "true" ]]; then
-        clang -c "$CORE_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
-        clang -c "$CORE_DIR/shader_effects.c" -o "$obj_seff" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
-        clang -c "$CORE_DIR/render_core.c" -o "$obj_rend" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
-        clang -c "$CORE_DIR/integrity.c" -o "$obj_inte" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
-        clang -c "$CORE_DIR/monocypher.c" -o "$obj_mono" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        clang -c "$CORE_DIR/math_fixed.c" -o "$obj_math" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
+        clang -c "$CORE_DIR/shader_effects.c" -o "$obj_seff" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
+        clang -c "$CORE_DIR/render_core.c" -o "$obj_rend" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
+        clang -c "$CORE_DIR/integrity.c" -o "$obj_inte" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
+        clang -c "$CORE_DIR/monocypher.c" -o "$obj_mono" $TUNE_FLAGS $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
         ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" 2> "$NULL_DEV" && \
         clang $INCLUDE "$SRC_DIR"/main.c "$CORE_DIR"/msgs.c "$CORE_DIR"/render.c "$CORE_DIR"/shaders.c "$CORE_DIR"/terminal.c \
             -o "$final_bin" \
             "$core_a" \
             $TUNE_FLAGS $active_perf_flags $SAN_FLAGS \
             -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-            $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
+            $target_math_lib $active_hardening_cflags $HARDENING_LDFLAGS
     else
-        zig cc -c "$CORE_DIR/math_fixed.c" -o "$obj_math" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
-        zig cc -c "$CORE_DIR/shader_effects.c" -o "$obj_seff" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
-        zig cc -c "$CORE_DIR/render_core.c" -o "$obj_rend" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
-        zig cc -c "$CORE_DIR/integrity.c" -o "$obj_inte" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
-        zig cc -c "$CORE_DIR/monocypher.c" -o "$obj_mono" -target "$target" $active_perf_flags $SAN_FLAGS $HARDENING_CFLAGS $INCLUDE && \
+        zig cc -c "$CORE_DIR/math_fixed.c" -o "$obj_math" -target "$target" $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
+        zig cc -c "$CORE_DIR/shader_effects.c" -o "$obj_seff" -target "$target" $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
+        zig cc -c "$CORE_DIR/render_core.c" -o "$obj_rend" -target "$target" $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
+        zig cc -c "$CORE_DIR/integrity.c" -o "$obj_inte" -target "$target" $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
+        zig cc -c "$CORE_DIR/monocypher.c" -o "$obj_mono" -target "$target" $active_perf_flags $SAN_FLAGS $active_hardening_cflags $INCLUDE && \
         zig ar rcs "$core_a" "$obj_math" "$obj_seff" "$obj_rend" "$obj_inte" "$obj_mono" 2> "$NULL_DEV" && \
         zig cc $INCLUDE "$SRC_DIR"/main.c "$CORE_DIR"/msgs.c "$CORE_DIR"/render.c "$CORE_DIR"/shaders.c "$CORE_DIR"/terminal.c \
             -o "$final_bin" -target "$target" \
             "$core_a" \
             $active_perf_flags \
             -DVERSION="\"$VERSION\"" -DBUILD_STATUS="\"$BUILD_STATUS\"" -DBUILD_MAINTAINER="\"$BUILD_MAINTAINER\"" \
-            $target_math_lib $HARDENING_CFLAGS $HARDENING_LDFLAGS
+            $target_math_lib $active_hardening_cflags $HARDENING_LDFLAGS
     fi
 
 
@@ -360,6 +362,9 @@ compile_tool() {
 
 building_tools() {
     mkdir -p "$TOOLS_DIR"
+    local tool_cflags="-O2"
+    [[ "$WINDOWS_HOST" == "true" ]] && tool_cflags="$tool_cflags -D_CRT_SECURE_NO_WARNINGS"
+
     for tool_src in "$TOOLS_DIR"/*.c; do
         [[ -e "$tool_src" ]] || continue
         
@@ -368,7 +373,7 @@ building_tools() {
         
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
             print_info "Compilando ferramenta: $(basename "$tool_src")..."
-            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" -O2; then
+            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" $tool_cflags; then
                 print_error "O CLANG FALHOU ao compilar $tool_src"
                 return 1
             fi
@@ -393,14 +398,16 @@ if [[ ! -f "$KEYS_DIR/NeonX.key" ]]; then
     
     if [[ ! -x "$local_keygen" ]]; then
         print_info "Tentando compilar keygen manualmente..."
-        clang -I./src/headers "$TOOLS_DIR/keygen.c" -o "$local_keygen" -O2
+        local keygen_flags="-O2"
+        [[ "$WINDOWS_HOST" == "true" ]] && keygen_flags="$keygen_flags -D_CRT_SECURE_NO_WARNINGS"
+        clang -I./src/headers "$TOOLS_DIR/keygen.c" -o "$local_keygen" $keygen_flags
     fi
 
     if [[ -x "$local_keygen" ]]; then
         "$local_keygen" "$KEYS_DIR/NeonX.key" "$KEYS_DIR/NeonX.pub"
         print_success "Chave efêmera gerada em $KEYS_DIR/"
     else
-        print_error "FATAL: Binário $local_keygen não foi criado. Verifique se o clang está instalado corretamente no Termux (pkg install clang)."
+        print_error "FATAL: Binário $local_keygen não foi criado. Verifique se o clang está instalado corretamente."
         exit 1
     fi
 fi
@@ -470,13 +477,15 @@ if [[ $# -gt 0 ]]; then
             
                 TEST_BIN="$OUTPUT_DIR/tests/test_unit"
                 TEST_LIBS="$MATH_LIB"
+                local test_cflags=""
+                [[ "$WINDOWS_HOST" == "true" ]] && test_cflags="-D_CRT_SECURE_NO_WARNINGS"
             
                 if [[ "$WINDOWS_HOST" == "true" ]]; then
                     TEST_BIN="${TEST_BIN}.exe"
                     TEST_LIBS="-lbcrypt"
                 fi
 
-                clang $INCLUDE tests/unit/test_comprehensive.c \
+                clang $INCLUDE $test_cflags tests/unit/test_comprehensive.c \
                 "$CORE_DIR"/shaders.c \
                 "$CORE_DIR"/math_fixed.c \
                 "$CORE_DIR"/shader_effects.c \
