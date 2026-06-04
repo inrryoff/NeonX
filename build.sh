@@ -477,7 +477,7 @@ if [[ $# -gt 0 ]]; then
             
                 TEST_BIN="$OUTPUT_DIR/tests/test_unit"
                 TEST_LIBS="$MATH_LIB"
-                local test_cflags=""
+                test_cflags=""
                 [[ "$WINDOWS_HOST" == "true" ]] && test_cflags="-D_CRT_SECURE_NO_WARNINGS"
             
                 if [[ "$WINDOWS_HOST" == "true" ]]; then
