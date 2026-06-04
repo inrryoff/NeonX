@@ -476,7 +476,7 @@ if [[ $# -gt 0 ]]; then
                     TEST_CFLAGS="-D_CRT_SECURE_NO_WARNINGS"
                 fi
 
-                clang $INCLUDE tests/unit/test_comprehensive.c \
+                clang $INCLUDE $TEST_CFLAGS tests/unit/test_comprehensive.c \
                 "$CORE_DIR"/shaders.c \
                 "$CORE_DIR"/math_fixed.c \
                 "$CORE_DIR"/shader_effects.c \
