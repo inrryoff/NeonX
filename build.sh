@@ -135,7 +135,6 @@ sign_binary() {
     [[ "$WINDOWS_HOST" == "true" ]] && tool_bin="${tool_bin}.exe"
 
     if [[ "$binary" != *".wasm" ]]; then
-        # COMPILAÇÃO INLINE PARA O SIGN_BINARY (Caso building_tools falhe)
         if [[ ! -x "$tool_bin" ]]; then
             clang -I./src/headers "$TOOLS_DIR/sign_binary.c" -o "$tool_bin" -O2 2> "$NULL_DEV" || true
         fi
@@ -352,6 +351,11 @@ compile_tool() {
 
 building_tools() {
     mkdir -p "$TOOLS_DIR"
+    local tool_cflags="-O2"
+    if [[ "$WINDOWS_HOST" == "true" ]]; then
+        tool_cflags="$tool_cflags -D_CRT_SECURE_NO_WARNINGS"
+    fi
+
     for tool_src in "$TOOLS_DIR"/*.c; do
         [[ -e "$tool_src" ]] || continue
         
@@ -360,7 +364,7 @@ building_tools() {
         
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
             print_info "Compilando ferramenta: $(basename "$tool_src")..."
-            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" -O2; then
+            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" $tool_cflags; then
                 print_error "O CLANG FALHOU ao compilar $tool_src"
                 return 1
             fi
@@ -376,20 +380,20 @@ clean_old_builds
 building_tools
 
 # --------------------------------------------------
-# GERAÇÃO DA CHAVE EFÊMERA (Com Auto-Compilação)
+# GERAÇÃO DA CHAVE EFÊMERA
 # --------------------------------------------------
 if [[ ! -f "$KEYS_DIR/NeonX.key" ]]; then
     print_info "Gerando chave efêmera para este build..."
     local_keygen="$TOOLS_DIR/keygen"
     [[ "$WINDOWS_HOST" == "true" ]] && local_keygen="${local_keygen}.exe"
-    
-    # Se não existe, tenta compilar agora e mostra o erro se falhar
+
     if [[ ! -x "$local_keygen" ]]; then
         print_info "Tentando compilar keygen manualmente..."
-        clang -I./src/headers "$TOOLS_DIR/keygen.c" -o "$local_keygen" -O2
+        local keygen_cflags="-O2"
+        [[ "$WINDOWS_HOST" == "true" ]] && keygen_cflags="$keygen_cflags -D_CRT_SECURE_NO_WARNINGS"
+        clang -I./src/headers "$TOOLS_DIR/keygen.c" -o "$local_keygen" $keygen_cflags
     fi
 
-    # Checa se agora o binário existe antes de rodar
     if [[ -x "$local_keygen" ]]; then
         "$local_keygen" "$KEYS_DIR/NeonX.key" "$KEYS_DIR/NeonX.pub"
         print_success "Chave efêmera gerada em $KEYS_DIR/"
