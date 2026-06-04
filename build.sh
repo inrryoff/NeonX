@@ -420,6 +420,9 @@ HARDENING_CFLAGS="-Wall -Wextra -Wconversion -Wsign-conversion -Wformat=2 -Wno-f
 if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "linux-android"* ]]; then
     HARDENING_CFLAGS="$HARDENING_CFLAGS -fstack-clash-protection"
 fi
+if [[ "$WINDOWS_HOST" == "true" ]]; then
+    HARDENING_CFLAGS="$HARDENING_CFLAGS -D_CRT_SECURE_NO_WARNINGS"
+fi
 
 INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
 if [[ -n "$INTERNAL_KEY" ]]; then

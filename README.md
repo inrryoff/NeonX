@@ -20,7 +20,7 @@
 
 <br>
 
-![Escrito em C](https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white)
+![Escrito em C](https://img.shields.io/badge/PURO-00599C?style=for-the-badge&logo=c&logoColor=white)
 ![WebAssembly](https://img.shields.io/badge/WebAssembly-654FF0?style=for-the-badge&logo=webassembly&logoColor=white)
 ![Desenvolvido no Termux](https://img.shields.io/badge/Developed_on-Termux-blue?style=for-the-badge&logo=termux&logoColor=white)
 
