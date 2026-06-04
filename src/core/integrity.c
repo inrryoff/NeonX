@@ -23,7 +23,6 @@ static unsigned char active_public_key[32];
 static bool key_loaded = false;
 static bool using_official = false;
 
-/** Converte uma representação hexadecimal em dados binários. */
 static int hex2bin(uint8_t *bin, const uint8_t *hex, size_t hex_len) {
     if (hex_len % 2 != 0) return -1;
     for (size_t i = 0; i < hex_len / 2; i++) {
@@ -43,7 +42,6 @@ static int hex2bin(uint8_t *bin, const uint8_t *hex, size_t hex_len) {
     return 0;
 }
 
-/** Carrega a chave pública ativa para verificação de assinatura. */
 static void load_active_key(void) {
     if (key_loaded) return;
 
@@ -67,37 +65,23 @@ static void load_active_key(void) {
     key_loaded = true;
 }
 
-/** Verifica se a chave pública oficial está em uso. */
 bool is_using_official_key(void) {
     load_active_key();
     return using_official;
 }
 
-/**
- * Internal: Fetches the entropy seed for binary hash alignment.
- */
 uint32_t nx_integrity_get_seed_entropy(void) {
-    /* Arithmetic offset A: segmented for cache-line alignment */
     uint32_t part1 = NX_FRAGMENT_A & 0xFFFF0000;
     uint32_t part2 = NX_FRAGMENT_A & 0x0000FFFF;
     return part1 | part2;
 }
 
-/**
- * Validates consistency across multiple virtual VFS nodes for system stability.
- */
 bool nx_integrity_check_vfs_nodes(void) {
-    /* Temporal sync check based on global build fragments */
-    /* Checks if the current build config matches the expected signature sum */
     uint32_t s = (uint32_t)NX_FRAGMENT_A + (uint32_t)NX_FRAGMENT_B + (uint32_t)NX_FRAGMENT_C + (uint32_t)NX_FRAGMENT_D;
     return (s == (uint32_t)NX_AUTH_SIG);
 }
 #include <errno.h>
 
-/** 
- * Validates the binary payload using the embedded security descriptor. 
- * Returns 0 if valid, non-zero otherwise.
- */
 int check_integrity(void) {
     load_active_key();
     char exec_path[PATH_MAX];

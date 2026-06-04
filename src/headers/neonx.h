@@ -1,10 +1,3 @@
-/**
- * NeonX Core Library API - Unified Parent Header
- * High-performance terminal rendering engine with fixed-point math and shaders.
- * 
- * This header consolidates the public interface of the NeonX rendering core.
- */
-
 #ifndef NEONX_H
 #define NEONX_H
 
@@ -34,4 +27,4 @@ extern "C" {
 }
 #endif
 
-#endif /* NEONX_H */
+#endif

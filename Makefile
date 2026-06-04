@@ -53,9 +53,13 @@ OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 all: release
 
-$(SRC_DIR)/build_config.h: $(SRCS)
+GEN_CONFIG = tools/gen_config
+$(GEN_CONFIG): tools/gen_config.c
+	@clang -O2 tools/gen_config.c -o $(GEN_CONFIG)
+
+$(SRC_DIR)/build_config.h: $(GEN_CONFIG) $(SRCS)
 	@echo "Generating build configuration..."
-	@python3 sync_build.py $(SRC_DIR)
+	@$(GEN_CONFIG) $(SRC_DIR) $(SRC_DIR)/build_config.h
 
 release: $(SRC_DIR)/build_config.h $(TARGET)
 
@@ -83,4 +87,4 @@ wasm:
 		-o $(BIN_DIR)/neonx.js
 
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(GEN_CONFIG)

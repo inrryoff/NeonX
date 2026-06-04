@@ -1,4 +1,3 @@
-/* Auto-generated build configuration - DO NOT EDIT */
 #ifndef BUILD_CONFIG_H
 #define BUILD_CONFIG_H
 

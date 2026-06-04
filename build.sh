@@ -98,7 +98,7 @@ finish_report() {
 }
 
 check_deps() {
-    local deps=("clang" "zig" "hexdump" "zip" "sha256sum" "python3")
+    local deps=("clang" "zig" "hexdump" "zip" "sha256sum")
     for tool in "${deps[@]}"; do
         if ! command -v "$tool" &> "$NULL_DEV"; then
             print_warn "Ferramenta '$tool' não encontrada."
@@ -110,11 +110,13 @@ CONFIG_GENERATED="false"
 generate_build_config() {
     if [[ "$CONFIG_GENERATED" == "true" ]]; then return 0; fi
     print_info "Sincronizando ID de build dinâmico..."
-    if [[ -f "sync_build.py" ]]; then
-        python3 sync_build.py "$SRC_DIR"
+    local gen_bin="$TOOLS_DIR/gen_config"
+    [[ "$WINDOWS_HOST" == "true" ]] && gen_bin="${gen_bin}.exe"
+    if [[ -x "$gen_bin" ]]; then
+        "$gen_bin" "$SRC_DIR" "$SRC_DIR/build_config.h"
         CONFIG_GENERATED="true"
     else
-        print_error "Script sync_build.py não encontrado!"
+        print_error "Ferramenta gen_config não encontrada em $TOOLS_DIR!"
         return 1
     fi
 }
@@ -419,7 +421,7 @@ INTERNAL_KEY=$(ls "$KEYS_DIR"/*.key 2>/dev/null | head -n 1)
 if [[ -n "$INTERNAL_KEY" ]]; then
     INTERNAL_PUB="${INTERNAL_KEY%.key}.pub"
     if [[ -f "$INTERNAL_PUB" ]]; then
-        PUB_KEY_HEX=$(python3 -c "import sys; print(open('$INTERNAL_PUB', 'rb').read().hex())")
+        PUB_KEY_HEX=$(xxd -p "$INTERNAL_PUB" | tr -d '\n')
         HARDENING_CFLAGS="$HARDENING_CFLAGS -DGENERIC_NEONX_KEY=\"$PUB_KEY_HEX\""
     fi
 fi

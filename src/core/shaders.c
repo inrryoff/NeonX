@@ -26,19 +26,27 @@ static const struct PresetConfig presets[] = {
     {"blood",     8,  26214, 65536, 0,       true, 250000, 0, 0},
     {"hacker",    0,  13107, 78643, 0,       true, 0, 137233, 0},
     {"synthwave", 3,  22937, 39321, 5898240, true, 350000, 0, 150000},
-    {"dracula",   1,  9830,  32768, 2949120, true,  380000, 200000, 30000}
+    {"dracula",    1,  9830,  32768, 2949120, true,  380000, 200000, 30000},
+    {"aurora",     5,  6553,  26214, 0,       true,  0,      180000, 320000},
+    {"neon_tokyo", 4,  19660, 52428, 0,       true,  320000, 0,      280000},
+    {"lava",       8,  22937, 39321, 0,       true,  300000, 60000,  0},
+    {"ice",        11, 6553,  19660, 0,       true,  50000,  200000, 350000},
+    {"fire",       3,  26214, 78643, 0,       true,  350000, 120000, 0},
+    {"galaxy",     5,  9830,  32768, 0,       true,  80000,  0,      300000},
+    {"toxic",      10, 16384, 65536, 0,       true,  80000,  300000, 0},
+    {"midnight",   0,  6553,  19660, 2621440, true,  30000,  0,      200000},
+    {"rose",       1,  13107, 39321, 0,       true,  300000, 50000,  150000},
+    {"vapor2",     6,  19660, 45875, 0,       true,  250000, 100000, 350000}
 };
 
 #define NUM_PRESETS (sizeof(presets) / sizeof(presets[0]))
 
-/** Configura o motor de renderização com base em um perfil estético (preset). */
 bool shaders_set_preset(const char *preset, struct neonx_options *opts) {
     if (!preset || !opts) return false;
     for (size_t i = 0; i < NUM_PRESETS; i++) {
         if (!strcmp(preset, presets[i].name)) {
             opts->anim_mode = presets[i].anim_mode;
-            
-            /* Só aplica valores do preset se o usuário não tiver forçado via flag */
+
             if (!opts->speed_set) opts->speed_fixed = presets[i].speed;
             if (!opts->freq_set)  opts->freq_fixed = presets[i].frequency;
             if (!opts->angle_set) opts->angle_fixed = presets[i].angle;

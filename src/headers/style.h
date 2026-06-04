@@ -34,18 +34,11 @@
 #define BG_CYAN    "\033[46m"
 #define BG_WHITE   "\033[47m"
 #define BG_FOSCO   "\033[48;5;237m\033[38;5;253m" 
-
-/* Fundo cinza claro (alias para legibilidade) */
 #define BG_GRAY    BG_WHITE
 
 /* ==================== FUNDOS COM TEXTO (COMBINAÇÕES ÚTEIS) ==================== */
-/* Cabeçalho de seção: fundo cinza + texto preto negrito */
 #define HEADER_SECTION   BG_GRAY BRIGHT_BLACK
-
-/* Destaque em fundo vermelho (para erros fatais) */
 #define BG_RED_BOLD      BG_RED BRIGHT_WHITE
-
-/* Aviso em fundo amarelo */
 #define BG_YELLOW_BOLD   BG_YELLOW BRIGHT_BLACK
 
 /* ==================== EFEITOS ==================== */
@@ -59,7 +52,6 @@
 #define STRIKE     "\033[9m"
 
 /* ==================== COMBINAÇÕES PRONTAS PARA O NEONX ==================== */
-/* Mensagens de status */
 #define MSG_SUCESSO      BRIGHT_GREEN
 #define MSG_ERRO         BRIGHT_RED
 #define MSG_AVISO        BRIGHT_YELLOW
@@ -68,26 +60,16 @@
 #define MSG_SUBLINHA     UNDERLINE CYAN
 #define MSG_FUNDO_CINZA  BG_GRAY BRIGHT_BLACK
 #define MSG_HEADER       BOLD BRIGHT_MAGENTA
-
-/* Para a licença: cláusulas com fundo cinza */
 #define MSG_CLAUSE_NUM   BG_GRAY BRIGHT_BLACK
-
-/* Para caminhos de arquivo ou comandos */
 #define MSG_FILEPATH     UNDERLINE CYAN
 #define MSG_COMMAND      BRIGHT_GREEN
-
-/* Para números importantes (ex: versão, modos) */
 #define MSG_NUMBER       BRIGHT_YELLOW
-
-/* Para emojis ou ícones (se quiser destacar) – apenas cor */
 #define MSG_ICON_SUCCESS BRIGHT_GREEN
 #define MSG_ICON_ERROR   BRIGHT_RED
 #define MSG_ICON_WARN    BRIGHT_YELLOW
 #define MSG_ICON_INFO    BRIGHT_CYAN
 #define MSG_LEGAL_TXT  ITALIC DIM UNDERLINE
 #define MSG_CMD_DIM    DIM
-
-/* Logo do NeonX */
 #define LOGO_NEONX BRIGHT_RED "N" BRIGHT_YELLOW "e" BRIGHT_GREEN "o" BRIGHT_CYAN "n" BRIGHT_BLUE "X" RESET
 
 #endif

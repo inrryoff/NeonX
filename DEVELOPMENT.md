@@ -6,40 +6,39 @@ Bem-vindo(a)! Este documento explica como a arquitetura do NeonX é estruturada 
 
 ## 📁 Estrutura do Projeto
 
-A organização de pastas separa o código-fonte dos artefatos de compilação e do material criptográfico.
+A organização de pastas separa de forma modular as implementações, as interfaces públicas/privadas e os artefatos de build.
 
 ```text
 NeonX/
-├── src/                 # Código-fonte principal da Engine
-│   ├── main.c           # Ponto de entrada, parsing e loop principal
-│   ├── main_wasm.c      # Bridge para WebAssembly
-│   ├── build_config.h   # Configurações de build
-│   ├── core/            # Núcleo da lógica de processamento
-│   │   ├── integrity.c  # Validação de payload
-│   │   ├── math_fixed.c # Matemática de ponto fixo
-│   │   ├── monocypher.c # Motor de criptografia
-│   │   ├── msgs.c       # Internacionalização
-│   │   ├── render.c     # Abstrações de renderização
-│   │   ├── render_core.c# Motor de renderização core
-│   │   ├── shader_effects.c # Efeitos de shader
-│   │   ├── shaders.c    # Gerenciamento de presets
-│   │   └── terminal.c   # Gerenciamento ANSI
-│   └── headers/         # Cabeçalhos e definições de API
-│       ├── neonx.h      # API Pública Unificada
-│       └── ...          # Outros cabeçalhos de suporte
-├── tools/               # Ferramentas auxiliares (incluindo gerador de chaves)
-├── build/               # Binários compilados
-├── ARCHITECTURE.md      # Explicação detalhada da estrutura da engine
-├── Makefile             # Sistema de build estruturado (Clang/Make)
-├── build.sh             # Script rápido para builds e testes
-└── README.md            # Documentação principal
+├── core/                # Núcleo da lógica de processamento (.c)
+│   ├── integrity.c      # Validação de payload e assinatura digital
+│   ├── math_fixed.c     # Matemática procedural de ponto fixo e LUTs
+│   ├── monocypher.c     # Motor de criptografia (EdDSA/Ed25519)
+│   ├── msgs.c           # Tabelas de internacionalização (i18n)
+│   ├── render.c         # Gerenciamento de buffers de renderização TTY
+│   ├── render_core.c    # Algoritmos core de desenho e cor de pixel
+│   ├── shader_effects.c # Fórmulas matemáticas de efeitos de shader
+│   ├── shaders.c        # Configurações de presets e mapeamento de offsets
+│   └── terminal.c       # Manipulação de estado e escapes ANSI do terminal
+├── headers/             # Cabeçalhos, APIs e definições de dados (.h)
+│   ├── build_config.h   # Identificadores de build e SyncID (Dinâmico)
+│   ├── neonx.h          # API Pública Unificada da Engine
+│   └── ...              # Cabeçalhos internos de suporte do core
+├── tools/               # Ferramentas auxiliares (keygen, assinador, etc.)
+├── build/               # Artefatos e binários finais compilados
+├── main.c               # Ponto de entrada CLI, parser de flags e loop nativo
+├── main_wasm.c          # Ponte e bindings Emscripten para WebAssembly
+├── ARCHITECTURE.md      # Explicação detalhada dos fluxos de dados do motor
+├── Makefile             # Gerenciador estruturado de compilação (Clang/Make)
+├── build.sh             # Script automatizado para compilações locais e suíte de testes
+├── CHANGELOG.md # Registro de alterações ao longo das versões
+└── README.md            # Documentação e instruções gerais de uso
+
 ```
+## 📦 Compilação
+O projeto utiliza (builds).sh e um (Makefile básico) para gerenciar as builds.
 
-## 🚀 Compilação
-
-O projeto utiliza um `Makefile` para gerenciar as builds.
-
-### Build de Release (Padrão)
+### Build (Com Makefile)
 ```bash
 make
 ```
@@ -53,35 +52,41 @@ make debug
 ```bash
 make wasm
 ```
-
----
-
-## 📦 Usando a biblioteca NeonX (Core)
-
-A partir da v2.2.3, o NeonX oferece o cabeçalho `src/neonx.h` como interface única para integração.
-
-### Integração Rápida
-Basta incluir o cabeçalho no seu código C/C++:
-```c
-#include "neonx.h"
+## 🚀 Via build.sh (Recomendado)
+```bash
+./build.sh
+# E siga o menu conforme necessário
 ```
 
+### Para testar
+```bash
+./build.sh --test
+```
+### Comandos disponíveis para CI/CD
+| Flag | uso |
+| ------ | ----- |
+| --native | Compilação rápida para seu sistema própio (via clang ou MSVC (No windows). |
+| --wasm | Compilação rápida para WebAssembly (wasm). |
+| --test | Faz fuzzing leve para verificar se o binário está ok se falhar em qualquer etapa o binário não é apto para distribuição. | 
+
+## 📦 Usando a biblioteca NeonX (Core)
+A partir da v2.2.3, o NeonX oferece o cabeçalho headers/neonx.h como interface única para integração.
+### Integração Rápida
+Basta incluir o cabeçalho no seu código C/C++ (garantindo o mapeamento da pasta via -I no compilador):
+```c
+#include "neonx.h"
+
+```
 ### Compilação da Biblioteca Estática
-O `Makefile` gera automaticamente a biblioteca estática:
+O Makefile gera automaticamente a biblioteca estática:
 ```bash
 # Isso gera o arquivo build/libneonx_core.a
 make
+
 ```
-
----
-
 ## 🌐 WebAssembly (Uso na Web)
-
-O motor de cores do NeonX roda no navegador via WASM. A arquitetura é baseada no `RenderDriver` (`src/render_driver.h`), o que permite que a mesma lógica de renderização procedural seja utilizada tanto no CLI quanto na Web.
-
+O motor de cores do NeonX roda no navegador via WASM. A arquitetura é baseada no RenderDriver (headers/render_driver.h), o que permite que a mesma lógica de renderização procedural seja utilizada tanto no CLI quanto na Web.
 A versão WASM agora também utiliza a API unificada para garantir paridade total de recursos.
-
----
-
 ## 🏗️ Performance e Otimizações
-Se você estiver contribuindo para o núcleo (core), atente-se ao sistema de **Length Caching** na estrutura `Content`. Todas as strings de entrada têm seu comprimento pré-calculado em `load_input_data` para evitar o custo de `wcslen` durante o loop de animação de alta frequência.
+Se você estiver contribuindo para o núcleo (core), atente-se ao sistema de **Length Caching** na estrutura Content. Todas as strings de entrada têm seu comprimento pré-calculado em load_input_data para evitar o custo de wcslen durante o loop de animação de alta frequência.
+```

@@ -6,11 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/** 
- * Returns the virtual offset for localized text alignment tables.
- */
 uint32_t nx_msgs_get_locale_voffset(void) {
-    /* Alignment component C: fragmented for UTF-8 table mapping */
     uint32_t c1 = NX_FRAGMENT_C ^ 0x55555555UL;
     uint32_t c2 = 0x55555555UL;
     return c1 ^ c2;
@@ -73,9 +69,6 @@ static const char *lang_prefixes[19] = {
     "km"  // 18: Khmer
 };
 
-// =========================================================================
-// MACROS DE LICENÇA (Evita inflar o tamanho do binário compilado)
-// =========================================================================
 #define LICENSE_PT \
     "LICENÇA DE USO - NEONX (C - VERSION)\n" \
     "-----------------------------------------------------------------\n" \
@@ -125,10 +118,6 @@ static const char *lang_prefixes[19] = {
     "   provided the module is distributed for free.\n\n" \
     MSG_CMD_DIM "THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND." RESET "\n"
 
-// =========================================================================
-// MATRIZ INTERNACIONAL (13 Idiomas)
-// Índices: 0:PT, 1:EN, 2:ES, 3:FR, 4:DE, 5:IT, 6:RU, 7:ZH, 8:JA, 9:KO, 10:TR, 11:PL, 12:ID
-// =========================================================================
 static const char *mensagens[19][MSG_TOTAL] = {
     // ---------------- [0] PORTUGUÊS (PT) ----------------
     {

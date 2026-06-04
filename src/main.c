@@ -24,7 +24,6 @@ int auth_status;
 int g_max_lines_limit = 10000;
 extern uint32_t secure_random_u32(void);
 
-/** Converte uma string para ponto fixo 16.16 com validação de erros e limites. */
 static int32_t secure_str_to_fixed(const char *s, bool *ok) {
     if (!s || !*s) {
         if (ok) *ok = false;
@@ -47,7 +46,6 @@ static int32_t secure_str_to_fixed(const char *s, bool *ok) {
     return FLOAT_TO_FIXED(val);
 }
 
-/** Converte uma cor em formato hexadecimal (ex: #FF0000) para RGB. */
 static bool parse_hex_color(const char *hex, int *r, int *g, int *b) {
     if (!hex) return false;
     if (hex[0] == '#') hex++;
@@ -67,7 +65,6 @@ static bool parse_hex_color(const char *hex, int *r, int *g, int *b) {
     return true;
 }
 
-/** Exibe mensagens de erro formatadas no fluxo de erro padrão (stderr). */
 static void print_error_msg(const char *msg, const char *arg1, const char *arg2) {
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
@@ -81,7 +78,6 @@ static void print_error_msg(const char *msg, const char *arg1, const char *arg2)
 #endif
 }
 
-/** Processa argumentos numéricos específicos da linha de comando e atualiza as opções. */
 static int handle_numeric_argument(const char *arg, const char *val, struct neonx_options *opts)
 {
     if (!arg || !val || !opts) return 3;
@@ -169,12 +165,11 @@ static int handle_numeric_argument(const char *arg, const char *val, struct neon
     return 0;
 }
 
-/** Analisa recursivamente todos os argumentos passados via CLI. */
 static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
     for (int i = 1; i < argc; i++) {
         char *arg = argv[i];
         
-        if (!strcmp(arg, "-max-lines") && i + 1 < argc) {
+        if ((!strcmp(arg, "-max-lines") || !strcmp(arg, "-mxl")) && i + 1 < argc) {
             bool ok = false;
             int32_t val_fixed = secure_str_to_fixed(argv[++i], &ok);
             if (!ok) {
@@ -194,16 +189,15 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
         if (!strcmp(arg, "-h") || !strcmp(arg, "--help")) { opts->show_help_flag = true; continue; }
         if (!strcmp(arg, "-v") || !strcmp(arg, "--version")) { opts->show_version_flag = true; continue; }
         if (!strcmp(arg, "--license")) { opts->show_license_flag = true; continue; }
-        if (!strcmp(arg, "--verify-sig")) { opts->verify_sig_flag = true; continue; }
+        if (!strcmp(arg, "--verify-sig") || !strcmp(arg, "-sig")) { opts->verify_sig_flag = true; continue; }
         if (!strcmp(arg, "--spin")) { opts->spin_flag = true; continue; }
-        if (!strcmp(arg, "-S")) { opts->static_mode = true; continue; }
+        if (!strcmp(arg, "-S") || !strcmp(arg, "--static")) { opts->static_mode = true; continue; }
         if (!strcmp(arg, "-L")) { opts->stream_mode = true; continue; }
-        if (!strcmp(arg, "--quantized")) { neonx_set_quantization(true); continue; }
-        if (!strcmp(arg, "--no-ansi")) { opts->disable_ansi = true; continue; }
+        if (!strcmp(arg, "--quantized") || !strcmp(arg, "-q")) { neonx_set_quantization(true); continue; }
+        if (!strcmp(arg, "--no-ansi") || !strcmp(arg, "-no")) { opts->disable_ansi = true; continue; }
         if (!strcmp(arg, "--fo")) {
             opts->matte_mode = true;
             neonx_set_matte_mode(true);
-            /* Verifica se o próximo argumento é uma intensidade numérica */
             if (i + 1 < argc && (isdigit((unsigned char)argv[i+1][0]) || (argv[i+1][0] == '.' && isdigit((unsigned char)argv[i+1][1])))) {
                 bool ok;
                 int32_t intensity = secure_str_to_fixed(argv[++i], &ok);
@@ -219,7 +213,7 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
             continue;
         }
 
-        if ((!strcmp(arg, "--color1") || !strcmp(arg, "--c1")) && i + 1 < argc) {
+        if ((!strcmp(arg, "--color1") || !strcmp(arg, "-c1")) && i + 1 < argc) {
             int r, g, b;
             if (parse_hex_color(argv[++i], &r, &g, &b)) {
                 opts->c1_r = r; opts->c1_g = g; opts->c1_b = b;
@@ -230,7 +224,7 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
             }
             continue;
         }
-        if ((!strcmp(arg, "--color2") || !strcmp(arg, "--c2")) && i + 1 < argc) {
+        if ((!strcmp(arg, "--color2") || !strcmp(arg, "-c2")) && i + 1 < argc) {
             int r, g, b;
             if (parse_hex_color(argv[++i], &r, &g, &b)) {
                 opts->c2_r = r; opts->c2_g = g; opts->c2_b = b;
@@ -242,7 +236,7 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
             continue;
         }
 
-        if (!strcmp(arg, "--preset") && i + 1 < argc) {
+        if ((!strcmp(arg, "--preset") || !strcmp(arg, "-pre")) && i + 1 < argc) {
             const char *preset_val = argv[++i];
             if (preset_val[0] == '-') {
                 print_error_msg(MSG(MSG_ERR_MISSING_VALUE), arg, NULL);
@@ -278,7 +272,6 @@ static int parse_arguments(int argc, char *argv[], struct neonx_options *opts) {
     return 0;
 }
 
-/** Inicializa o ambiente global, carregando localização e configurações do terminal. */
 static void init_system_context(void) {
     setlocale(LC_ALL, "");
     msgs_init();
@@ -299,7 +292,6 @@ static void init_system_context(void) {
 #endif
 }
 
-/** Trata comandos de exibição de informações (ajuda, versão, licença, integridade). */
 static int handle_info_commands(const struct neonx_options *opts)
 {
     if (opts->show_help_flag)    { show_help(opts->disable_ansi); return 0; }
@@ -321,7 +313,6 @@ static int handle_info_commands(const struct neonx_options *opts)
     return -1;
 }
 
-/** Ferramenta auxiliar para gerar sequências de cores ANSI para scripts externos. */
 static void run_spin_tool(void)
 {
     const int32_t FIXED_TWO_PI = 0x0006487F, P_G = 0x0002182A, P_B = 0x00043054;
@@ -335,7 +326,6 @@ static void run_spin_tool(void)
     printf("\n");
 }
 
-/** Ponto de entrada principal do NeonX. */
 int main(int argc, char *argv[]) {
     init_system_context();
     auth_status = check_integrity();
@@ -343,14 +333,13 @@ int main(int argc, char *argv[]) {
 
     struct neonx_options opts = {0};
     opts.speed_fixed = FLOAT_TO_FIXED(0.2f);
-    opts.freq_fixed = 19660; // 0.3 default
-    opts.angle_fixed = -65536; // -1 default
-    opts.frame_time_us = 16666; // 60 FPS default
+    opts.freq_fixed = 19660;
+    opts.angle_fixed = -65536;
+    opts.frame_time_us = 16666;
 
     int parse_res = parse_arguments(argc, argv, &opts);
     if (parse_res != 0) return parse_res;
 
-    /* Aplica parâmetros finais ao motor */
     neonx_set_frequency(opts.freq_fixed);
     neonx_set_gradient_angle(opts.angle_fixed);
 

@@ -6,14 +6,12 @@
 #include <locale.h>
 #include "neonx.h"
 
-/** Estrutura de contexto específica para o driver WebAssembly (Browser/WASM). */
 typedef struct {
     char *ptr;
     size_t rem;
     int last_r, last_g, last_b;
 } WasmDriverCtx;
 
-/** Define a cor ANSI 24-bits para o ambiente WebAssembly via driver. */
 static void wasm_set_color(RenderDriver *self, int r, int g, int b) {
     WasmDriverCtx *ctx = (WasmDriverCtx*)self->ctx;
     if (r == ctx->last_r && g == ctx->last_g && b == ctx->last_b) return;
@@ -22,14 +20,12 @@ static void wasm_set_color(RenderDriver *self, int r, int g, int b) {
     ctx->last_r = r; ctx->last_g = g; ctx->last_b = b;
 }
 
-/** Reseta os atributos de cor no buffer WASM via driver. */
 static void wasm_reset_color(RenderDriver *self) {
     WasmDriverCtx *ctx = (WasmDriverCtx*)self->ctx;
     int n = snprintf(ctx->ptr, ctx->rem, "\033[0m");
     if (n > 0) { ctx->ptr += n; ctx->rem -= (size_t)n; }
 }
 
-/** Converte e anexa um caractere largo ao buffer de saída WASM via driver. */
 static void wasm_put_char(RenderDriver *self, wchar_t c) {
     WasmDriverCtx *ctx = (WasmDriverCtx*)self->ctx;
     char mb[8];
@@ -45,7 +41,6 @@ static void wasm_put_char(RenderDriver *self, wchar_t c) {
 static char *wasm_buffer = NULL;
 static size_t wasm_buffer_size = 0;
 
-/** Inicializa as tabelas matemáticas para o ambiente WebAssembly. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_init(void) {
     setlocale(LC_ALL, "C.UTF-8");
@@ -67,13 +62,11 @@ void neonx_wasm_set_matte_intensity(int32_t intensity) {
     neonx_set_matte_intensity(intensity);
 }
 
-/** Exporta a função de cálculo de cor (Shaders) para o frontend. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t phase, int *r, int *g, int *b) {
     neonx_get_color(x, y, mode, cx, cy, phase, r, g, b);
 }
 
-/** Ajusta os parâmetros do motor via interface WASM. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_set_frequency(int32_t freq) { neonx_set_frequency(freq); }
 
@@ -112,7 +105,6 @@ bool neonx_wasm_set_preset(const char* name, int* out_mode, int32_t* out_speed) 
     return false;
 }
 
-/** Aplica os efeitos de cor NeonX usando a arquitetura de Driver. */
 EMSCRIPTEN_KEEPALIVE
 char* neonx_apply_colors(const char* input_text, int mode, int width, int height, int32_t phase) {
     if (!input_text) return NULL;
@@ -159,7 +151,6 @@ char* neonx_apply_colors(const char* input_text, int mode, int width, int height
     return wasm_buffer;
 }
 
-/** Renderiza diretamente em um buffer de pixels (Canvas) via WebAssembly. */
 EMSCRIPTEN_KEEPALIVE
 void neonx_wasm_render_canvas(uint8_t* buffer, int width, int height, int mode, int32_t phase) {
     int32_t cx = (int32_t)width << (FIXED_SHIFT - 1);

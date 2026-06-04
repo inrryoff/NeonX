@@ -3,45 +3,20 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "render_driver.h"
+#include "neonx.h"
 
-/** Obtém os componentes RGB para uma coordenada e modo. */
 void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t phase, int *r, int *g, int *b);
-
-/** Renderiza uma linha de caracteres utilizando um driver. */
 void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, int mode, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, RenderDriver *driver);
-
-/** Aplica o efeito de opacidade nas bordas. */
 void apply_border_opacity_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, int32_t max_dist, int32_t op, int *r, int *g, int *b);
-
-/** Define a frequência global das ondas. */
 void neonx_set_frequency(int32_t freq);
-
-/** Define o ângulo de inclinação do gradiente. */
 void neonx_set_gradient_angle(int32_t angle);
-
-/** Define o nível de opacidade das bordas. */
 void neonx_set_opacity(int32_t op);
-
-/** Define os offsets de fase RGB (paleta personalizada). */
 void neonx_set_palette_offsets(int32_t off_r, int32_t off_g, int32_t off_b);
-
-/** Restaura os offsets de fase para o padrão Rainbow. */
 void neonx_reset_palette(void);
-
-/** Define um gradiente customizado entre duas cores. */
 void neonx_set_custom_gradient(int r1, int g1, int b1, int r2, int g2, int b2);
-
-/** Ativa ou desativa a redução de cores (quantização). */
 void neonx_set_quantization(bool enable);
-
-/** Ativa ou desativa a opacidade vertical. */
 void neonx_set_vertical_opacity(bool enable);
-
-/** Ativa ou desativa o modo fosco (opacidade global). */
 void neonx_set_matte_mode(bool enabled);
-
-/** Ajusta a intensidade do modo fosco (0.0 - 1.0). */
 void neonx_set_matte_intensity(int32_t intensity);
 
 #endif

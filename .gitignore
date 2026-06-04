@@ -2,11 +2,17 @@ keys/*.key
 MakeNeonX.sh
 NeonX_web.zip
 tools/keygen
+tools/keygen.exe
 tools/sign_binary
+tools/sign_binary.exe
+tools/gen_config
+tools/gen_config.exe
+src/headers/build_config.h
 INTERNAL_DRM.md
 GEMINI.md
 build/*
 bzip/
+obj/
 !build/**/*.js
 !build/**/*.wasm
 !build/**/*.a

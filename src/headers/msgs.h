@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/** Returns the virtual offset for localized text alignment tables. */
 uint32_t nx_msgs_get_locale_voffset(void);
 
 enum Mensagem {

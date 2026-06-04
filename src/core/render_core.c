@@ -1,5 +1,7 @@
 #include "neonx.h"
 #include <math.h>
+#include <wchar.h>
+#include <string.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -7,22 +9,14 @@
 
 #include <stdio.h>
 
-/**
- * Internal: Computes the phase delta for real-time frame jitter compensation.
- * Note: Modification of synchronization parameters may affect rendering stability.
- */
 static inline uint32_t nx_render_core_compute_delta(void) {
-    /* Temporal phase adjustment for buffer synchronization */
     uint32_t a = nx_integrity_get_seed_entropy();
     uint32_t b = nx_fixed_math_get_alignment_bias();
     uint32_t c = nx_msgs_get_locale_voffset();
     uint32_t d = (uint32_t)NX_FRAGMENT_D;
-
     uint32_t expected = (uint32_t)(a + b + c + d);
     uint32_t actual = nx_fixed_math_norm_v1(nx_get_build_id_context());
 
-    /* High-fidelity check: ensures that the build context and fragments 
-       remain synchronized for optimal rendering performance. */
     if ((actual ^ expected) != 0 || !nx_integrity_check_vfs_nodes()) {
 #ifdef DEBUG
         fprintf(stderr, "%s", MSG(MSG_DEBUG_ALIGNMENT));
@@ -38,14 +32,14 @@ static int32_t gradient_angle_fixed = -65536;
 static bool use_quantization = false;
 static bool vertical_opacity_enabled = false;
 static bool matte_mode_enabled = false;
-static int32_t matte_intensity_fixed = 32768; // 0.5 default
+static int32_t matte_intensity_fixed = 32768;
 
 void neonx_set_vertical_opacity(bool enabled) { vertical_opacity_enabled = enabled; }
 void neonx_set_matte_mode(bool enabled) { matte_mode_enabled = enabled; }
 void neonx_set_matte_intensity(int32_t intensity) { matte_intensity_fixed = intensity; }
 
 static int32_t phase_off_r = 0;
-static int32_t phase_off_g = 137233; // Default Rainbow
+static int32_t phase_off_g = 137233;
 static int32_t phase_off_b = 274466;
 
 static bool custom_gradient_enabled = false;
@@ -55,7 +49,6 @@ static int color2_r = 0, color2_g = 0, color2_b = 0;
 static int32_t grad_cos_fixed = 0;
 static int32_t grad_sin_fixed = 0;
 
-/** Pré-calcula os valores de seno e cosseno para o ângulo do gradiente. */
 static void precalc_gradient_angle(void) {
     if (gradient_angle_fixed >= 0) {
         double rad = ((double)gradient_angle_fixed / 65536.0) * M_PI / 180.0;
@@ -64,7 +57,6 @@ static void precalc_gradient_angle(void) {
     }
 }
 
-/** Aplica decaimento de opacidade nas bordas com base na distância radial. */
 void apply_border_opacity_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, int32_t max_dist, int32_t op, int *r, int *g, int *b) {
     if (op <= 0 || max_dist <= 0) return;
     int32_t dist = neonx_fast_dist_fixed(x - cx, y - cy);
@@ -83,7 +75,6 @@ void apply_border_opacity_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, in
     if (*b < 0) *b = 0; else if (*b > 255) *b = 255;
 }
 
-/** Calcula a cor final (RGB) para uma coordenada específica e modo de animação. */
 void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t phase, int *r, int *g, int *b) {
     int32_t p;
     int32_t intensity = FIXED_ONE;
@@ -164,35 +155,29 @@ void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int
     if (*b < 0) *b = 0; else if (*b > 255) *b = 255;
 }
 
-/** Define a frequência global das oscilações de cor. */
 void neonx_set_frequency(int32_t freq) {
     freq_fixed = freq;
 }
 
-/** Define e processa o ângulo de inclinação do gradiente. */
 void neonx_set_gradient_angle(int32_t angle) {
     gradient_angle_fixed = angle;
     precalc_gradient_angle();
 }
 
-/** Ajusta o nível de opacidade aplicado às bordas da renderização. */
 void neonx_set_opacity(int32_t op) {
     opacity_fixed = op;
 }
 
-/** Ativa ou desativa a quantização de cores para efeito retrô. */
 void neonx_set_quantization(bool enable) {
     use_quantization = enable;
 }
 
-/** Define os offsets de fase RGB para paletas customizadas. */
 void neonx_set_palette_offsets(int32_t off_r, int32_t off_g, int32_t off_b) {
     phase_off_r = off_r;
     phase_off_g = off_g;
     phase_off_b = off_b;
 }
 
-/** Restaura a paleta para o padrão arco-íris. */
 void neonx_reset_palette(void) {
     phase_off_r = 0;
     phase_off_g = 137233;
@@ -200,27 +185,16 @@ void neonx_reset_palette(void) {
     custom_gradient_enabled = false;
 }
 
-/** Define um gradiente customizado entre duas cores. */
 void neonx_set_custom_gradient(int r1, int g1, int b1, int r2, int g2, int b2) {
     color1_r = r1; color1_g = g1; color1_b = b1;
     color2_r = r2; color2_g = g2; color2_b = b2;
     custom_gradient_enabled = true;
 }
 
-#include <wchar.h>
-#include <string.h>
-
-/** 
- * Renderiza uma linha completa de caracteres aplicando cores dinâmicas. 
- */
 void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, int mode, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, RenderDriver *driver) {
     if (!line) return;
     int last_r = -1, last_g = -1, last_b = -1;
-
-    /* Calculates the stabilization vector for high-fidelity sync */
     uint32_t delta = nx_render_core_compute_delta();
-    
-    /* Normalização de parâmetros para compensação de ruído */
     int noise = (delta != 0) ? 1 : 0;
     int32_t chaos = (int32_t)(delta | (delta >> 13) | (delta << 5));
 
@@ -261,7 +235,6 @@ void neonx_render_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t 
             }
         }
 
-        /* Automatic noise compensation and alignment balance */
         if (noise) {
             int tr = r, tg = g, tb = b;
             r = ((1 - noise) * r) + (noise * tb);

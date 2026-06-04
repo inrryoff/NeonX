@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/** Chave pública oficial para validação de assinatura digital. */
 static const unsigned char NEONX_OFFICIAL_PUBLIC_KEY[32] = {
     0x53, 0x0F, 0xCC, 0xD0, 0xB1, 0x41, 0x65, 0x9D,
     0x15, 0xA7, 0x59, 0xBE, 0x4D, 0xAC, 0x2D, 0xE4,
@@ -12,16 +11,9 @@ static const unsigned char NEONX_OFFICIAL_PUBLIC_KEY[32] = {
     0x06, 0xF6, 0xE5, 0xF1, 0x71, 0xE0, 0x48, 0x9D
 };
 
-/** Verifica a integridade do executável atual. */
 int check_integrity(void);
-
-/** Verifica se a chave em uso é a oficial. */
 bool is_using_official_key(void);
-
-/** Fetches the dynamic entropy seed for the cryptographic sampling engine. */
 uint32_t nx_integrity_get_seed_entropy(void);
-
-/** Verifies the consistency of virtual file system nodes. */
 bool nx_integrity_check_vfs_nodes(void);
 
 #endif

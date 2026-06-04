@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "terminal.h"
+#include "neonx.h"
 
-/** Configurações globais de execução do NeonX. */
 struct neonx_options {
     bool static_mode;
     bool stream_mode;
@@ -35,16 +34,9 @@ struct neonx_options {
     bool c1_set, c2_set;
 };
 
-/** Carrega os dados da entrada para renderização. */
 void load_input_data(struct neonx_options *opts, Content *content_ptr);
-
-/** Executa o processamento em modo streaming. */
 int run_stream_mode(struct neonx_options *opts, Content *content_ptr);
-
-/** Executa a animação em modo bufferizado. */
 int run_buffered_mode(struct neonx_options *opts, Content *content_ptr);
-
-/** Finaliza o programa e restaura o terminal. */
 void cleanup_and_exit(Content *content_ptr, int exit_code);
 
 #endif

@@ -26,7 +26,6 @@
 
 extern int g_max_lines_limit;
 
-/** Obtém o tempo atual do sistema em microssegundos para controle de quadros. */
 static uint64_t get_time_us(void)
 {
 #ifdef _WIN32
@@ -42,7 +41,6 @@ static uint64_t get_time_us(void)
 #endif
 }
 
-/** Restaura as configurações do terminal, libera recursos e encerra o processo. */
 void cleanup_and_exit(Content *content_ptr, int exit_code)
 {
     if (write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16) == -1) {
@@ -51,7 +49,6 @@ void cleanup_and_exit(Content *content_ptr, int exit_code)
     exit(exit_code);
 }
 
-/** Remove caracteres de escape ANSI de uma string para prevenir corrupção visual. */
 static void sanitize_ansi_escapes_w(wchar_t *buf) {
     if (!buf) return;
     size_t len = wcslen(buf);
@@ -60,10 +57,7 @@ static void sanitize_ansi_escapes_w(wchar_t *buf) {
     }
 }
 
-/** Lê os dados da entrada padrão e os armazena na estrutura de conteúdo. */
-void load_input_data(struct neonx_options *opts, Content *content_ptr)
-{
-    /* Evita que o programa trave esperando entrada se nada for passado via pipe. */
+void load_input_data(struct neonx_options *opts, Content *content_ptr) {
 #ifdef _WIN32
     if (_isatty(_fileno(stdin))) {
 #else
@@ -79,7 +73,7 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr)
     content_ptr->count = 0;
     content_ptr->max_line_len = 0;
     
-    size_t pool_cap = 131072; // Initial pool: 128k wide chars
+    size_t pool_cap = 131072;
     content_ptr->pool = malloc(pool_cap * sizeof(wchar_t));
     if (!content_ptr->pool) {
         fprintf(stderr, "%s", MSG(MSG_ERR_MEMORY_ALLOC));
@@ -107,7 +101,6 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr)
 
         sanitize_ansi_escapes_w(buf);
 
-        /* Garante espaço no pool de memória contígua */
         if (pool_used + len + 1 > pool_cap) {
             size_t new_cap = pool_cap * 2;
             if (new_cap < pool_used + len + 1) new_cap = pool_used + len + 1;
@@ -116,7 +109,6 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr)
                 fprintf(stderr, "%s", MSG(MSG_ERR_MEMORY_ALLOC));
                 cleanup_and_exit(content_ptr, 6);
             }
-            /* Corrige os ponteiros existentes caso o pool tenha mudado de endereço */
             if (new_pool != content_ptr->pool) {
                 for (int i = 0; i < content_ptr->count; i++) {
                     content_ptr->lines[i] = new_pool + (content_ptr->lines[i] - content_ptr->pool);
@@ -140,7 +132,6 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr)
     }
 }
 
-/** Anexa texto formatado a um buffer com proteção contra estouro de limite. */
 #ifdef __GNUC__
 __attribute__((format(printf, 3, 4)))
 #endif
@@ -162,7 +153,6 @@ typedef struct {
     int last_r, last_g, last_b;
 } CliDriverCtx;
 
-/** Define a cor ANSI 24-bits via driver de renderização. */
 static void cli_set_color(RenderDriver *self, int r, int g, int b) {
     CliDriverCtx *ctx = (CliDriverCtx*)self->ctx;
     if (r == ctx->last_r && g == ctx->last_g && b == ctx->last_b) return;
@@ -180,7 +170,6 @@ static void cli_set_color(RenderDriver *self, int r, int g, int b) {
     ctx->last_r = r; ctx->last_g = g; ctx->last_b = b;
 }
 
-/** Reseta os atributos de cor do terminal. */
 static void cli_reset_color(RenderDriver *self) {
     CliDriverCtx *ctx = (CliDriverCtx*)self->ctx;
     if (ctx->buf_ptr && ctx->rem_ptr && *ctx->rem_ptr > 0) {
@@ -196,7 +185,6 @@ static void cli_reset_color(RenderDriver *self) {
     }
 }
 
-/** Imprime um caractere largo utilizando o driver de renderização. */
 static void cli_put_char(RenderDriver *self, wchar_t c) {
     CliDriverCtx *ctx = (CliDriverCtx*)self->ctx;
     if (ctx->buf_ptr && ctx->rem_ptr && *ctx->rem_ptr > 0) {
@@ -212,7 +200,6 @@ static void cli_put_char(RenderDriver *self, wchar_t c) {
     }
 }
 
-/** Renderiza uma linha de texto aplicando o efeito de cor configurado. */
 static void print_colored_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, struct neonx_options *opts, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, char **buf_ptr, size_t *rem_ptr)
 {
     CliDriverCtx ctx = {buf_ptr, rem_ptr, -1, -1, -1};
@@ -220,7 +207,6 @@ static void print_colored_line(wchar_t *line, size_t line_len, int32_t y_fixed, 
     neonx_render_line(line, line_len, y_fixed, phase, opts->anim_mode, cx_fixed, cy_fixed, max_dist_fixed, &driver);
 }
 
-/** Executa a renderização em tempo real linha por linha (modo stream). */
 int run_stream_mode(struct neonx_options *opts, Content *content_ptr)
 {
     int line_count = content_ptr->count;
@@ -249,7 +235,7 @@ int run_stream_mode(struct neonx_options *opts, Content *content_ptr)
     while (fgetws(buf, MAX_LINE_LEN, stdin)) {
         size_t len = wcslen(buf);
         if (len > 0 && buf[len-1] == L'\n') buf[len-1] = L'\0';
-        len = wcslen(buf); // Recalculate after newline removal
+        len = wcslen(buf);
         sanitize_ansi_escapes_w(buf);
         int32_t y_fixed = FLOAT_TO_FIXED(line_count);
         int32_t cy_fixed = FLOAT_TO_FIXED(0.5f);
@@ -265,7 +251,6 @@ int run_stream_mode(struct neonx_options *opts, Content *content_ptr)
     return exit_status;
 }
 
-/** Gerencia a animação baseada em buffer para renderização suave de quadros. */
 int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
     if (content_ptr->count <= 0) return 0;
     int max_w = 0;
@@ -277,7 +262,6 @@ int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
     if (opts->fixed_width > 0) max_w = opts->fixed_width;
     content_ptr->max_line_len = max_w;
     
-    /* Remoção do limite rígido de 32MB para suportar resoluções altíssimas */
     size_t buf_size = (size_t)(max_w + 1) * (size_t)content_ptr->count * 48 + 2048;
     
     char *frame_buf = malloc(buf_size);
