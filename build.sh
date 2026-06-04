@@ -98,7 +98,7 @@ finish_report() {
 }
 
 check_deps() {
-    local deps=("clang" "zig" "hexdump" "zip" "sha256sum")
+    local deps=("clang" "zig" "hexdump" "zip" "sha256sum" "python3")
     for tool in "${deps[@]}"; do
         if ! command -v "$tool" &> "$NULL_DEV"; then
             print_warn "Ferramenta '$tool' não encontrada."
