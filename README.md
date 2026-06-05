@@ -163,7 +163,7 @@ python3 -m http.server 8080
 
 ## 🆕 Novidades da v2.2.6‑STABLE
 
-- **Presets:** Novos Presets adicionas a lista você pode velogo a baixo na seção de **Presets**
+- **Presets:** Novos Presets adicionados a lista, veja velogo a baixo na seção de **🎨 Presets**
 
 ---
 
@@ -309,5 +309,5 @@ Licença customizada. Veja [LICENSE](./LICENSE).
 <div align="center">
   <sub>Feito com ☕ e C, no ritmo do terminal.</sub>
   <br>
-  <sub>© 2024-presente, inrryoff</sub>
+  <sub>© 2026-presente, inrryoff</sub>
 </div>

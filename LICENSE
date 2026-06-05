@@ -1,30 +1,216 @@
-LICENÇA DE USO - NeonX (C - VERSION)
----------------------------------------
-Copyright (c) 2024 @inrryoff
+NeonX License — versão 2.0
+Copyright (c) 2026, inrryoff
+Todos os direitos reservados.
 
-Pelo presente, fica concedida permissão a qualquer pessoa que obtenha uma cópia 
-deste software para usá-lo gratuitamente, sujeito às seguintes condições:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PORTUGUÊS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. ATRIBUIÇÃO (CRÉDITOS):
-   O nome do autor original (@inrryoff) e os avisos de copyright devem ser 
-   mantidos em todos os arquivos de código-fonte, cabeçalhos e na saída de 
-   versão do binário compilado (ex: neonx --version).
+É concedida permissão, a qualquer pessoa que obtenha uma cópia
+deste software e dos arquivos de documentação associados
+(coletivamente, o "Software"), para utilizá-lo sem restrições,
+incluindo, sem limitação, os direitos de usar, copiar, modificar,
+mesclar, publicar e redistribuir, sujeito às seguintes condições:
 
-2. PROIBIÇÃO DE COMERCIALIZAÇÃO:
-   É TERMINANTEMENTE PROIBIDA a venda, aluguel ou qualquer forma de 
-   comercialização deste software, seja do código-fonte ou do binário 
-   compilado, de forma isolada ou integrada a pacotes pagos.
+1. ATRIBUIÇÃO OBRIGATÓRIA
 
-3. DERIVAÇÕES E MODIFICAÇÕES:
-   Alterações no código são permitidas para melhorias ou uso pessoal, desde que:
-   a) O trabalho derivado NÃO seja vendido.
-   b) A versão modificada seja mantida em repositório público (Open Source).
-   c) Os créditos ao autor original sejam mantidos de forma clara.
+   O nome do autor original ("inrryoff") e os avisos de copyright
+   devem ser preservados, de forma visível e legível, em:
 
-4. DISTRIBUIÇÃO EM MÓDULOS (MAGISK/KERNELSU):
-   O uso deste binário em módulos de otimização é permitido e encorajado, 
-   desde que o módulo seja distribuído gratuitamente.
+   a) Todos os arquivos de código-fonte e cabeçalhos (.c, .h)
+      que façam uso total ou parcial deste Software;
+   b) Na saída do comando de versão do binário compilado
+      (ex: neonx --version), exibindo o crédito ao autor original;
+   c) Em qualquer documentação pública, README ou página de
+      apresentação de trabalho derivado.
 
-O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU 
-IMPLÍCITA. EM NENHUM EVENTO O AUTOR SERÁ RESPONSÁVEL POR QUALQUER RECLAMAÇÃO, 
-DANOS OU OUTRA RESPONSABILIDADE RESULTANTE DO USO DESTE SOFTWARE.
+   A remoção, ofuscação ou substituição do nome do autor original
+   por qualquer meio — inclusive modificação dos fragmentos de
+   identificação internos ao binário — constitui violação desta
+   licença.
+
+2. PROIBIÇÃO DE COMERCIALIZAÇÃO
+
+   É expressamente PROIBIDA qualquer forma de comercialização
+   deste Software, incluindo mas não se limitando a:
+
+   a) Venda direta do código-fonte ou do binário compilado;
+   b) Aluguel, licenciamento pago ou assinatura que dê acesso
+      ao Software;
+   c) Inclusão do Software em produtos ou pacotes pagos, mesmo
+      que o Software seja apenas um componente secundário;
+   d) Prestação de serviços comerciais cujo valor seja derivado
+      diretamente da funcionalidade deste Software.
+
+   O Software é e deve permanecer gratuito para os usuários finais.
+
+3. LICENCIAMENTO COMERCIAL MEDIANTE CONTRATO
+
+   A integração ou distribuição deste Software em qualquer produto,
+   serviço ou contexto comercial — mesmo que o Software não seja
+   vendido diretamente — EXIGE autorização prévia, explícita e
+   formalizada do autor original.
+
+   Essa autorização deve ser obtida por meio de um CONTRATO DE
+   LICENCIAMENTO COMERCIAL assinado pelo autor original ("inrryoff"),
+   negociado individualmente antes do início de qualquer uso
+   comercial.
+
+   Sem esse contrato:
+
+   a) Nenhum uso em produto pago, freemium ou monetizado é
+      permitido, independentemente da forma de monetização;
+   b) Nenhuma integração em plataformas SaaS, aplicativos
+      distribuídos comercialmente ou serviços pagos é autorizada;
+   c) O mero contato prévio ou intenção declarada não substitui
+      o contrato formalmente assinado.
+
+   Para solicitar um contrato de licenciamento comercial, entre
+   em contato através de:
+   GitHub:   https://github.com/inrryoff
+   Telegram: https://t.me/inrryoff
+
+4. MODIFICAÇÕES E TRABALHOS DERIVADOS
+
+   Modificações são bem-vindas, desde que:
+
+   a) O trabalho derivado não seja comercializado (conforme item 2),
+      salvo mediante contrato conforme item 3;
+   b) O trabalho derivado seja distribuído publicamente sob esta
+      mesma licença, sem restrições adicionais;
+   c) Os créditos ao autor original sejam mantidos conforme o
+      item 1, com indicação clara de que o trabalho foi modificado
+      e por quem.
+
+5. DISTRIBUIÇÃO EM MÓDULOS E INTEGRAÇÕES
+
+   O uso deste Software como componente de módulos (ex: Magisk,
+   KernelSU) ou integrações em outras ferramentas é permitido,
+   desde que:
+
+   a) A distribuição final seja gratuita para o usuário;
+   b) Esta licença acompanhe o Software em qualquer redistribuição;
+   c) Os créditos ao autor original sejam preservados.
+
+6. AUSÊNCIA DE GARANTIAS
+
+   O SOFTWARE É FORNECIDO "NO ESTADO EM QUE SE ENCONTRA" (AS IS),
+   SEM GARANTIA DE QUALQUER NATUREZA, EXPRESSA OU IMPLÍCITA,
+   INCLUINDO MAS NÃO SE LIMITANDO ÀS GARANTIAS DE COMERCIALIZAÇÃO,
+   ADEQUAÇÃO A UM FIM ESPECÍFICO E NÃO VIOLAÇÃO DE DIREITOS.
+
+   EM NENHUMA HIPÓTESE O AUTOR SERÁ RESPONSÁVEL POR QUALQUER
+   DANO DIRETO, INDIRETO, INCIDENTAL, ESPECIAL OU CONSEQUENTE
+   DECORRENTE DO USO OU DA IMPOSSIBILIDADE DE USO DESTE SOFTWARE,
+   AINDA QUE ADVERTIDO DA POSSIBILIDADE DE TAIS DANOS.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ENGLISH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (collectively, the "Software"), to deal in the Software
+without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, and distribute, subject to
+the following conditions:
+
+1. MANDATORY ATTRIBUTION
+
+   The name of the original author ("inrryoff") and all copyright
+   notices must be preserved, visibly and legibly, in:
+
+   a) All source files and headers (.c, .h) that make full or
+      partial use of this Software;
+   b) The version output of the compiled binary
+      (e.g. neonx --version), crediting the original author;
+   c) Any public documentation, README, or presentation page
+      of a derivative work.
+
+   Removing, obfuscating, or replacing the original author's name
+   by any means — including modification of internal identification
+   fragments embedded in the binary — constitutes a violation of
+   this license.
+
+2. NO COMMERCIALIZATION
+
+   Any form of commercialization of this Software is expressly
+   PROHIBITED, including but not limited to:
+
+   a) Direct sale of the source code or compiled binary;
+   b) Rental, paid licensing, or subscription granting access
+      to the Software;
+   c) Inclusion of the Software in paid products or bundles,
+      even as a secondary component;
+   d) Commercial services whose value is directly derived from
+      the functionality of this Software.
+
+   The Software is and must remain free of charge to end users.
+
+3. COMMERCIAL LICENSING BY CONTRACT
+
+   The integration or distribution of this Software in any
+   commercial product, service, or context — even if the Software
+   itself is not sold directly — REQUIRES prior, explicit, and
+   formalized authorization from the original author.
+
+   Such authorization must be obtained through a COMMERCIAL
+   LICENSING AGREEMENT signed by the original author ("inrryoff"),
+   negotiated individually before any commercial use begins.
+
+   Without such an agreement:
+
+   a) No use in any paid, freemium, or monetized product is
+      permitted, regardless of the form of monetization;
+   b) No integration into SaaS platforms, commercially distributed
+      applications, or paid services is authorized;
+   c) Prior contact or stated intent alone does not substitute
+      for a formally signed agreement.
+
+   To request a commercial licensing agreement, please contact:
+   GitHub:   https://github.com/inrryoff
+   Telegram: https://t.me/inrryoff
+
+4. MODIFICATIONS AND DERIVATIVE WORKS
+
+   Modifications are welcome, provided that:
+
+   a) The derivative work is not commercialized (per section 2),
+      except under a contract as per section 3;
+   b) The derivative work is publicly distributed under this
+      same license, without additional restrictions;
+   c) Credit to the original author is maintained as per
+      section 1, with a clear statement that the work has been
+      modified and by whom.
+
+5. DISTRIBUTION IN MODULES AND INTEGRATIONS
+
+   Use of this Software as a component of modules (e.g. Magisk,
+   KernelSU) or integrations into other tools is permitted,
+   provided that:
+
+   a) The final distribution is free of charge to the user;
+   b) This license accompanies the Software in any redistribution;
+   c) Credit to the original author is preserved.
+
+6. DISCLAIMER OF WARRANTIES
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   NON-INFRINGEMENT.
+
+   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING BUT NOT LIMITED TO PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Para dúvidas sobre licenciamento: 
+GitHub:   https://github.com/inrryoff
+Telegram: https://t.me/inrryoff
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

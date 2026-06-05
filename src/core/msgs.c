@@ -63,54 +63,113 @@ static const char *lang_prefixes[19] = {
     "km"  // 18: Khmer
 };
 
+
 #define LICENSE_PT \
-    "LICENÇA DE USO - NEONX (C - VERSION)\n" \
-    "-----------------------------------------------------------------\n" \
+    "LICENÇA DE SOFTWARE - " LICENSE_LOGO " (C - VERSION)\n" \
+    "-------------------------------------------------------------------------------\n" \
     "Copyright (c) 2026 @inrry\x6f\x66\x66 - Licenciado sob condições especiais " LOGO_NEONX " LICENSE\n\n" \
-    "Pelo presente, fica concedida permissão a qualquer pessoa que obtenha uma cópia\n" \
-    "deste software para usá-lo gratuitamente, sujeito às seguintes condições:\n\n" \
-    MSG_LEGAL_TXT "1. ATRIBUIÇÃO (CRÉDITOS):" RESET "\n" \
-    "   O nome do autor original (@inrry\x6f\x66\x66) and os avisos de copyright devem ser\n" \
-    "   mantidos em todos os arquivos de código-fonte, cabeçalhos e na saída de\n" \
-    "   versão do binário compilado (ex: " BG_FOSCO " neonx --version " RESET ").\n\n" \
+    "É concedida permissão a qualquer pessoa que obtenha uma cópia deste software\n" \
+    "para utilizá-lo gratuitamente, sujeito às seguintes condições:\n\n" \
+    MSG_LEGAL_TXT "1. ATRIBUIÇÃO OBRIGATÓRIA:" RESET "\n" \
+    "   O nome do autor original (@inrry\x6f\x66\x66) e os avisos de copyright devem ser\n" \
+    "   preservados, de forma visível e legível, em:\n" \
+    "   a) Todos os arquivos de código-fonte e cabeçalhos (.c, .h);\n" \
+    "   b) Na saída do comando de versão do binário compilado\n" \
+    "      (ex: " BG_FOSCO " neonx --version " RESET ");\n" \
+    "   c) Em qualquer documentação pública ou README de trabalho derivado.\n" \
+    "   A remoção ou ofuscação do nome do autor por qualquer meio\n" \
+    "   constitui violação desta licença.\n\n" \
     MSG_LEGAL_TXT "2. PROIBIÇÃO DE COMERCIALIZAÇÃO:" RESET "\n" \
-    "   É TERMINANTEMENTE PROIBIDA a venda, aluguel ou qualquer forma de\n" \
-    "   comercialização deste software, seja do código-fonte ou do binário\n" \
-    "   compilado, de forma isolada ou integrada a pacotes pagos.\n\n" \
-    MSG_LEGAL_TXT "3. DERIVAÇÕES E MODIFICAÇÕES:" RESET "\n" \
-    "   Alterações no código são permitidas para melhorias ou uso pessoal, desde que:\n" \
-    "   a) O trabalho derivado NÃO seja vendido.\n" \
-    "   b) A versão modificada seja mantida em repositório público (Open Source).\n" \
-    "   c) Os créditos ao autor original sejam mantidos de forma clara.\n\n" \
-    MSG_LEGAL_TXT "4. DISTRIBUIÇÃO EM MÓDULOS (MAGISK/KERNELSU):" RESET "\n" \
-    "   O uso deste binário em módulos de otimização é permitido e encorajado,\n" \
-    "   desde que o módulo seja distribuído gratuitamente.\n\n" \
-    MSG_CMD_DIM "O SOFTWARE É FORNECIDO 'COMO ESTÁ', SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU\n" \
-    "IMPLÍCITA. EM NENHUM EVENTO O AUTOR SERÁ RESPONSÁVEL POR QUALQUER RECLAMAÇÃO,\n" \
-    "DANOS OU OUTRA RESPONSABILIDADE RESULTANTE DO USO DESTE SOFTWARE." RESET "\n"
+    "   É expressamente PROIBIDA qualquer forma de comercialização, incluindo:\n" \
+    "   a) Venda direta do código-fonte ou do binário compilado;\n" \
+    "   b) Aluguel, licenciamento pago ou assinatura de acesso ao Software;\n" \
+    "   c) Inclusão em produtos ou pacotes pagos, mesmo como componente secundário;\n" \
+    "   d) Serviços comerciais cujo valor derive desta funcionalidade.\n" \
+    "   O Software é e deve permanecer gratuito para os usuários finais.\n\n" \
+    MSG_LEGAL_TXT "3. LICENCIAMENTO COMERCIAL MEDIANTE CONTRATO:" RESET "\n" \
+    "   A integração ou distribuição em contexto comercial — mesmo que o Software\n" \
+    "   não seja vendido diretamente — EXIGE autorização prévia formalizada.\n" \
+    "   Essa autorização deve ser obtida por meio de um CONTRATO DE LICENCIAMENTO\n" \
+    "   COMERCIAL assinado pelo autor original (@inrry\x6f\x66\x66), negociado\n" \
+    "   individualmente antes do início de qualquer uso comercial.\n" \
+    "   Sem esse contrato:\n" \
+    "   a) Nenhum uso em produto pago, freemium ou monetizado é permitido;\n" \
+    "   b) Nenhuma integração em plataformas SaaS ou serviços pagos é autorizada;\n" \
+    "   c) O mero contato prévio não substitui o contrato formalmente assinado.\n\n" \
+    "   GitHub:   " MSG_URL "https://github.com/inrry\x6f\x66\x66" RESET "\n" \
+    "   Telegram: " MSG_URL "https://t.me/inrry\x6f\x66\x66" RESET "\n\n" \
+    MSG_LEGAL_TXT "4. MODIFICAÇÕES E TRABALHOS DERIVADOS:" RESET "\n" \
+    "   Modificações são bem-vindas, desde que:\n" \
+    "   a) O trabalho derivado não seja comercializado (conforme item 2),\n" \
+    "      salvo mediante contrato conforme item 3;\n" \
+    "   b) O trabalho derivado seja distribuído publicamente sob esta mesma licença;\n" \
+    "   c) Os créditos ao autor original sejam mantidos conforme o item 1,\n" \
+    "      com indicação clara de que o trabalho foi modificado e por quem.\n\n" \
+    MSG_LEGAL_TXT "5. DISTRIBUIÇÃO EM MÓDULOS E INTEGRAÇÕES:" RESET "\n" \
+    "   O uso em módulos (ex: Magisk, KernelSU) ou integrações é permitido, desde que:\n" \
+    "   a) A distribuição final seja gratuita para o usuário;\n" \
+    "   b) Esta licença acompanhe o Software em qualquer redistribuição;\n" \
+    "   c) Os créditos ao autor original sejam preservados.\n\n" \
+    MSG_CMD_DIM \
+    "O SOFTWARE É FORNECIDO \"NO ESTADO EM QUE SE ENCONTRA\" (AS IS), SEM GARANTIA\n" \
+    "DE QUALQUER NATUREZA, EXPRESSA OU IMPLÍCITA. EM NENHUMA HIPÓTESE O AUTOR SERÁ\n" \
+    "RESPONSÁVEL POR QUALQUER DANO DIRETO, INDIRETO, INCIDENTAL, ESPECIAL OU\n" \
+    "CONSEQUENTE DECORRENTE DO USO OU DA IMPOSSIBILIDADE DE USO DESTE SOFTWARE,\n" \
+    "AINDA QUE ADVERTIDO DA POSSIBILIDADE DE TAIS DANOS." RESET "\n"
 
 #define LICENSE_EN \
-    "NEONX USE LICENSE (C - VERSION)\n" \
-    "-----------------------------------------------------------------\n" \
+    "SOFTWARE LICENSE - " LICENSE_LOGO " (C - VERSION)\n" \
+    "-------------------------------------------------------------------------------\n" \
     "Copyright (c) 2026 @inrry\x6f\x66\x66 - Licensed under special conditions " LOGO_NEONX " LICENSE\n\n" \
     "Permission is hereby granted, free of charge, to any person obtaining a copy\n" \
     "of this software and associated documentation files, subject to the following:\n\n" \
-    MSG_LEGAL_TXT "1. ATTRIBUTION (CREDITS):" RESET "\n" \
+    MSG_LEGAL_TXT "1. MANDATORY ATTRIBUTION:" RESET "\n" \
     "   The original author's name (@inrry\x6f\x66\x66) and copyright notices must be\n" \
-    "   kept in all source files, headers, and compiled binary version outputs\n" \
-    "   (e.g., " BG_FOSCO " neonx --version " RESET ").\n\n" \
-    MSG_LEGAL_TXT "2. PROHIBITION OF COMMERCIALIZATION:" RESET "\n" \
-    "   The sale, rental, or commercialization of this software is STRICTLY\n" \
-    "   PROHIBITED, whether standalone or integrated into paid packages.\n\n" \
-    MSG_LEGAL_TXT "3. DERIVATIONS AND MODIFICATIONS:" RESET "\n" \
-    "   Modifications are allowed for personal use or improvement, provided:\n" \
-    "   a) The derivative work is NOT sold.\n" \
-    "   b) The modified version is open-sourced in a public repository.\n" \
-    "   c) Original author credits are visibly maintained.\n\n" \
-    MSG_LEGAL_TXT "4. MODULE DISTRIBUTION (MAGISK/KERNELSU):" RESET "\n" \
-    "   Using this binary in optimization modules is allowed and encouraged,\n" \
-    "   provided the module is distributed for free.\n\n" \
-    MSG_CMD_DIM "THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND." RESET "\n"
+    "   preserved, visibly and legibly, in:\n" \
+    "   a) All source files and headers (.c, .h);\n" \
+    "   b) The version output of the compiled binary\n" \
+    "      (e.g. " BG_FOSCO " neonx --version " RESET ");\n" \
+    "   c) Any public documentation or README of a derivative work.\n" \
+    "   Removing or obfuscating the author's name by any means\n" \
+    "   constitutes a violation of this license.\n\n" \
+    MSG_LEGAL_TXT "2. NO COMMERCIALIZATION:" RESET "\n" \
+    "   Any form of commercialization is expressly PROHIBITED, including:\n" \
+    "   a) Direct sale of the source code or compiled binary;\n" \
+    "   b) Rental, paid licensing, or subscription granting access to the Software;\n" \
+    "   c) Inclusion in paid products or bundles, even as a secondary component;\n" \
+    "   d) Commercial services whose value is directly derived from this Software.\n" \
+    "   The Software is and must remain free of charge to end users.\n\n" \
+    MSG_LEGAL_TXT "3. COMMERCIAL LICENSING BY CONTRACT:" RESET "\n" \
+    "   Integration or distribution in any commercial context — even if the Software\n" \
+    "   is not sold directly — REQUIRES prior formalized authorization.\n" \
+    "   Such authorization must be obtained through a COMMERCIAL LICENSING AGREEMENT\n" \
+    "   signed by the original author (@inrry\x6f\x66\x66), negotiated individually\n" \
+    "   before any commercial use begins.\n" \
+    "   Without such an agreement:\n" \
+    "   a) No use in any paid, freemium, or monetized product is permitted;\n" \
+    "   b) No integration into SaaS platforms or paid services is authorized;\n" \
+    "   c) Prior contact or stated intent does not substitute a signed agreement.\n\n" \
+    "   GitHub:   " MSG_URL "https://github.com/inrry\x6f\x66\x66" RESET "\n" \
+    "   Telegram: " MSG_URL "https://t.me/inrry\x6f\x66\x66" RESET "\n\n" \
+    MSG_LEGAL_TXT "4. MODIFICATIONS AND DERIVATIVE WORKS:" RESET "\n" \
+    "   Modifications are welcome, provided that:\n" \
+    "   a) The derivative work is not commercialized (per section 2),\n" \
+    "      except under a contract as per section 3;\n" \
+    "   b) The derivative work is publicly distributed under this same license;\n" \
+    "   c) Credit to the original author is maintained as per section 1,\n" \
+    "      with a clear statement that the work has been modified and by whom.\n\n" \
+    MSG_LEGAL_TXT "5. DISTRIBUTION IN MODULES AND INTEGRATIONS:" RESET "\n" \
+    "   Use in modules (e.g. Magisk, KernelSU) or integrations is permitted, provided:\n" \
+    "   a) The final distribution is free of charge to the user;\n" \
+    "   b) This license accompanies the Software in any redistribution;\n" \
+    "   c) Credit to the original author is preserved.\n\n" \
+    MSG_CMD_DIM \
+    "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n" \
+    "IMPLIED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,\n" \
+    "INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING BUT NOT\n" \
+    "LIMITED TO PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,\n" \
+    "OR PROFITS; OR BUSINESS INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE OF\n" \
+    "THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE." RESET "\n\n"
 
 static const char *mensagens[19][MSG_TOTAL] = {
     // ---------------- [0] PORTUGUÊS (PT) ----------------
