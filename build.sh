@@ -369,7 +369,7 @@ building_tools() {
         [[ -e "$tool_src" ]] || continue
         local tool_bin="${tool_src%.c}"
         local extra_flags=""
-        [[ "$tool_src" == *"calc.c" ]] && extra_flags="-lm"
+        [[ "$tool_src" == *"calc.c" && "$WINDOWS_HOST" == "false" ]] && extra_flags="-lm"
         [[ "$WINDOWS_HOST" == "true" ]] && tool_bin="${tool_bin}.exe"
         
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
