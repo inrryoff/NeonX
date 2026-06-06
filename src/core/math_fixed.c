@@ -24,6 +24,9 @@ static int32_t cordic_sin_init(int32_t i) {
     int64_t x3 = (x2 * x) >> FIXED_SHIFT;
     int64_t x5 = ((x3 * x2) >> FIXED_SHIFT);
     int32_t result = (int32_t)(x - x3/6 + x5/120);
+    if (result > FIXED_ONE) {
+        result = FIXED_ONE;
+    }
     return sign * result;
 }
 
