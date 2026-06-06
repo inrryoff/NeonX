@@ -10,7 +10,9 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-// Cores para saída no modo debug
+#define FLOAT_TO_FIXED(f) ((int32_t)((f) * 65536.0))
+#define FIXED_TO_FLOAT(x) ((double)(x) / 65536.0)
+
 #define CLR_R "\033[0;31m"
 #define CLR_G "\033[0;32m"
 #define CLR_Y "\033[1;33m"
