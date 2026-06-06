@@ -4,11 +4,19 @@
 #include <stdint.h>
 #include <wchar.h>
 
+typedef enum { 
+    COLOR_TRUE = 0,
+    COLOR_256,
+    COLOR_BASIC,
+    COLOR_NONE
+} ColorMode;
+
 typedef struct RenderDriver {
     void (*set_color)(struct RenderDriver *self, int r, int g, int b);
     void (*reset_color)(struct RenderDriver *self);
     void (*put_char)(struct RenderDriver *self, wchar_t c);
     void *ctx;
+    ColorMode color_mode;
 } RenderDriver;
 
 #endif

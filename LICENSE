@@ -1,4 +1,4 @@
-NeonX License — versão 2.0
+NeonX License — versão 2.1
 Copyright (c) 2026, inrryoff
 Todos os direitos reservados.
 
@@ -29,20 +29,21 @@ mesclar, publicar e redistribuir, sujeito às seguintes condições:
    identificação internos ao binário — constitui violação desta
    licença.
 
-2. PROIBIÇÃO DE COMERCIALIZAÇÃO
+2. PROIBIÇÃO DE USO COMERCIAL E MONETIZAÇÃO
 
-   É expressamente PROIBIDA qualquer forma de comercialização
-   deste Software, incluindo mas não se limitando a:
+   É expressamente PROIBIDA qualquer forma de exploração comercial ou uso do 
+   Software para fins lucrativos, incluindo mas não se limitando a:
 
-   a) Venda direta do código-fonte ou do binário compilado;
-   b) Aluguel, licenciamento pago ou assinatura que dê acesso
-      ao Software;
-   c) Inclusão do Software em produtos ou pacotes pagos, mesmo
-      que o Software seja apenas um componente secundário;
-   d) Prestação de serviços comerciais cujo valor seja derivado
-      diretamente da funcionalidade deste Software.
+   a) Venda direta, aluguel, sublicenciamento ou assinatura do Software;
+   b) Uso interno por empresas, corporações ou indivíduos para apoiar,
+      otimizar ou viabilizar atividades comerciais de qualquer natureza;
+   c) Inclusão do Software como componente de produtos, pacotes ou serviços
+      pagos, sejam eles principais ou secundários;
+   d) Uso do Software para prestação de serviços terceirizados ou em arquiteturas 
+      SaaS (Software como Serviço), onde terceiros paguem pelo acesso ao sistema.
 
-   O Software é e deve permanecer gratuito para os usuários finais.
+   O Software é gratuito exclusivamente para pessoas físicas em uso pessoal, 
+   estudantes, hobbistas e projetos estritamente não comerciais.
 
 3. LICENCIAMENTO COMERCIAL MEDIANTE CONTRATO
 
@@ -132,20 +133,23 @@ the following conditions:
    fragments embedded in the binary — constitutes a violation of
    this license.
 
-2. NO COMMERCIALIZATION
+2. PROHIBITION OF COMMERCIAL USE AND MONETIZATION
 
-   Any form of commercialization of this Software is expressly
-   PROHIBITED, including but not limited to:
+   Any form of commercial exploitation or use of the Software for 
+   profit-making purposes is expressly PROHIBITED, including but not 
+   limited to:
 
-   a) Direct sale of the source code or compiled binary;
-   b) Rental, paid licensing, or subscription granting access
-      to the Software;
-   c) Inclusion of the Software in paid products or bundles,
-      even as a secondary component;
-   d) Commercial services whose value is directly derived from
-      the functionality of this Software.
+   a) Direct sale, rental, sublicensing, or subscription of the Software;
+   b) Internal use by companies, corporations, or individuals to support,
+      optimize, or enable commercial activities of any nature;
+   c) Inclusion of the Software as a component of paid products, packages,
+      or services, whether as a primary or secondary component;
+   d) Use of the Software for providing third-party services or within 
+      SaaS (Software as a Service) architectures, where third parties pay 
+      for access to the system.
 
-   The Software is and must remain free of charge to end users.
+   The Software is free of charge exclusively for natural persons for 
+   personal use, students, hobbyists, and strictly non-commercial projects.
 
 3. COMMERCIAL LICENSING BY CONTRACT
 

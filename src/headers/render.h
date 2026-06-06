@@ -6,6 +6,7 @@
 #include "neonx.h"
 
 struct neonx_options {
+    ColorMode color_mode;
     bool static_mode;
     bool stream_mode;
     int anim_mode;

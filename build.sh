@@ -367,13 +367,14 @@ building_tools() {
 
     for tool_src in "$TOOLS_DIR"/*.c; do
         [[ -e "$tool_src" ]] || continue
-        
         local tool_bin="${tool_src%.c}"
+        local extra_flags=""
+        [[ "$tool_src" == *"calc.c" ]] && extra_flags="-lm"
         [[ "$WINDOWS_HOST" == "true" ]] && tool_bin="${tool_bin}.exe"
         
         if [[ ! -x "$tool_bin" || "$tool_src" -nt "$tool_bin" ]]; then
             print_info "Compilando ferramenta: $(basename "$tool_src")..."
-            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" $tool_cflags; then
+            if ! clang -I./src/headers "$tool_src" -o "$tool_bin" $tool_cflags $extra_flags; then
                 print_error "O CLANG FALHOU ao compilar $tool_src"
                 return 1
             fi

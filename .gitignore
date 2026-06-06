@@ -3,6 +3,8 @@ GEMINI.md
 keys/*.key
 neonx.wasm
 MakeNeonX.sh
+tools/calc
+tools/calc.exe
 tools/keygen
 tools/keygen.exe
 tools/sign_binary

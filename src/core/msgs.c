@@ -63,32 +63,37 @@ static const char *lang_prefixes[19] = {
     "km"  // 18: Khmer
 };
 
-
 #define LICENSE_PT \
     "LICENÇA DE SOFTWARE - " LICENSE_LOGO " (C - VERSION)\n" \
     "-------------------------------------------------------------------------------\n" \
-    "Copyright (c) 2026 @inrry\x6f\x66\x66 - Licenciado sob condições especiais " LOGO_NEONX " LICENSE\n\n" \
-    "É concedida permissão a qualquer pessoa que obtenha uma cópia deste software\n" \
-    "para utilizá-lo gratuitamente, sujeito às seguintes condições:\n\n" \
+    "NeonX License — versão 2.1\n" \
+    "Copyright (c) 2026 @inrry\x6f\x66\x66 - Todos os direitos reservados.\n\n" \
+    "É concedida permissão, a qualquer pessoa que obtenha uma cópia deste software\n" \
+    "e dos arquivos de documentação associados, para utilizá-lo sem restrições,\n" \
+    "incluindo o direito de usar, copiar, modificar, mesclar, publicar e\n" \
+    "redistribuir, sujeito às seguintes condições:\n\n" \
     MSG_LEGAL_TXT "1. ATRIBUIÇÃO OBRIGATÓRIA:" RESET "\n" \
-    "   O nome do autor original (@inrry\x6f\x66\x66) e os avisos de copyright devem ser\n" \
-    "   preservados, de forma visível e legível, em:\n" \
+    "   O nome do autor original (@inrry\x6f\x66\x66) e os avisos de copyright devem\n" \
+    "   ser preservados, de forma visível e legível, em:\n" \
     "   a) Todos os arquivos de código-fonte e cabeçalhos (.c, .h);\n" \
     "   b) Na saída do comando de versão do binário compilado\n" \
     "      (ex: " BG_FOSCO " neonx --version " RESET ");\n" \
-    "   c) Em qualquer documentação pública ou README de trabalho derivado.\n" \
-    "   A remoção ou ofuscação do nome do autor por qualquer meio\n" \
+    "   c) Em qualquer documentação pública, README ou página de trabalho derivado.\n" \
+    "   A remoção, ofuscação ou substituição do nome do autor por qualquer meio —\n" \
+    "   inclusive modificação de fragmentos de identificação internos ao binário —\n" \
     "   constitui violação desta licença.\n\n" \
-    MSG_LEGAL_TXT "2. PROIBIÇÃO DE COMERCIALIZAÇÃO:" RESET "\n" \
-    "   É expressamente PROIBIDA qualquer forma de comercialização, incluindo:\n" \
-    "   a) Venda direta do código-fonte ou do binário compilado;\n" \
-    "   b) Aluguel, licenciamento pago ou assinatura de acesso ao Software;\n" \
-    "   c) Inclusão em produtos ou pacotes pagos, mesmo como componente secundário;\n" \
-    "   d) Serviços comerciais cujo valor derive desta funcionalidade.\n" \
-    "   O Software é e deve permanecer gratuito para os usuários finais.\n\n" \
+    MSG_LEGAL_TXT "2. PROIBIÇÃO DE USO COMERCIAL E MONETIZAÇÃO:" RESET "\n" \
+    "   É expressamente PROIBIDA qualquer forma de exploração comercial ou uso do\n" \
+    "   Software para fins lucrativos, incluindo mas não se limitando a:\n" \
+    "   a) Venda direta, aluguel, sublicenciamento ou assinatura do Software;\n" \
+    "   b) Uso interno por empresas para apoiar ou viabilizar atividades comerciais;\n" \
+    "   c) Inclusão do Software em produtos, pacotes ou serviços pagos;\n" \
+    "   d) Uso para prestação de serviços terceirizados ou arquiteturas SaaS.\n" \
+    "   O Software é gratuito exclusivamente para pessoas físicas em uso pessoal,\n" \
+    "   estudantes, hobbistas e projetos estritamente não comerciais.\n\n" \
     MSG_LEGAL_TXT "3. LICENCIAMENTO COMERCIAL MEDIANTE CONTRATO:" RESET "\n" \
-    "   A integração ou distribuição em contexto comercial — mesmo que o Software\n" \
-    "   não seja vendido diretamente — EXIGE autorização prévia formalizada.\n" \
+    "   A integração ou distribuição em qualquer contexto comercial — mesmo que o\n" \
+    "   Software não seja vendido diretamente — EXIGE autorização prévia e formal.\n" \
     "   Essa autorização deve ser obtida por meio de um CONTRATO DE LICENCIAMENTO\n" \
     "   COMERCIAL assinado pelo autor original (@inrry\x6f\x66\x66), negociado\n" \
     "   individualmente antes do início de qualquer uso comercial.\n" \
@@ -120,9 +125,12 @@ static const char *lang_prefixes[19] = {
 #define LICENSE_EN \
     "SOFTWARE LICENSE - " LICENSE_LOGO " (C - VERSION)\n" \
     "-------------------------------------------------------------------------------\n" \
-    "Copyright (c) 2026 @inrry\x6f\x66\x66 - Licensed under special conditions " LOGO_NEONX " LICENSE\n\n" \
+    "NeonX License — version 2.1\n" \
+    "Copyright (c) 2026 @inrry\x6f\x66\x66 - All rights reserved.\n\n" \
     "Permission is hereby granted, free of charge, to any person obtaining a copy\n" \
-    "of this software and associated documentation files, subject to the following:\n\n" \
+    "of this software and associated documentation files, to deal in the Software\n" \
+    "without restriction, including without limitation the rights to use, copy,\n" \
+    "modify, merge, publish, and distribute, subject to the following conditions:\n\n" \
     MSG_LEGAL_TXT "1. MANDATORY ATTRIBUTION:" RESET "\n" \
     "   The original author's name (@inrry\x6f\x66\x66) and copyright notices must be\n" \
     "   preserved, visibly and legibly, in:\n" \
@@ -130,18 +138,20 @@ static const char *lang_prefixes[19] = {
     "   b) The version output of the compiled binary\n" \
     "      (e.g. " BG_FOSCO " neonx --version " RESET ");\n" \
     "   c) Any public documentation or README of a derivative work.\n" \
-    "   Removing or obfuscating the author's name by any means\n" \
-    "   constitutes a violation of this license.\n\n" \
-    MSG_LEGAL_TXT "2. NO COMMERCIALIZATION:" RESET "\n" \
-    "   Any form of commercialization is expressly PROHIBITED, including:\n" \
-    "   a) Direct sale of the source code or compiled binary;\n" \
-    "   b) Rental, paid licensing, or subscription granting access to the Software;\n" \
-    "   c) Inclusion in paid products or bundles, even as a secondary component;\n" \
-    "   d) Commercial services whose value is directly derived from this Software.\n" \
-    "   The Software is and must remain free of charge to end users.\n\n" \
+    "   Removing, obfuscating, or replacing the author's name by any means —\n" \
+    "   including modification of internal identification fragments embedded in\n" \
+    "   the binary — constitutes a violation of this license.\n\n" \
+    MSG_LEGAL_TXT "2. PROHIBITION OF COMMERCIAL USE AND MONETIZATION:" RESET "\n" \
+    "   Any form of commercial exploitation or use for profit is PROHIBITED:\n" \
+    "   a) Direct sale, rental, sublicensing, or subscription of the Software;\n" \
+    "   b) Internal use by companies to support or enable commercial activities;\n" \
+    "   c) Inclusion in paid products, packages, or services;\n" \
+    "   d) Use for providing third-party services or within SaaS architectures.\n" \
+    "   The Software is free exclusively for natural persons for personal use,\n" \
+    "   students, hobbyists, and strictly non-commercial projects.\n\n" \
     MSG_LEGAL_TXT "3. COMMERCIAL LICENSING BY CONTRACT:" RESET "\n" \
-    "   Integration or distribution in any commercial context — even if the Software\n" \
-    "   is not sold directly — REQUIRES prior formalized authorization.\n" \
+    "   Integration or distribution in any commercial product or context — even\n" \
+    "   if not sold directly — REQUIRES prior explicit and formalized authorization.\n" \
     "   Such authorization must be obtained through a COMMERCIAL LICENSING AGREEMENT\n" \
     "   signed by the original author (@inrry\x6f\x66\x66), negotiated individually\n" \
     "   before any commercial use begins.\n" \
@@ -188,7 +198,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -s [valor]         Velocidade da transição " MSG_CMD_DIM "(Padrão: 0.2)" RESET "\n"
         "  -f [valor]         Frequência da onda " MSG_CMD_DIM "(Padrão: 0.3)" RESET "\n"
         "  -d [valor]         Duração em segundos " MSG_CMD_DIM "(0 = Infinito)" RESET "\n"
-        "  -max-lines [val]   Limite máximo de linhas " MSG_CMD_DIM "(Padrão: 10.000)" RESET "\n"
+        "  -max-lines, -mxl [val]   Limite máximo de linhas " MSG_CMD_DIM "(Padrão: 10.000)" RESET "\n"
         "  -A [graus]         Rotaciona o ângulo do gradiente " MSG_CMD_DIM "(0-360)" RESET "\n"
         "  -p, -P [valor]     Define uma seed fixa " MSG_CMD_DIM "(Determinística)" RESET "\n"
         "  -S                 Renderiza um quadro estático " MSG_CMD_DIM "(Sem animação)" RESET "\n"
@@ -198,11 +208,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [valor]         Trava a taxa de quadros " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n"
         "  -L                 Processamento linha por linha " MSG_CMD_DIM "(Stream)" RESET "\n"
         "  --fo [0-1]         Ativa o Modo Fosco (Reduz vivacidade)\n"
-        "  --preset [nome]    Carrega paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Alias para --color1 e --color2\n"
-        "  --color1 [hex]     Define a cor inicial do gradiente (ex: #FF0000)\n"
-        "  --color2 [hex]     Define a cor final do gradiente (ex: #FFA500)\n"
-        "  --quantized        Quantização de cores " MSG_CMD_DIM "(Maior performance)" RESET "\n"
+        "  --preset, -pre [nome]    Carrega paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Define a cor inicial do gradiente (ex: #FF0000)\n"
+        "  --color2, -c2 [hex]     Define a cor final do gradiente (ex: #FFA500)\n"
+        "  --quantized, -q        Quantização de cores " MSG_CMD_DIM "(Maior performance)" RESET "\n"
         "  --no-ansi          Desativa o uso de cores ANSI na saída\n"
         "  --spin             Gera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n"
         "  --lang [id]        Sobrescreve o idioma " MSG_CMD_DIM "(ex: pt, en)" RESET "\n"
@@ -210,7 +219,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Mostra a versão e status do binário\n"
         "  -h, --help         Exibe este painel de ajuda interativo\n",
         MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor numérico após ela.\n",
-        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor numérico. Recebido: '%s'\n",
+        MSG_ERRO "[ ❌ ERRO 400 ]" RESET " A opção '%s' requer um valor numérico valido. Recebido: '%s'\n",
         MSG_ERRO "[ ❌ ERRO 400 ]" RESET " O modo de animação (-m) deve ser um número inteiro.\n",
         MSG_INFO "[ ℹ️ INFO 416 ]" RESET " O modo de animação (-m) deve estar entre 0 e 11.\n",
         MSG_ERRO "[ ❌ ERRO 400 ]" RESET " Opção inválida ou argumento solto '%s'\n",
@@ -259,11 +268,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [val]           Locks the framerate " MSG_CMD_DIM "(e.g., 60, 90)" RESET "\n"
         "  -L                 Line-by-line processing " MSG_CMD_DIM "(Stream)" RESET "\n"
         "  --fo [0-1]         Enables Matte Mode (Reduces vibrancy)\n"
-        "  --preset [name]    Loads palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Alias for --color1 and --color2\n"
-        "  --color1 [hex]     Sets the starting color (e.g., #FF0000)\n"
-        "  --color2 [hex]     Sets the ending color (e.g., #FFA500)\n"
-        "  --quantized        Color quantization " MSG_CMD_DIM "(Higher performance)" RESET "\n"
+        "  --preset, -pre [name]    Loads palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Sets the starting color (e.g., #FF0000)\n"
+        "  --color2, -c2 [hex]     Sets the ending color (e.g., #FFA500)\n"
+        "  --quantized, -q        Color quantization " MSG_CMD_DIM "(Higher performance)" RESET "\n"
         "  --no-ansi          Disables ANSI colors in output\n"
         "  --spin             Generates pure ANSI codes " MSG_CMD_DIM "(For scripts)" RESET "\n"
         "  --lang [id]        Overrides interface language " MSG_CMD_DIM "(e.g., pt, en)" RESET "\n"
@@ -271,7 +279,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Shows binary version and build status\n"
         "  -h, --help         Displays this interactive help panel\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires a numeric value after it.\n",
-        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires a numeric value. Received: '%s'\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The '%s' option requires a numeric value valid. Received: '%s'\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " The animation mode (-m) must be an integer.\n",
         MSG_INFO "[ ℹ️ INFO 416 ]" RESET " The animation mode (-m) must be between 0 and 11.\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Invalid option or loose argument '%s'\n",
@@ -320,11 +328,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [valor]         Bloquea la tasa de cuadros " MSG_CMD_DIM "(ej: 60, 90)" RESET "\n"
         "  -L                 Procesamiento línea por línea " MSG_CMD_DIM "(Stream)" RESET "\n"
         "  --fo [0-1]         Activa el Modo Mate (Reduce intensidad)\n"
-        "  --preset [nombre]  Carga paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Alias para --color1 y --color2\n"
-        "  --color1 [hex]     Define el color inicial del gradiente (ej: #FF0000)\n"
-        "  --color2 [hex]     Define el color final del gradiente (ej: #FFA500)\n"
-        "  --quantized        Cuantización de colores " MSG_CMD_DIM "(Mayor rendimiento)" RESET "\n"
+        "  --preset, -pre [nombre]  Carga paletas " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Define el color inicial del gradiente (ej: #FF0000)\n"
+        "  --color2, -c2 [hex]     Define el color final del gradiente (ej: #FFA500)\n"
+        "  --quantized, -q        Cuantización de colores " MSG_CMD_DIM "(Mayor rendimiento)" RESET "\n"
         "  --no-ansi          Desactiva el uso de colores ANSI en la salida\n"
         "  --spin             Genera códigos ANSI puros " MSG_CMD_DIM "(Para scripts)" RESET "\n"
         "  --lang [id]        Sobrescribe el idioma " MSG_CMD_DIM "(ej: es, en)" RESET "\n"
@@ -332,7 +339,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Muestra la versión y estado del binario\n"
         "  -h, --help         Muestra este panel de ayuda interactivo\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un valor numérico.\n",
-        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un numérico. Recibido: '%s'\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " La opción '%s' requiere un numérico válido. Recibido: '%s'\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " El modo de animación (-m) debe ser un entero.\n",
         MSG_INFO "[ ℹ️ INFO 416 ]" RESET " El modo de animación (-m) debe estar entre 0 y 11.\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opción inválida o argumento suelto '%s'\n",
@@ -381,11 +388,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [valeur]        Verrouille la fréquence d'images " MSG_CMD_DIM "(ex: 60, 90)" RESET "\n"
         "  -L                 Traitement ligne par ligne " MSG_CMD_DIM "(Flux)" RESET "\n"
         "  --fo [0-1]         Active le Mode Mat (Réduit la vivacité)\n"
-        "  --preset [nom]     Charge des palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Alias pour --color1 et --color2\n"
-        "  --color1 [hex]     Définit la couleur de début du dégradé (ex: #FF0000)\n"
-        "  --color2 [hex]     Définit la couleur de fin du dégradé (ex: #FFA500)\n"
-        "  --quantized        Quantification des couleurs " MSG_CMD_DIM "(Meilleures performances)" RESET "\n"
+        "  --preset, -pre [nom]     Charge des palettes " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Définit la couleur de début du dégradé (ex: #FF0000)\n"
+        "  --color2, -c2 [hex]     Définit la couleur de fin du dégradé (ex: #FFA500)\n"
+        "  --quantized, -q        Quantification des couleurs " MSG_CMD_DIM "(Meilleures performances)" RESET "\n"
         "  --no-ansi          Désactive les couleurs ANSI en sortie\n"
         "  --spin             Génère des codes ANSI purs " MSG_CMD_DIM "(Pour les scripts)" RESET "\n"
         "  --lang [id]        Écrase la langue " MSG_CMD_DIM "(ex: fr, en)" RESET "\n"
@@ -393,7 +399,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Affiche la version et l'état du binaire\n"
         "  -h, --help         Affiche ce panneau d'aide interactif\n",
         MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite une valeur numérique.\n",
-        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite un nombre. Reçu : '%s'\n",
+        MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " L'option '%s' nécessite un nombre valide. Reçu : '%s'\n",
         MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " Le mode d'animation (-m) doit être un entier.\n",
         MSG_INFO "[ ℹ️ INFO 416 ]" RESET " Le mode d'animation (-m) doit être entre 0 et 11.\n",
         MSG_ERRO "[ ❌ ERREUR 400 ]" RESET " Option invalide ou argument isolé '%s'\n",
@@ -442,11 +448,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [wert]          Bildrate sperren " MSG_CMD_DIM "(z.B.: 60, 90)" RESET "\n"
         "  -L                 Zeilenweise Verarbeitung " MSG_CMD_DIM "(Stream)" RESET "\n"
         "  --fo [0-1]         Matt-Modus aktivieren (Reduziert Lebendigkeit)\n"
-        "  --preset [name]    Paletten laden " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Alias für --color1 und --color2\n"
-        "  --color1 [hex]     Startfarbe des Gradienten festlegen (z.B.: #FF0000)\n"
-        "  --color2 [hex]     Endfarbe des Gradienten festlegen (z.B.: #FFA500)\n"
-        "  --quantized        Farbquantisierung " MSG_CMD_DIM "(Höhere Leistung)" RESET "\n"
+        "  --preset, -pre [name]    Paletten laden " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Startfarbe des Gradienten festlegen (z.B.: #FF0000)\n"
+        "  --color2, -c2 [hex]     Endfarbe des Gradienten festlegen (z.B.: #FFA500)\n"
+        "  --quantized, -q        Farbquantisierung " MSG_CMD_DIM "(Höhere Leistung)" RESET "\n"
         "  --no-ansi          ANSI-Farben in der Ausgabe deaktivieren\n"
         "  --spin             Reine ANSI-Codes generieren " MSG_CMD_DIM "(Für Skripte)" RESET "\n"
         "  --lang [id]        Sprache überschreiben " MSG_CMD_DIM "(z.B.: de, en)" RESET "\n"
@@ -454,7 +459,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Version und Binärstatus anzeigen\n"
         "  -h, --help         Dieses interaktive Hilfefenster anzeigen\n",
         MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Die Option '%s' erfordert einen numerischen Wert.\n",
-        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Option '%s' erfordert eine Zahl. Erhalten: '%s'\n",
+        MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Option '%s' erfordert eine Zahl gültig. Erhalten: '%s'\n",
         MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Der Animationsmodus (-m) muss eine Ganzzahl sein.\n",
         MSG_INFO "[ ℹ️ INFO 416 ]" RESET " Der Animationsmodus (-m) muss zwischen 0 und 11 liegen.\n",
         MSG_ERRO "[ ❌ FEHLER 400 ]" RESET " Ungültige Option oder loses Argument '%s'\n",
@@ -503,11 +508,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [valore]        Blocca il framerate " MSG_CMD_DIM "(es: 60, 90)" RESET "\n"
         "  -L                 Elaborazione riga per riga " MSG_CMD_DIM "(Stream)" RESET "\n"
         "  --fo [0-1]         Attiva Modalità Opaca (Riduce la vividezza)\n"
-        "  --preset [nome]    Carica palette " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Alias per --color1 e --color2\n"
-        "  --color1 [hex]     Imposta il colore iniziale del gradiente (es: #FF0000)\n"
-        "  --color2 [hex]     Imposta il colore finale del gradiente (es: #FFA500)\n"
-        "  --quantized        Quantizzazione dei colori " MSG_CMD_DIM "(Prestazioni migliori)" RESET "\n"
+        "  --preset, -pre [nome]    Carica palette " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Imposta il colore iniziale del gradiente (es: #FF0000)\n"
+        "  --color2, -c2 [hex]     Imposta il colore finale del gradiente (es: #FFA500)\n"
+        "  --quantized, -q        Quantizzazione dei colori " MSG_CMD_DIM "(Prestazioni migliori)" RESET "\n"
         "  --no-ansi          Disattiva i colori ANSI nell'output\n"
         "  --spin             Genera codici ANSI puri " MSG_CMD_DIM "(Per script)" RESET "\n"
         "  --lang [id]        Sovrascrive la lingua " MSG_CMD_DIM "(es: it, en)" RESET "\n"
@@ -515,7 +519,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Mostra la versione e lo stato del binario\n"
         "  -h, --help         Mostra questo pannello di aiuto interattivo\n",
         MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un valore numerico.\n",
-        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un numero. Ricevuto: '%s'\n",
+        MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " L'opzione '%s' richiede un numero valido. Ricevuto: '%s'\n",
         MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " La modalità di animazione (-m) deve essere un intero.\n",
         MSG_INFO "[ ℹ️ INFO 416 ]" RESET " La modalità di animazione (-m) deve essere compresa tra 0 e 11.\n",
         MSG_ERRO "[ ❌ ERRORE 400 ]" RESET " Opzione non valida o argomento sciolto '%s'\n",
@@ -564,11 +568,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [значение]      Блокирует частоту кадров " MSG_CMD_DIM "(напр.: 60, 90)" RESET "\n"
         "  -L                 Построчная обработка " MSG_CMD_DIM "(Поток)" RESET "\n"
         "  --fo [0-1]         Включает матовый режим (Снижает яркость)\n"
-        "  --preset [имя]     Загружает палитры " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Псевдонимы для --color1 и --color2\n"
-        "  --color1 [hex]     Начальный цвет градиента (напр.: #FF0000)\n"
-        "  --color2 [hex]     Конечный цвет градиента (напр.: #FFA500)\n"
-        "  --quantized        Квантование цветов " MSG_CMD_DIM "(Высокая производительность)" RESET "\n"
+        "  --preset, -pre [имя]     Загружает палитры " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Начальный цвет градиента (напр.: #FF0000)\n"
+        "  --color2, -c2 [hex]     Конечный цвет градиента (напр.: #FFA500)\n"
+        "  --quantized, -q        Квантование цветов " MSG_CMD_DIM "(Высокая производительность)" RESET "\n"
         "  --no-ansi          Отключает цвета ANSI в выводе\n"
         "  --spin             Генерирует чистые коды ANSI " MSG_CMD_DIM "(Для скриптов)" RESET "\n"
         "  --lang [id]        Переопределяет язык " MSG_CMD_DIM "(напр.: ru, en)" RESET "\n"
@@ -576,7 +579,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Показывает версию и статус бинарника\n"
         "  -h, --help         Показывает эту интерактивную панель помощи\n",
         MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует числового значения.\n",
-        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует числа. Получено: '%s'\n",
+        MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Опция '%s' требует числа действительный. Получено: '%s'\n",
         MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Режим анимации (-m) должен быть целым числом.\n",
         MSG_INFO "[ ℹ️ ИНФО 416 ]" RESET " Режим анимации (-m) должен быть от 0 до 11.\n",
         MSG_ERRO "[ ❌ ОШИБКА 400 ]" RESET " Неверная опция или аргумент '%s'\n",
@@ -625,11 +628,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [值]            锁定帧率 " MSG_CMD_DIM "(例: 60, 90)" RESET "\n"
         "  -L                 逐行处理 " MSG_CMD_DIM "(流)" RESET "\n"
         "  --fo [0-1]         启用哑光模式 (降低鲜艳度)\n"
-        "  --preset [名称]    加载调色板 " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   --color1 和 --color2 的别名\n"
-        "  --color1 [hex]     设置渐变起始颜色 (例: #FF0000)\n"
-        "  --color2 [hex]     设置渐变结束颜色 (例: #FFA500)\n"
-        "  --quantized        颜色量化 " MSG_CMD_DIM "(更高性能)" RESET "\n"
+        "  --preset, -pre [名称]    加载调色板 " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     设置渐变起始颜色 (例: #FF0000)\n"
+        "  --color2, -c2 [hex]     设置渐变结束颜色 (例: #FFA500)\n"
+        "  --quantized, -q        颜色量化 " MSG_CMD_DIM "(更高性能)" RESET "\n"
         "  --no-ansi          在输出中禁用 ANSI 颜色\n"
         "  --spin             生成纯 ANSI 代码 " MSG_CMD_DIM "(用于脚本)" RESET "\n"
         "  --lang [id]        覆盖语言 " MSG_CMD_DIM "(例: zh, en)" RESET "\n"
@@ -637,7 +639,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      显示二进制版本和状态\n"
         "  -h, --help         显示此交互式帮助面板\n",
         MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 后需要一个数值。\n",
-        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 需要一个数值。收到: '%s'\n",
+        MSG_ERRO "[ ❌ 错误 400 ]" RESET " 选项 '%s' 需要一个数值 有效。收到: '%s'\n",
         MSG_ERRO "[ ❌ 错误 400 ]" RESET " 动画模式 (-m) 必须是一个整数。\n",
         MSG_INFO "[ ℹ️ 信息 416 ]" RESET " 动画模式 (-m) 必须在 0 到 11 之间。\n",
         MSG_ERRO "[ ❌ 错误 400 ]" RESET " 无效选项或独立参数 '%s'\n",
@@ -686,11 +688,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [値]            フレームレートを固定 " MSG_CMD_DIM "(例: 60, 90)" RESET "\n"
         "  -L                 行単位の処理 " MSG_CMD_DIM "(ストリーム)" RESET "\n"
         "  --fo [0-1]         マットモードを有効化 (鮮やかさを軽減)\n"
-        "  --preset [名前]    パレットを読み込む " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   --color1 および --color2 のエイリアス\n"
-        "  --color1 [hex]     グラデーションの開始色を設定 (例: #FF0000)\n"
-        "  --color2 [hex]     グラデーションの終了色を設定 (例: #FFA500)\n"
-        "  --quantized        色の量子化 " MSG_CMD_DIM "(高パフォーマンス)" RESET "\n"
+        "  --preset, -pre [名前]    パレットを読み込む " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     グラデーションの開始色を設定 (例: #FF0000)\n"
+        "  --color2, -c2 [hex]     グラデーションの終了色を設定 (例: #FFA500)\n"
+        "  --quantized, -q        色の量子化 " MSG_CMD_DIM "(高パフォーマンス)" RESET "\n"
         "  --no-ansi          出力でのANSIカラーを無効化\n"
         "  --spin             純粋なANSIコードを生成 " MSG_CMD_DIM "(スクリプト用)" RESET "\n"
         "  --lang [id]        言語を上書き " MSG_CMD_DIM "(例: ja, en)" RESET "\n"
@@ -698,7 +699,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      バイナリのバージョンとステータスを表示\n"
         "  -h, --help         このインタラクティブなヘルプパネルを表示\n",
         MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には数値が必要です。\n",
-        MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には数値が必要です。受信: '%s'\n",
+        MSG_ERRO "[ ❌ エラー 400 ]" RESET " オプション '%s' には数値が必要です 有効。受信: '%s'\n",
         MSG_ERRO "[ ❌ エラー 400 ]" RESET " アニメーションモード (-m) は整数である必要があります。\n",
         MSG_INFO "[ ℹ️ 情報 416 ]" RESET " アニメーションモード (-m) は0から11の間である必要があります。\n",
         MSG_ERRO "[ ❌ エラー 400 ]" RESET " 無効なオプションまたは独立した引数 '%s'\n",
@@ -747,11 +748,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [값]            프레임 속도 고정 " MSG_CMD_DIM "(예: 60, 90)" RESET "\n"
         "  -L                 줄 단위 처리 " MSG_CMD_DIM "(스트림)" RESET "\n"
         "  --fo [0-1]         매트 모드 활성화 (선명도 감소)\n"
-        "  --preset [이름]    팔레트 로드 " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   --color1 및 --color2의 별칭\n"
-        "  --color1 [hex]     그라데이션 시작 색상 설정 (예: #FF0000)\n"
-        "  --color2 [hex]     그라데이션 끝 색상 설정 (예: #FFA500)\n"
-        "  --quantized        색상 양자화 " MSG_CMD_DIM "(더 높은 성능)" RESET "\n"
+        "  --preset, -pre [이름]    팔레트 로드 " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     그라데이션 시작 색상 설정 (예: #FF0000)\n"
+        "  --color2, -c2 [hex]     그라데이션 끝 색상 설정 (예: #FFA500)\n"
+        "  --quantized, -q        색상 양자화 " MSG_CMD_DIM "(더 높은 성능)" RESET "\n"
         "  --no-ansi          출력에서 ANSI 색상 비활성화\n"
         "  --spin             순수 ANSI 코드 생성 " MSG_CMD_DIM "(스크립트용)" RESET "\n"
         "  --lang [id]        언어 재정의 " MSG_CMD_DIM "(예: ko, en)" RESET "\n"
@@ -759,7 +759,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      바이너리 버전 및 상태 표시\n"
         "  -h, --help         이 대화형 도움말 패널 표시\n",
         MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션 뒤에 숫자 값이 필요합니다.\n",
-        MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션에 숫자가 필요합니다. 수신됨: '%s'\n",
+        MSG_ERRO "[ ❌ 오류 400 ]" RESET " '%s' 옵션에 숫자가 필요합니다 유효한. 수신됨: '%s'\n",
         MSG_ERRO "[ ❌ 오류 400 ]" RESET " 애니메이션 모드(-m)는 정수여야 합니다.\n",
         MSG_INFO "[ ℹ️ 정보 416 ]" RESET " 애니메이션 모드(-m)는 0에서 11 사이여야 합니다.\n",
         MSG_ERRO "[ ❌ 오류 400 ]" RESET " 잘못된 옵션 또는 독립된 인수 '%s'\n",
@@ -808,11 +808,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [değer]         Kare hızını kilitler " MSG_CMD_DIM "(örn: 60, 90)" RESET "\n"
         "  -L                 Satır satır işleme " MSG_CMD_DIM "(Akış)" RESET "\n"
         "  --fo [0-1]         Mat Modu etkinleştirir (Canlılığı azaltır)\n"
-        "  --preset [isim]    Paletleri yükler " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   --color1 ve --color2 için kısayol\n"
-        "  --color1 [hex]     Gradyanın başlangıç rengini belirler (örn: #FF0000)\n"
-        "  --color2 [hex]     Gradyanın bitiş rengini belirler (örn: #FFA500)\n"
-        "  --quantized        Renk niceleme " MSG_CMD_DIM "(Daha yüksek performans)" RESET "\n"
+        "  --preset, -pre [isim]    Paletleri yükler " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Gradyanın başlangıç rengini belirler (örn: #FF0000)\n"
+        "  --color2, -c2 [hex]     Gradyanın bitiş rengini belirler (örn: #FFA500)\n"
+        "  --quantized, -q        Renk niceleme " MSG_CMD_DIM "(Daha yüksek performans)" RESET "\n"
         "  --no-ansi          Çıktıda ANSI renklerini devre dışı bırakır\n"
         "  --spin             Saf ANSI kodları üretir " MSG_CMD_DIM "(Betikler için)" RESET "\n"
         "  --lang [id]        Dili geçersiz kılar " MSG_CMD_DIM "(örn: tr, en)" RESET "\n"
@@ -820,7 +819,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Sürümü ve ikili dosya durumunu gösterir\n"
         "  -h, --help         Bu etkileşimli yardım panelini gösterir\n",
         MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği sayısal bir değer gerektirir.\n",
-        MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği sayı gerektirir. Alınan: '%s'\n",
+        MSG_ERRO "[ ❌ HATA 400 ]" RESET " '%s' seçeneği sayı gerektirir geçerli. Alınan: '%s'\n",
         MSG_ERRO "[ ❌ HATA 400 ]" RESET " Animasyon modu (-m) tam sayı olmalıdır.\n",
         MSG_INFO "[ ℹ️ BİLGİ 416 ]" RESET " Animasyon modu (-m) 0 ile 11 arasında olmalıdır.\n",
         MSG_ERRO "[ ❌ HATA 400 ]" RESET " Geçersiz seçenek veya boşta argüman '%s'\n",
@@ -869,11 +868,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [wartość]       Blokuje liczbę klatek na sekundę " MSG_CMD_DIM "(np. 60, 90)" RESET "\n"
         "  -L                 Przetwarzanie linia po linii " MSG_CMD_DIM "(Strumień)" RESET "\n"
         "  --fo [0-1]         Włącza Tryb Matowy (Zmniejsza żywość)\n"
-        "  --preset [nazwa]   Ładuje palety " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Alias dla --color1 i --color2\n"
-        "  --color1 [hex]     Ustawia kolor początkowy gradientu (np. #FF0000)\n"
-        "  --color2 [hex]     Ustawia kolor końcowy gradientu (np. #FFA500)\n"
-        "  --quantized        Kwantyzacja kolorów " MSG_CMD_DIM "(Wyższa wydajność)" RESET "\n"
+        "  --preset, -pre [nazwa]   Ładuje palety " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Ustawia kolor początkowy gradientu (np. #FF0000)\n"
+        "  --color2, -c2 [hex]     Ustawia kolor końcowy gradientu (np. #FFA500)\n"
+        "  --quantized, -q        Kwantyzacja kolorów " MSG_CMD_DIM "(Wyższa wydajność)" RESET "\n"
         "  --no-ansi          Wyłącza użycie kolorów ANSI w wyjściu\n"
         "  --spin             Generuje czyste kody ANSI " MSG_CMD_DIM "(Dla skryptów)" RESET "\n"
         "  --lang [id]        Nadpisuje język " MSG_CMD_DIM "(np. pl, en)" RESET "\n"
@@ -881,7 +879,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Pokazuje wersję i status pliku binarnego\n"
         "  -h, --help         Wyświetla ten interaktywny panel pomocy\n",
         MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga podania wartości liczbowej.\n",
-        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga liczby. Otrzymano: '%s'\n",
+        MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Opcja '%s' wymaga liczby ważny. Otrzymano: '%s'\n",
         MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Tryb animacji (-m) musi być liczbą całkowitą.\n",
         MSG_INFO "[ ℹ️ INFO 416 ]" RESET " Tryb animacji (-m) musi zawierać się w przedziale 0-11.\n",
         MSG_ERRO "[ ❌ BŁĄD 400 ]" RESET " Nieprawidłowa opcja lub luźny argument '%s'\n",
@@ -930,11 +928,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [nilai]         Mengunci kecepatan bingkai " MSG_CMD_DIM "(mis: 60, 90)" RESET "\n"
         "  -L                 Pemrosesan baris demi baris " MSG_CMD_DIM "(Aliran)" RESET "\n"
         "  --fo [0-1]         Mengaktifkan Mode Matte (Mengurangi kecerahan)\n"
-        "  --preset [nama]    Memuat palet " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Alias untuk --color1 dan --color2\n"
-        "  --color1 [hex]     Menentukan warna awal gradien (mis: #FF0000)\n"
-        "  --color2 [hex]     Menentukan warna akhir gradien (mis: #FFA500)\n"
-        "  --quantized        Kuantisasi warna " MSG_CMD_DIM "(Performa lebih tinggi)" RESET "\n"
+        "  --preset, -pre [nama]    Memuat palet " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Menentukan warna awal gradien (mis: #FF0000)\n"
+        "  --color2, -c2 [hex]     Menentukan warna akhir gradien (mis: #FFA500)\n"
+        "  --quantized, -q        Kuantisasi warna " MSG_CMD_DIM "(Performa lebih tinggi)" RESET "\n"
         "  --no-ansi          Menonaktifkan penggunaan warna ANSI pada keluaran\n"
         "  --spin             Menghasilkan kode ANSI murni " MSG_CMD_DIM "(Untuk skrip)" RESET "\n"
         "  --lang [id]        Mengesampingkan bahasa " MSG_CMD_DIM "(mis: id, en)" RESET "\n"
@@ -942,7 +939,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Menampilkan versi dan status biner\n"
         "  -h, --help         Menampilkan panel bantuan interaktif ini\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan nilai numerik setelahnya.\n",
-        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan angka. Diterima: '%s'\n",
+        MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi '%s' memerlukan angka valid. Diterima: '%s'\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Mode animasi (-m) harus berupa bilangan bulat.\n",
         MSG_INFO "[ ℹ️ INFO 416 ]" RESET " Mode animasi (-m) harus antara 0 dan 11.\n",
         MSG_ERRO "[ ❌ ERROR 400 ]" RESET " Opsi tidak valid atau argumen lepas '%s'\n",
@@ -991,11 +988,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [قيمة]          قفل معدل الإطارات " MSG_CMD_DIM "(مثال: 60, 90)" RESET "\n"
         "  -L                 معالجة سطر بسطر " MSG_CMD_DIM "(تدفق)" RESET "\n"
         "  --fo [0-1]         تفعيل الوضع غير اللامع (يقلل من الحيوية)\n"
-        "  --preset [اسم]     تحميل لوحات الألوان " MSG_CMD_DIM "(cyberpunk, retro...)" RESET "\n"
-        "  --c1, --c2 [hex]   اختصارات لـ --color1 و --color2\n"
-        "  --color1 [hex]     تحديد لون البداية للتدرج (مثال: #FF0000)\n"
-        "  --color2 [hex]     تحديد لون النهاية للتدرج (مثال: #FFA500)\n"
-        "  --quantized        تكميم الألوان " MSG_CMD_DIM "(أداء أعلى)" RESET "\n"
+        "  --preset, -pre [اسم]     تحميل لوحات الألوان " MSG_CMD_DIM "(cyberpunk, retro...)" RESET "\n"
+        "  --color1, -c1 [hex]     تحديد لون البداية للتدرج (مثال: #FF0000)\n"
+        "  --color2, -c2 [hex]     تحديد لون النهاية للتدرج (مثال: #FFA500)\n"
+        "  --quantized, -q        تكميم الألوان " MSG_CMD_DIM "(أداء أعلى)" RESET "\n"
         "  --no-ansi          تعطيل ألوان ANSI في المخرجات\n"
         "  --spin             إنشاء أكواد ANSI نقية " MSG_CMD_DIM "(للبرامج النصية)" RESET "\n"
         "  --lang [id]        تجاوز اللغة " MSG_CMD_DIM "(مثال: ar, en)" RESET "\n"
@@ -1003,7 +999,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      عرض الإصدار وحالة الملف التنفيذي\n"
         "  -h, --help         عرض لوحة المساعدة التفاعلية هذه\n",
         MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب قيمة رقمية بعده.\n",
-        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب رقمًا. تم الاستلام: '%s'\n",
+        MSG_ERRO "[ ❌ خطأ 400 ]" RESET " الخيار '%s' يتطلب رقمًا صالح. تم الاستلام: '%s'\n",
         MSG_ERRO "[ ❌ خطأ 400 ]" RESET " وضع الرسوم المتحركة (-m) يجب أن يكون عددًا صحيحًا.\n",
         MSG_INFO "[ ℹ️ معلومات 416 ]" RESET " وضع الرسوم المتحركة (-m) يجب أن يكون بين 0 و 11.\n",
         MSG_ERRO "[ ❌ خطأ 400 ]" RESET " خيار غير صالح أو وسيطة مفقودة '%s'\n",
@@ -1052,11 +1048,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [стойност]      Заключва кадровата честота " MSG_CMD_DIM "(напр: 60, 90)" RESET "\n"
         "  -L                 Обработка ред по ред " MSG_CMD_DIM "(Поток)" RESET "\n"
         "  --fo [0-1]         Активира Матов Режим (Намалява яркостта)\n"
-        "  --preset [име]     Зарежда палитри " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Псевдоними за --color1 и --color2\n"
-        "  --color1 [hex]     Задава начален цвят на градиента (напр: #FF0000)\n"
-        "  --color2 [hex]     Задава краен цвят на градиента (напр: #FFA500)\n"
-        "  --quantized        Квантуване на цветове " MSG_CMD_DIM "(По-висока производителност)" RESET "\n"
+        "  --preset, -pre [име]     Зарежда палитри " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Задава начален цвят на градиента (напр: #FF0000)\n"
+        "  --color2, -c1 [hex]     Задава краен цвят на градиента (напр: #FFA500)\n"
+        "  --quantized, -q        Квантуване на цветове " MSG_CMD_DIM "(По-висока производителност)" RESET "\n"
         "  --no-ansi          Деактивира ANSI цветове в изхода\n"
         "  --spin             Генерира чисти ANSI кодове " MSG_CMD_DIM "(За скриптове)" RESET "\n"
         "  --lang [id]        Замества езика " MSG_CMD_DIM "(напр: bg, en)" RESET "\n"
@@ -1064,7 +1059,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Показва версията и статуса на бинарния файл\n"
         "  -h, --help         Показва този интерактивен помощен панел\n",
         MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква числова стойност след нея.\n",
-        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква число. Получено: '%s'\n",
+        MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Опцията '%s' изисква число валиден. Получено: '%s'\n",
         MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Режимът на анимация (-m) трябва да е цяло число.\n",
         MSG_INFO "[ ℹ️ ИНФО 416 ]" RESET " Режимът на анимация (-m) трябва да е между 0 и 11.\n",
         MSG_ERRO "[ ❌ ГРЕШКА 400 ]" RESET " Невалидна опция или свободен аргумент '%s'\n",
@@ -1113,11 +1108,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [τιμή]          Κλειδώνει το ρυθμό καρέ " MSG_CMD_DIM "(π.χ.: 60, 90)" RESET "\n"
         "  -L                 Επεξεργασία γραμμή προς γραμμή " MSG_CMD_DIM "(Ροή)" RESET "\n"
         "  --fo [0-1]         Ενεργοποιεί Ματ Λειτουργία (Μειώνει τη ζωντάνια)\n"
-        "  --preset [όνομα]   Φορτώνει παλέτες " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   Ψευδώνυμο για --color1 και --color2\n"
-        "  --color1 [hex]     Ορίζει το αρχικό χρώμα του граδιέντ (π.χ.: #FF0000)\n"
-        "  --color2 [hex]     Ορίζει το τελικό χρώμα του граδιέντ (π.χ.: #FFA500)\n"
-        "  --quantized        Κβαντισμός χρωμάτων " MSG_CMD_DIM "(Υψηλότερη απόδοση)" RESET "\n"
+        "  --preset, -pre [όνομα]   Φορτώνει παλέτες " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     Ορίζει το αρχικό χρώμα του граδιέντ (π.χ.: #FF0000)\n"
+        "  --color2, -c2 [hex]     Ορίζει το τελικό χρώμα του граδιέντ (π.χ.: #FFA500)\n"
+        "  --quantized, -q        Κβαντισμός χρωμάτων " MSG_CMD_DIM "(Υψηλότερη απόδοση)" RESET "\n"
         "  --no-ansi          Απενεργοποιεί τη χρήση χρωμάτων ANSI στην έξοδο\n"
         "  --spin             Παράγει καθαρούς κώδικες ANSI " MSG_CMD_DIM "(Για σενάρια)" RESET "\n"
         "  --lang [id]        Παρακάμπτει τη γλώσσα " MSG_CMD_DIM "(π.χ.: el, en)" RESET "\n"
@@ -1125,7 +1119,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      Εμφανίζει την έκδοση και την κατάσταση του εκτελέσιμου\n"
         "  -h, --help         Εμφανίζει αυτόν τον διαδραστικό πίνακα βοήθειας\n",
         MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί μια αριθμητική τιμή.\n",
-        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί αριθμό. Λήφθηκε: '%s'\n",
+        MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η επιλογή '%s' απαιτεί αριθμό έγκυρος. Λήφθηκε: '%s'\n",
         MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Η λειτουργία κιν. σχεδίων (-m) πρέπει να είναι ακέραιος.\n",
         MSG_INFO "[ ℹ️ ΠΛΗΡΟΦΟΡΙΑ 416 ]" RESET " Η λειτουργία κιν. σχεδίων (-m) πρέπει να είναι μεταξύ 0 και 11.\n",
         MSG_ERRO "[ ❌ ΣΦΑΛΜΑ 400 ]" RESET " Μη έγκυρη επιλογή ή ορφανό όρισμα '%s'\n",
@@ -1174,11 +1168,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [मान]           फ्रेम रेट लॉक करता है " MSG_CMD_DIM "(उदा: 60, 90)" RESET "\n"
         "  -L                 पंक्ति दर पंक्ति प्रसंस्करण " MSG_CMD_DIM "(स्ट्रीम)" RESET "\n"
         "  --fo [0-1]         मैट मोड सक्षम करता है (चमक कम करता है)\n"
-        "  --preset [नाम]     पैलेट लोड करता है " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   --color1 और --color2 के लिए उपनाम\n"
-        "  --color1 [hex]     ग्रैडिएंट का प्रारंभिक रंग सेट करता है (उदा: #FF0000)\n"
-        "  --color2 [hex]     ग्रैडिएंट का अंतिम रंग सेट करता है (उदा: #FFA500)\n"
-        "  --quantized        रंग परिमाणीकरण " MSG_CMD_DIM "(उच्च प्रदर्शन)" RESET "\n"
+        "  --preset, -pre [नाम]     पैलेट लोड करता है " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     ग्रैडिएंट का प्रारंभिक रंग सेट करता है (उदा: #FF0000)\n"
+        "  --color2, -c2 [hex]     ग्रैडिएंट का अंतिम रंग सेट करता है (उदा: #FFA500)\n"
+        "  --quantized, -q        रंग परिमाणीकरण " MSG_CMD_DIM "(उच्च प्रदर्शन)" RESET "\n"
         "  --no-ansi          आउटपुट में ANSI रंगों का उपयोग अक्षम करता है\n"
         "  --spin             शुद्ध ANSI कोड उत्पन्न करता है " MSG_CMD_DIM "(स्क्रिप्ट के लिए)" RESET "\n"
         "  --lang [id]        भाषा ओवरराइड करता है " MSG_CMD_DIM "(उदा: hi, en)" RESET "\n"
@@ -1186,7 +1179,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      बाइनरी का संस्करण और स्थिति दिखाता है\n"
         "  -h, --help         यह इंटरैक्टिव सहायता पैनल दिखाता है\n",
         MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के बाद संख्यात्मक मान की आवश्यकता है।\n",
-        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के लिए एक संख्या आवश्यक है। प्राप्त: '%s'\n",
+        MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " विकल्प '%s' के लिए एक संख्या आवश्यक है मान्य। प्राप्त: '%s'\n",
         MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " एनीमेशन मोड (-m) एक पूर्णांक होना चाहिए।\n",
         MSG_INFO "[ ℹ️ जानकारी 416 ]" RESET " एनीमेशन मोड (-m) 0 और 11 के बीच होना चाहिए।\n",
         MSG_ERRO "[ ❌ त्रुटि 400 ]" RESET " अमान्य विकल्प या मुक्त तर्क '%s'\n",
@@ -1235,11 +1228,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [ค่า]             ล็อคอัตราเฟรม " MSG_CMD_DIM "(เช่น: 60, 90)" RESET "\n"
         "  -L                 ประมวลผลทีละบรรทัด " MSG_CMD_DIM "(สตรีม)" RESET "\n"
         "  --fo [0-1]         เปิดใช้งานโหมดด้าน (ลดความสดใส)\n"
-        "  --preset [ชื่อ]      โหลดพาเลตต์ " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        "  --c1, --c2 [hex]   นามแฝงสำหรับ --color1 และ --color2\n"
-        "  --color1 [hex]     กำหนดสีเริ่มต้นของการไล่ระดับสี (เช่น: #FF0000)\n"
-        "  --color2 [hex]     กำหนดสีสิ้นสุดของการไล่ระดับสี (เช่น: #FFA500)\n"
-        "  --quantized        การควอนไทซ์สี " MSG_CMD_DIM "(ประสิทธิภาพสูงขึ้น)" RESET "\n"
+        "  --preset, -pre [ชื่อ]      โหลดพาเลตต์ " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     กำหนดสีเริ่มต้นของการไล่ระดับสี (เช่น: #FF0000)\n"
+        "  --color2, -c2 [hex]     กำหนดสีสิ้นสุดของการไล่ระดับสี (เช่น: #FFA500)\n"
+        "  --quantized, -q        การควอนไทซ์สี " MSG_CMD_DIM "(ประสิทธิภาพสูงขึ้น)" RESET "\n"
         "  --no-ansi          ปิดใช้งานการใช้สี ANSI ในเอาต์พุต\n"
         "  --spin             สร้างรหัส ANSI ล้วน " MSG_CMD_DIM "(สำหรับสคริปต์)" RESET "\n"
         "  --lang [id]        แทนที่ภาษา " MSG_CMD_DIM "(เช่น: th, en)" RESET "\n"
@@ -1247,7 +1239,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      แสดงเวอร์ชันและสถานะของไบนารี\n"
         "  -h, --help         แสดงแผงความช่วยเหลือแบบโต้ตอบนี้\n",
         MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการค่าตัวเลขต่อท้าย\n",
-        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการตัวเลข ได้รับ: '%s'\n",
+        MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือก '%s' ต้องการตัวเลข ถูกต้อง ได้รับ: '%s'\n",
         MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " โหมดแอนิเมชัน (-m) ต้องเป็นจำนวนเต็ม\n",
         MSG_INFO "[ ℹ️ ข้อมูล 416 ]" RESET " โหมดแอนิเมชัน (-m) ต้องอยู่ระหว่าง 0 ถึง 11\n",
         MSG_ERRO "[ ❌ ข้อผิดพลาด 400 ]" RESET " ตัวเลือกไม่ถูกต้องหรืออาร์กิวเมนต์หลุด '%s'\n",
@@ -1296,11 +1288,10 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -F [តម្លៃ]            ចាក់សោអត្រាស៊ុម " MSG_CMD_DIM "(ឧ: 60, 90)" RESET "\n"
         "  -L                 ដំណើរការមួយបន្ទាត់ម្ដងៗ " MSG_CMD_DIM "(ស្ទ្រីម)" RESET "\n"
         "  --fo [0-1]         បើកមុខងារ Matte (កាត់បន្ថយភាពស្រស់ឆើតឆាយ)\n"
-        "  --preset [ឈ្មោះ]     ផ្ទុកក្ដារលាយពណ៌ " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
-        " - -c1, --c2 [hex]   ឈ្មោះក្លែងក្លាយសម្រាប់ --color1 និង --color2\n"
-        "  --color1 [hex]     កំណត់ពណ៌ចាប់ផ្ដើមនៃការไล่ระดับពណ៌ (ឧ: #FF0000)\n"
-        "  --color2 [hex]     កំណត់ពណ៌បញ្ចប់នៃការไล่ระดับពណ៌ (ឧ: #FFA500)\n"
-        "  --quantized        ការធ្វើបរិមាណពណ៌ " MSG_CMD_DIM "(ដំណើរការលឿនជាងមុន)" RESET "\n"
+        "  --preset, -pre [ឈ្មោះ]     ផ្ទុកក្ដារលាយពណ៌ " MSG_CMD_DIM "(cyberpunk, retro, matrix...)" RESET "\n"
+        "  --color1, -c1 [hex]     កំណត់ពណ៌ចាប់ផ្ដើមនៃការไล่ระดับពណ៌ (ឧ: #FF0000)\n"
+        "  --color2, -c2 [hex]     កំណត់ពណ៌បញ្ចប់នៃការไล่ระดับពណ៌ (ឧ: #FFA500)\n"
+        "  --quantized, -q        ការធ្វើបរិមាណពណ៌ " MSG_CMD_DIM "(ដំណើរការលឿនជាងមុន)" RESET "\n"
         "  --no-ansi          បិទពណ៌ ANSI នៅក្នុងលទ្ធផល\n"
         "  --spin             បង្កើតកូដ ANSI សុទ្ធ " MSG_CMD_DIM "(សម្រាប់ស្គ្រីប)" RESET "\n"
         "  --lang [id]        បដិសេធភាសា " MSG_CMD_DIM "(ឧ: km, en)" RESET "\n"
@@ -1308,7 +1299,7 @@ static const char *mensagens[19][MSG_TOTAL] = {
         "  -v, --version      បង្ហាញកំណែ និងស្ថានភាពរបស់ប្រព័ន្ធគោលពីរ\n"
         "  -h, --help         បង្ហាញផ្ទាំងជំនួយអន្តរកម្មនេះ\n",
         MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារតម្លៃលេខបន្ទាប់ពីវា។\n",
-        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារលេខ។ បានទទួល: '%s'\n",
+        MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើស '%s' ទាមទារលេខ ត្រឹមត្រូវ។ បានទទួល: '%s'\n",
         MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " របៀបចលនា (-m) ត្រូវតែជាចំនួនគត់។\n",
         MSG_INFO "[ ℹ️ ព័ត៌មាន 416 ]" RESET " របៀបចលនា (-m) ត្រូវតែចន្លោះពី 0 ដល់ 11។\n",
         MSG_ERRO "[ ❌ កំហុស 400 ]" RESET " ជម្រើសមិនត្រឹមត្រូវ ឬអាគុយម៉ង់រលុង '%s'\n",

@@ -6,12 +6,11 @@
 
 #define FIXED_SHIFT 16
 #define FIXED_ONE (1 << FIXED_SHIFT)
-#define FLOAT_TO_FIXED(x) ((int32_t)((x) * FIXED_ONE))
-#define FIXED_TO_FLOAT(x) ((float)(x) / FIXED_ONE)
 #define FIXED_MUL(a, b) (int32_t)(((int64_t)(a) * (b)) >> FIXED_SHIFT)
 
 #define LUT_SIZE 4096
 #define RAD_TO_INDEX_FIXED 42722831L
+#define DEG_TO_RAD_FIXED  1143
 #define FIXED_PI_2 102944
 
 uint32_t secure_random_u32(void);

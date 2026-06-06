@@ -6,29 +6,62 @@
 #include <stdlib.h>
 #include <wchar.h>
 #include <signal.h>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
+#include <string.h>
 
 #ifdef _WIN32
-#include <windows.h>
-#include <io.h>
+    #include <windows.h>
+    #include <io.h>
+    #define isatty _isatty
+    #define fileno _fileno
 #ifndef STDOUT_FILENO
-#define STDOUT_FILENO 1
+    #define STDOUT_FILENO 1
 #endif
 #define write _write
 #else
-#include <unistd.h>
+    #include <unistd.h>
 #endif
+
+ColorMode detect_color_mode(void) {
+    if (!isatty(fileno(stdout))) {
+        return COLOR_NONE;
+    }
+
+    if (getenv("NO_COLOR") != NULL) {
+        return COLOR_NONE;
+    }
+
+    const char *term = getenv("TERM");
+    if (term && strcmp(term, "dumb") == 0) {
+        return COLOR_NONE;
+    }
+    const char *ct = getenv("COLORTERM");
+    if (ct && (strcmp(ct, "truecolor") == 0 || strcmp(ct, "24bit") == 0)) {
+        return COLOR_TRUE;
+    }
+
+#ifdef _WIN32
+    if (getenv("WT_SESSION") != NULL) {
+        return COLOR_TRUE;
+    }
+    return COLOR_TRUE;
+#endif
+
+    if (term) {
+        if (strstr(term, "256color") != NULL) {
+            return COLOR_256;
+        }
+        return COLOR_BASIC; 
+    }
+    return COLOR_NONE;
+}
 
 #if defined(__linux__)
 extern char *program_invocation_short_name;
 #define PROG_NAME program_invocation_short_name
 #elif defined(__APPLE__) || defined(__FreeBSD__)
-#include <stdlib.h>
 #define PROG_NAME getprogname()
 #else
-#define PROG_NAME "neonx"
+    #define PROG_NAME "neonx"
 #endif
 
 static int g_integrity_status = -1;
@@ -58,14 +91,15 @@ void set_integrity_status(int status) {
     g_integrity_status = status;
 }
 
-void sleep_us(uint32_t microseconds)
-{
+void sleep_us(uint32_t microseconds) {
 #ifdef _WIN32
-    Sleep(microseconds / 1000);
+    DWORD ms = (microseconds < 1000) ? 1 : (microseconds / 1000);
+    Sleep(ms);
 #else
     usleep(microseconds);
 #endif
 }
+
 
 void free_content(Content *c) {
     if (!c) return;
@@ -97,7 +131,7 @@ void print_version(bool disable_ansi) {
     char build_tag[32];
     
     if (bid == 0) {
-        snprintf(build_tag, sizeof(build_tag), "0000-FX00");
+        snprintf(build_tag, sizeof(build_tag), "B0.FX.U0");
     } else {
         uint32_t obscure = (bid ^ 0xA5A5A5A5) + 0xDEADBEEF;
         snprintf(build_tag, sizeof(build_tag), "%X.%X.%X", 
@@ -135,8 +169,7 @@ void print_version(bool disable_ansi) {
 #endif
 }
 
-void print_license(bool disable_ansi)
-{
+void print_license(bool disable_ansi) {
     if (!disable_ansi && !is_stdout_terminal()) disable_ansi = true;
     printf("%s", MSG_F(MSG_LICENSE_TEXT, disable_ansi));
 }

@@ -24,6 +24,7 @@ void print_license(bool disable_ansi);
 void show_help(bool disable_ansi);
 void handle_sigint(int sig);
 void terminal_setup_signals(Content *c);
+ColorMode detect_color_mode(void);
 
 #endif
 

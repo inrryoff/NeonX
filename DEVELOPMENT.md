@@ -24,7 +24,7 @@ NeonX/
 │   ├── build_config.h   # Identificadores de build e SyncID (Dinâmico)
 │   ├── neonx.h          # API Pública Unificada da Engine
 │   └── ...              # Cabeçalhos internos de suporte do core
-├── tools/               # Ferramentas auxiliares (keygen, assinador, etc.)
+├── tools/               # Ferramentas auxiliares (keygen, assinador, calculadora de Q16.16, etc.)
 ├── build/               # Artefatos e binários finais compilados
 ├── main.c               # Ponto de entrada CLI, parser de flags e loop nativo
 ├── main_wasm.c          # Ponte e bindings Emscripten para WebAssembly
@@ -89,4 +89,3 @@ O motor de cores do NeonX roda no navegador via WASM. A arquitetura é baseada n
 A versão WASM agora também utiliza a API unificada para garantir paridade total de recursos.
 ## 🏗️ Performance e Otimizações
 Se você estiver contribuindo para o núcleo (core), atente-se ao sistema de **Length Caching** na estrutura Content. Todas as strings de entrada têm seu comprimento pré-calculado em load_input_data para evitar o custo de wcslen durante o loop de animação de alta frequência.
-```

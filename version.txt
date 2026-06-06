@@ -1,1 +1,1 @@
-2.2.6-STABLE
+2.2.7-STABLE

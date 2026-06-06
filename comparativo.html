@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeonX — História & Comparativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060810;
+  --surface: #0d1117;
+  --border: rgba(0,255,204,0.12);
+  --border-hi: rgba(0,255,204,0.32);
+  --cyan: #00ffcc;
+  --pink: #ff3cac;
+  --blue: #00c3ff;
+  --yellow: #ffe168;
+  --green: #39ff7a;
+  --orange: #ff8c42;
+  --text: #e8eaf0;
+  --muted: #6e7a8a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { 
+  scroll-behavior: smooth; 
+  font-size: 16px; 
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  line-height: 1.65;
+  overflow-x: hidden;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* grid de fundo */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,255,204,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,204,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(6,8,16,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 1.25rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--cyan); letter-spacing: 2px;
+}
+.nav-links {
+  display: flex; gap: 1.2rem; list-style: none;
+}
+.nav-links a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: var(--muted);
+  text-decoration: none; letter-spacing: 1.5px;
+  text-transform: uppercase; transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--cyan); }
+@media (max-width: 500px) { .nav-links { display: none; } }
+
+/* ── WRAPPER ── */
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 1.1rem; position: relative; z-index: 1; }
+
+/* ── HERO ── */
+.hero {
+  padding: 4rem 1.1rem 3.5rem;
+  text-align: center;
+  position: relative; z-index: 1;
+}
+.hero-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 3px;
+  color: var(--cyan); text-transform: uppercase;
+  border: 1px solid var(--border-hi);
+  padding: 5px 14px; border-radius: 2px;
+  margin-bottom: 1.4rem;
+}
+.hero h1 {
+  font-size: 3rem; 
+  font-weight: 800; 
+  line-height: 1.2;
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 45%, var(--pink) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1.1rem;
+  filter: drop-shadow(0 0 30px rgba(0,255,204,0.2));
+}
+@media (min-width: 600px) { .hero h1 { font-size: 4.5rem; } }
+@media (min-width: 900px) { .hero h1 { font-size: 6rem; } }
+
+.hero-sub {
+  font-size: 1rem; color: var(--muted);
+  max-width: 560px; margin: 0 auto;
+  line-height: 1.7;
+}
+.hero-sub strong { color: var(--cyan); font-weight: 700; }
+
+/* ── DIVISOR ── */
+.div { height: 1px; background: linear-gradient(90deg, transparent, var(--border-hi), transparent); }
+
+/* ── SEÇÃO ── */
+section { padding: 3.5rem 0; }
+
+.sec-label {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 3px;
+  color: var(--cyan); text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+.sec-title {
+  font-size: 1.45rem; 
+  font-weight: 700; 
+  line-height: 1.15;
+  margin-bottom: 0.5rem;
+  word-wrap: break-word;
+}
+@media (min-width: 600px) { .sec-title { font-size: 2.2rem; } }
+.sec-title .c { color: var(--cyan); }
+.sec-title .p { color: var(--pink); }
+.sec-desc { color: var(--muted); font-size: 0.95rem; max-width: 540px; margin-bottom: 2.5rem; }
+
+/* ── TIMELINE ── */
+.timeline { position: relative; padding-left: 1.4rem; }
+.timeline::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--cyan) 15%, var(--pink) 85%, transparent);
+}
+.tl-item { position: relative; padding-left: 1.5rem; margin-bottom: 2.5rem; }
+.tl-dot {
+  position: absolute; left: -1.82rem; top: 5px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--bg); border: 2px solid var(--cyan);
+  box-shadow: 0 0 8px rgba(0,255,204,0.4);
+  transition: background 0.2s;
+}
+.tl-item:hover .tl-dot { background: var(--cyan); }
+.tl-year {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: var(--cyan);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+.tl-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+.tl-body { color: var(--muted); font-size: 0.88rem; line-height: 1.65; }
+.tl-body code {
+  background: rgba(0,255,204,0.08); color: var(--cyan);
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+}
+
+/* ── TOOL CARDS ── */
+.cards { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .cards { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 860px) { .cards { grid-template-columns: 1fr 1fr 1fr; } }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.4rem;
+  transition: border-color 0.25s, transform 0.25s;
+  position: relative; overflow: hidden;
+}
+.card::after {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  opacity: 0; transition: opacity 0.25s;
+}
+.card.ruby::after   { background: linear-gradient(90deg,#cc342d,#ff6b6b); }
+.card.clang::after  { background: linear-gradient(90deg,#00599c,#00c3ff); }
+.card.rust::after   { background: linear-gradient(90deg,#ff8c42,#ffe168); }
+.card.py::after     { background: linear-gradient(90deg,#39ff7a,#00c3ff); }
+.card.nx::after     { background: linear-gradient(90deg,var(--cyan),var(--pink)); }
+.card:hover { border-color: var(--border-hi); transform: translateY(-3px); }
+.card:hover::after { opacity: 1; }
+
+.card-icon { font-size: 1.6rem; margin-bottom: 0.7rem; display: block; }
+.card-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+.card-lang {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; color: var(--cyan);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+.card-desc { color: var(--muted); font-size: 0.84rem; line-height: 1.6; }
+.card-tags { margin-top: 0.9rem; display: flex; flex-wrap: wrap; gap: 5px; }
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem; padding: 2px 8px; border-radius: 2px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.tg { background:rgba(57,255,122,.08); color:var(--green); border:1px solid rgba(57,255,122,.2); }
+.tr { background:rgba(255,60,60,.08);  color:#ff6b6b;      border:1px solid rgba(255,60,60,.2); }
+.tb { background:rgba(0,195,255,.08);  color:var(--blue);  border:1px solid rgba(0,195,255,.2); }
+.ty { background:rgba(255,225,104,.08);color:var(--yellow);border:1px solid rgba(255,225,104,.2); }
+.tc { background:rgba(0,255,204,.08);  color:var(--cyan);  border:1px solid rgba(0,255,204,.2); }
+.to { background:rgba(255,140,66,.08); color:var(--orange);border:1px solid rgba(255,140,66,.2); }
+
+/* ── TABELA COMPARATIVA ── */
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border); }
+.tbl-hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; color: var(--muted);
+  margin-bottom: 0.6rem; letter-spacing: 1px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 640px; }
+thead tr { border-bottom: 1px solid var(--border-hi); }
+th {
+  padding: 0.8rem 1rem; text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--cyan); font-weight: 700;
+}
+th:first-child { color: var(--muted); min-width: 160px; }
+th.nx { background: rgba(0,255,204,0.04); border-left: 1px solid rgba(0,255,204,0.18); border-right: 1px solid rgba(0,255,204,0.18); }
+td {
+  padding: 0.72rem 1rem; border-bottom: 1px solid var(--border);
+  color: var(--muted); vertical-align: top;
+}
+td:first-child { color: var(--text); font-weight: 600; font-size: 0.8rem; }
+td.nx { color: var(--cyan) !important; font-weight: 700 !important; background: rgba(0,255,204,0.02); border-left: 1px solid rgba(0,255,204,0.1); border-right: 1px solid rgba(0,255,204,0.1); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(0,255,204,0.02); }
+.y { color: var(--green); }
+.n { color: #ff4444; }
+.h { color: var(--yellow); }
+
+/* legenda */
+.tbl-legend {
+  margin-top: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; color: var(--muted);
+  display: flex; gap: 1.2rem; flex-wrap: wrap;
+}
+
+/* ── FEATURES GRID ── */
+.feat-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 480px) { .feat-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 720px) { .feat-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+.feat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.2rem;
+  transition: border-color 0.2s;
+}
+.feat:hover { border-color: rgba(0,255,204,0.28); }
+.feat-icon { font-size: 1.4rem; margin-bottom: 0.5rem; display: block; }
+.feat-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+.feat-body { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+/* ── MÓDULOS ARCH ── */
+.arch-grid { 
+  display: grid; 
+  gap: 0.8rem; 
+  grid-template-columns: 1fr;
+}
+@media (min-width: 480px) { .arch-grid { grid-template-columns: 1fr 1fr; } } 
+@media (min-width: 640px) { .arch-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.arch {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.arch-name { font-size: 0.72rem; color: var(--cyan); font-weight: 700; margin-bottom: 0.35rem; }
+.arch-desc { font-size: 0.7rem; color: var(--muted); line-height: 1.5; }
+
+/* ── CODE ── */
+.code {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.2rem 1.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem; color: var(--cyan);
+  overflow-x: auto; line-height: 1.9; margin: 1.2rem 0;
+  white-space: nowrap;
+}
+.code .cm { color: var(--muted); }
+.code .kw { color: var(--pink); }
+.code .fl { color: var(--yellow); }
+.code .vl { color: var(--green); }
+
+/* ── SCORE BARS ── */
+.score-row { display: flex; align-items: center; gap: 0.8rem; margin: 0.6rem 0; }
+.score-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem; color: var(--muted);
+  min-width: 160px; letter-spacing: 0.5px;
+}
+@media (max-width: 400px) { .score-lbl { min-width: 110px; font-size: 0.6rem; } }
+.score-track { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 3px; }
+.score-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem; min-width: 40px; text-align: right;
+}
+
+/* ── VERDICT ── */
+.verdict { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .verdict { grid-template-columns: 1fr 1fr; } }
+
+.vcard {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.4rem;
+}
+.vcard.pros { border-left: 3px solid var(--green); }
+.vcard.cons { border-left: 3px solid #ff4444; }
+.vcard-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 2.5px;
+  text-transform: uppercase; font-weight: 700;
+  margin-bottom: 1rem;
+}
+.vcard.pros .vcard-lbl { color: var(--green); }
+.vcard.cons .vcard-lbl { color: #ff4444; }
+.vlist { list-style: none; }
+.vlist li {
+  font-size: 0.88rem; color: var(--muted);
+  padding: 0.42rem 0; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 8px;
+  line-height: 1.5;
+}
+.vlist li:last-child { border-bottom: none; }
+.vcard.pros .vlist li::before { content: '✦'; color: var(--green); font-size: 0.6rem; margin-top: 3px; flex-shrink: 0; }
+.vcard.cons .vlist li::before { content: '◇'; color: #ff4444; font-size: 0.6rem; margin-top: 3px; flex-shrink: 0; }
+
+/* ── BLOCKQUOTE ── */
+blockquote {
+  border-left: 3px solid var(--cyan);
+  padding: 0.9rem 1.2rem; margin: 1.5rem 0;
+  background: rgba(0,255,204,0.03);
+  border-radius: 0 6px 6px 0;
+  color: var(--muted); font-size: 0.9rem; line-height: 1.7;
+}
+blockquote strong { color: var(--text); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 2.5rem 1.1rem; text-align: center;
+  border-top: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: var(--muted); letter-spacing: 1.5px;
+  line-height: 1.9; position: relative; z-index: 1;
+}
+footer span { color: var(--cyan); }
+
+/* subsection title */
+.sub-title {
+  font-size: 1rem; font-weight: 700;
+  margin: 2rem 0 1rem;
+  color: var(--text);
+}
+.sub-title .hl { color: var(--cyan); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">NeonX / Análise Gerada por IA (Claude)</span>
+  <ul class="nav-links">
+    <li><a href="#historia">História</a></li>
+    <li><a href="#ferramentas">Ferramentas</a></li>
+    <li><a href="#comparativo">Comparativo</a></li>
+    <li><a href="#arq">Arquitetura</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <span class="hero-tag">Análise Técnica · 2026</span>
+  <h1>NeonX</h1>
+  <p class="hero-sub">
+    A história de um <strong>colorizador de terminal</strong> nascido no Termux que evoluiu além do lolcat e redefiniu o que ferramentas CLI podem ser.
+  </p>
+</div>
+
+<div class="div"></div>
+
+<!-- SEÇÃO 01 — LINHA DO TEMPO -->
+<section id="historia">
+  <div class="wrap">
+    <span class="sec-label">01 — Contexto</span>
+    <h2 class="sec-title">A Evolução dos <span class="c">Colorizadores</span> de Terminal</h2>
+    <p class="sec-desc">De scripts Perl nos anos 2000 até engines procedurais em C com WebAssembly — uma linha do tempo da arte de colorir o terminal.</p>
+
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">~2000 — Pioneiros</div>
+        <div class="tl-title">Os primeiros colorizers: colorize, ccze e grc</div>
+        <div class="tl-body">
+          Os primeiros colorizadores surgiram como ferramentas utilitárias para sysadmins. O <code>ccze</code> focava em logs de sistema — syslog, procmail, httpd. O <code>grc</code> usava arquivos de configuração regex para aplicar cores a qualquer saída. Nenhum pensava em estética: era pura utilidade.
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2011 — Marco cultural</div>
+        <div class="tl-title">lolcat (Ruby) — "Rainbows and unicorns!"</div>
+        <div class="tl-body">
+          Em agosto de 2011, <strong>busyloop</strong> lança o lolcat como Ruby gem. Gradiente arco-íris no terminal. Alcançou 5M+ downloads e 6.499 estrelas. O ponto de inflexão que provou que o terminal pode ser <em>divertido</em> — não só funcional. Mas renderizava linha a linha, lento, sem customização real.
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">~2013 — Performance</div>
+        <div class="tl-title">lolcat em C (jaseg) — 150× mais rápido</div>
+        <div class="tl-body">
+          <strong>jaseg</strong> reescreve o lolcat em C. O original levava ~16s para processar um arquivo; a versão C, 0,09s. Mas ainda renderizava linha a linha — o problema raiz continuou sem solução. Mais rápido, mesma limitação arquitetural.
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2015–2020 — Diversificação</div>
+        <div class="tl-title">bat, grc modernizado, versões em Go e Rust</div>
+        <div class="tl-body">
+          Segunda geração de ferramentas: <code>bat</code> (syntax highlighting em Rust), versões do lolcat em Go e Rust. Cada uma mais rápida, mas todas ainda line-by-line. O lolcat original entra em hibernação — último release: fevereiro de 2020.
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2026 — NeonX</div>
+        <div class="tl-title">Engine de renderização procedural, não um colorizer</div>
+        <div class="tl-body">
+          Desenvolvido no Termux (Android), em C puro. Na v2.2.6-STABLE, o NeonX não é um colorizer: é uma <em>engine de renderização</em> com aritmética de ponto fixo Q16.16, 12 modos de shader, 21 presets temáticos, WebAssembly e verificação de integridade Ed25519.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- SEÇÃO 02 — FERRAMENTAS -->
+<section id="ferramentas">
+  <div class="wrap">
+    <span class="sec-label">02 — Ecossistema</span>
+    <h2 class="sec-title">As Ferramentas do <span class="p">Universo</span></h2>
+    <p class="sec-desc">Os principais players que definiram o espaço de coloring e estética de terminal.</p>
+
+    <div class="cards">
+
+      <div class="card ruby">
+        <span class="card-icon">💎</span>
+        <div class="card-name">lolcat (original)</div>
+        <div class="card-lang">Ruby · busyloop · 2011</div>
+        <div class="card-desc">O pai de todos os colorizadores estéticos. Gradiente arco-íris contínuo na saída padrão. Grande impacto cultural, mas lento e sem customização avançada.</div>
+        <div class="card-tags">
+          <span class="tag tg">Histórico</span>
+          <span class="tag ty">Rainbow only</span>
+          <span class="tag tb">5M+ downloads</span>
+        </div>
+      </div>
+
+      <div class="card clang">
+        <span class="card-icon">⚡</span>
+        <div class="card-name">lolcat-c (jaseg)</div>
+        <div class="card-lang">C · jaseg · ~2013</div>
+        <div class="card-desc">Reimplementação de alta performance em C puro. 150× mais rápido que o Ruby. Foco absoluto em eficiência — sem presets, sem animações avançadas, sem customização.</div>
+        <div class="card-tags">
+          <span class="tag tg">Alta performance</span>
+          <span class="tag ty">Features mínimas</span>
+          <span class="tag tr">Sem presets</span>
+        </div>
+      </div>
+
+      <div class="card rust">
+        <span class="card-icon">🦇</span>
+        <div class="card-name">bat</div>
+        <div class="card-lang">Rust · sharkdp · 2018</div>
+        <div class="card-desc">Substituto moderno do <code style="background:rgba(0,0,0,0.4);padding:1px 4px;border-radius:3px;font-family:monospace;font-size:0.78rem;">cat</code> com syntax highlighting de código-fonte e integração com git diff. Focado em legibilidade, não estética visual.</div>
+        <div class="card-tags">
+          <span class="tag tg">Syntax highlight</span>
+          <span class="tag tb">Rust</span>
+          <span class="tag ty">Git integrado</span>
+        </div>
+      </div>
+
+      <div class="card py">
+        <span class="card-icon">🎨</span>
+        <div class="card-name">grc</div>
+        <div class="card-lang">Python · garabik · ~2000</div>
+        <div class="card-desc">Generic Colouriser — colore saída de comandos (ip, dig, df) via regex. Ferramenta semântica para sysadmins. Extensível, mas sem estética procedural.</div>
+        <div class="card-tags">
+          <span class="tag tg">Semântico</span>
+          <span class="tag to">Regex-based</span>
+          <span class="tag tb">Sysadmin</span>
+        </div>
+      </div>
+
+      <div class="card py">
+        <span class="card-icon">📜</span>
+        <div class="card-name">ccze</div>
+        <div class="card-lang">C · mezo · ~2000</div>
+        <div class="card-desc">Especializado em colorir logs de sistema. Alta performance para servidores. Sem desenvolvimento ativo há mais de 10 anos.</div>
+        <div class="card-tags">
+          <span class="tag to">Log-focused</span>
+          <span class="tag tg">C nativo</span>
+          <span class="tag tr">Inativo</span>
+        </div>
+      </div>
+
+      <div class="card nx">
+        <span class="card-icon">✦</span>
+        <div class="card-name">NeonX</div>
+        <div class="card-lang">C Puro · inrryoff · 2026</div>
+        <div class="card-desc">Engine de renderização procedural. 12 modos de shader, 21 presets, gradientes hex, modo stream para logs, WebAssembly, 19 idiomas e verificação Ed25519.</div>
+        <div class="card-tags">
+          <span class="tag tc">Engine completa</span>
+          <span class="tag tg">WASM</span>
+          <span class="tag tc">21 presets</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- SEÇÃO 03 — COMPARATIVO -->
+<section id="comparativo">
+  <div class="wrap">
+    <span class="sec-label">03 — Comparativo</span>
+    <h2 class="sec-title">Feature Matrix <span class="c">Detalhada</span></h2>
+    <p class="sec-desc">Comparação técnica entre NeonX e as principais ferramentas. Arraste para o lado no mobile.</p>
+
+    <p class="tbl-hint">← deslize para ver tudo →</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Recurso</th>
+            <th>lolcat Ruby</th>
+            <th>lolcat-c</th>
+            <th>bat</th>
+            <th>grc</th>
+            <th class="nx">NeonX ✦</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Linguagem</td><td>Ruby</td><td>C</td><td>Rust</td><td>Python</td><td class="nx">C puro (C99/C11)</td></tr>
+          <tr><td>Dependências externas</td><td><span class="n">✗</span> Ruby+gems</td><td><span class="y">✓</span> Zero</td><td><span class="h">~</span> Cargo</td><td><span class="n">✗</span> Python</td><td class="nx"><span class="y">✓</span> Zero</td></tr>
+          <tr><td>Velocidade</td><td><span class="n">●</span> Lento</td><td><span class="y">●</span> Muito rápido</td><td><span class="y">●</span> Rápido</td><td><span class="h">●</span> Médio</td><td class="nx"><span class="y">●</span> LUT + zero-alloc</td></tr>
+          <tr><td>Modos de animação</td><td>1</td><td>1</td><td>0</td><td>0</td><td class="nx">12 modos</td></tr>
+          <tr><td>Presets temáticos</td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="h">~</span> Sintaxe</td><td><span class="n">✗</span></td><td class="nx">21 presets</td></tr>
+          <tr><td>Cores hex customizáveis</td><td><span class="h">~</span> Hue</td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="h">~</span> Regex</td><td class="nx"><span class="y">✓</span> --color1/--color2</td></tr>
+          <tr><td>Modo stream (tail -f)</td><td><span class="h">~</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="h">~</span></td><td class="nx"><span class="y">✓</span> Flag -L</td></tr>
+          <tr><td>WebAssembly</td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> WASM + demo HTML</td></tr>
+          <tr><td>Windows nativo</td><td><span class="n">✗</span></td><td><span class="h">~</span></td><td><span class="y">✓</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> x64 + x86</td></tr>
+          <tr><td>Android (Termux)</td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="y">✓</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> ARM64 + ARM32</td></tr>
+          <tr><td>Internacionalização</td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="h">~</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> 19 idiomas</td></tr>
+          <tr><td>Verificação de integridade</td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> Ed25519 + BLAKE2b</td></tr>
+          <tr><td>API como biblioteca C</td><td><span class="n">✗</span></td><td><span class="h">~</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> neonx.h pública</td></tr>
+          <tr><td>Aritmética ponto fixo</td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> Q16.16</td></tr>
+          <tr><td>Controle de FPS</td><td><span class="h">~</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> -F [fps]</td></tr>
+          <tr><td>Ângulo do gradiente</td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td><span class="n">✗</span></td><td class="nx"><span class="y">✓</span> -A [0–360°]</td></tr>
+          <tr><td>Status de manutenção</td><td><span class="n">✗</span> Inativo 2020</td><td><span class="h">~</span> Mínimo</td><td><span class="y">✓</span> Ativo</td><td><span class="h">~</span> Baixo</td><td class="nx"><span class="y">✓</span> Ativo 2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-legend">
+      <span><span class="y">✓</span> Suportado</span>
+      <span><span class="h">~</span> Parcial</span>
+      <span><span class="n">✗</span> Não suportado</span>
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- SEÇÃO 04 — ARQUITETURA -->
+<section id="arq">
+  <div class="wrap">
+    <span class="sec-label">04 — Arquitetura</span>
+    <h2 class="sec-title">O que torna o NeonX <span class="c">diferente</span></h2>
+    <p class="sec-desc">Decisões de design que elevam o NeonX de "um lolcat melhor" para uma engine própria.</p>
+
+    <div class="sub-title"><span class="hl">01.</span> Ponto Fixo Q16.16 — sem float, sem double</div>
+    <p style="color:var(--muted);font-size:0.88rem;line-height:1.7;margin-bottom:0.8rem;">
+      Todos os cálculos de shader usam inteiros de 32 bits em formato Q16.16. Sem FPU necessária, comportamento consistente em qualquer plataforma — incluindo WASM sem unidade de ponto flutuante dedicada.
+    </p>
+    <div class="code">
+      <span class="cm">// Todos os shaders em ponto fixo — sem float</span><br>
+      <span class="kw">typedef</span> <span class="vl">int32_t</span> fixed_t; <span class="cm">// Q16.16</span><br>
+      <span class="kw">#define</span> <span class="fl">FIXED_MUL</span>(a,b) ((fixed_t)(((int64_t)(a)*(b))>>16))
+    </div>
+
+    <div class="sub-title"><span class="hl">02.</span> 12 Modos de Shader</div>
+    <div class="feat-grid">
+      <div class="feat"><span class="feat-icon">→</span><div class="feat-title">Modo 0 — Horizontal</div><div class="feat-body">Gradiente linear por posição X. Base do preset cyberpunk e hacker.</div></div>
+      <div class="feat"><span class="feat-icon">🌅</span><div class="feat-title">Modo 1 — Sunset</div><div class="feat-body">Transição vertical dramática. Usado em Dracula e Rose.</div></div>
+      <div class="feat"><span class="feat-icon">〰</span><div class="feat-title">Modo 4 — Ondas</div><div class="feat-body">Função senoidal com fase animada. O mais próximo do lolcat, mas com controle total.</div></div>
+      <div class="feat"><span class="feat-icon">💻</span><div class="feat-title">Modo 10 — Matrix</div><div class="feat-body">Shader com scanlines e brilho digital. Presets matrix e toxic.</div></div>
+      <div class="feat"><span class="feat-icon">◎</span><div class="feat-title">Radial</div><div class="feat-body">Distância euclidiana via isqrt64 em ponto fixo — gradiente circular.</div></div>
+      <div class="feat"><span class="feat-icon">✦</span><div class="feat-title">+ 7 modos</div><div class="feat-body">Plasma, fading vertical, ondas compostas e shaders especializados por preset.</div></div>
+    </div>
+
+    <div class="sub-title"><span class="hl">03.</span> Módulos internos</div>
+    <div class="arch-grid">
+      <div class="arch"><div class="arch-name">render_core.c</div><div class="arch-desc">Pixel por caractere. Interface via RenderDriver — mesma lógica serve CLI e WASM.</div></div>
+      <div class="arch"><div class="arch-name">math_fixed.c</div><div class="arch-desc">Q16.16, LUT de seno com 4096 entradas, isqrt64, entropia via /dev/urandom.</div></div>
+      <div class="arch"><div class="arch-name">shader_effects.c</div><div class="arch-desc">Fórmulas procedurais de cada modo: sunset, matrix, plasma, radial.</div></div>
+      <div class="arch"><div class="arch-name">integrity.c</div><div class="arch-desc">Ed25519 + BLAKE2b via Monocypher. O binário valida sua própria assinatura.</div></div>
+      <div class="arch"><div class="arch-name">msgs.c</div><div class="arch-desc">19 idiomas com detecção via LANG. Macro MSG(id) para acesso simples.</div></div>
+      <div class="arch"><div class="arch-name">main_wasm.c</div><div class="arch-desc">Bridge Emscripten. Exporta funções críticas para JS via WebAssembly.</div></div>
+      <div class="arch"><div class="arch-name">terminal.c</div><div class="arch-desc">Estado TTY, buffer de saída, controle de FPS, SIGINT handler, isatty.</div></div>
+      <div class="arch"><div class="arch-name">shaders.c</div><div class="arch-desc">Mapa de presets: nome → modo + paleta RGB + ângulo. 21 presets.</div></div>
+    </div>
+
+    <div class="sub-title"><span class="hl">04.</span> Na prática</div>
+    <div class="code">
+      <span class="cm"># Equivalente básico ao lolcat</span><br>
+      cat banner.txt | <span class="kw">neonx</span><br><br>
+      <span class="cm"># O que o lolcat nunca fez: presets temáticos</span><br>
+      tail -f app.log | <span class="kw">neonx</span> <span class="fl">--preset</span> <span class="vl">dracula</span> <span class="fl">-L</span><br><br>
+      <span class="cm"># Gradiente com cores hex</span><br>
+      echo "Deploy OK" | <span class="kw">neonx</span> <span class="fl">--color1</span> <span class="vl">"#00ffcc"</span> <span class="fl">--color2</span> <span class="vl">"#ff3cac"</span><br><br>
+      <span class="cm"># Verificar integridade do binário</span><br>
+      <span class="kw">neonx</span> <span class="fl">--verify-sig</span>
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- SEÇÃO 05 — VEREDICTO -->
+<section>
+  <div class="wrap">
+    <span class="sec-label">05 — Análise</span>
+    <h2 class="sec-title">Pontos Fortes e <span class="p">Oportunidades</span></h2>
+    <p class="sec-desc">Uma avaliação honesta do NeonX no contexto do ecossistema atual.</p>
+
+    <div class="verdict">
+      <div class="vcard pros">
+        <div class="vcard-lbl">Pontos Fortes</div>
+        <ul class="vlist">
+          <li>Engine procedural genuína — não apenas um colorizer</li>
+          <li>Zero dependências externas, C puro portável</li>
+          <li>Único com WebAssembly nativo no ecossistema</li>
+          <li>Linux, macOS, Windows, Android e WASM</li>
+          <li>Ponto fixo Q16.16 — consistente sem FPU</li>
+          <li>Integridade criptográfica Ed25519 + BLAKE2b</li>
+          <li>19 idiomas com detecção automática</li>
+          <li>Modo stream -L dedicado para tail -f</li>
+          <li>API C pública via neonx.h</li>
+          <li>CI/CD em 3 sistemas operacionais simultâneos</li>
+        </ul>
+      </div>
+      <div class="vcard cons">
+        <div class="vcard-lbl">Oportunidades</div>
+        <ul class="vlist">
+          <li>Comunidade menor que o lolcat (histórico de 2011)</li>
+          <li>Instalação mais complexa que gem install ou apt</li>
+          <li>12 modos + 21 presets + muitas flags podem intimidar</li>
+          <li>Licença Source Available dificulta repositórios oficiais</li>
+          <li>Gargalo do tty/pty (~4KB) ainda sem solução definitiva</li>
+          <li>WASM ainda em beta, não estável</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sub-title" style="margin-top:2rem;">Score por dimensão</div>
+
+    <div class="score-row">
+      <span class="score-lbl">Features / Recursos</span>
+      <div class="score-track"><div class="score-fill" style="width:96%;background:linear-gradient(90deg,var(--cyan),var(--blue))"></div></div>
+      <span class="score-val" style="color:var(--cyan)">9.6</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Portabilidade</span>
+      <div class="score-track"><div class="score-fill" style="width:95%;background:linear-gradient(90deg,var(--cyan),var(--blue))"></div></div>
+      <span class="score-val" style="color:var(--cyan)">9.5</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Segurança / Integridade</span>
+      <div class="score-track"><div class="score-fill" style="width:95%;background:linear-gradient(90deg,var(--cyan),var(--blue))"></div></div>
+      <span class="score-val" style="color:var(--cyan)">9.5</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Performance (design)</span>
+      <div class="score-track"><div class="score-fill" style="width:92%;background:linear-gradient(90deg,var(--cyan),var(--blue))"></div></div>
+      <span class="score-val" style="color:var(--cyan)">9.2</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Qualidade de código</span>
+      <div class="score-track"><div class="score-fill" style="width:90%;background:linear-gradient(90deg,var(--cyan),var(--blue))"></div></div>
+      <span class="score-val" style="color:var(--cyan)">9.0</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Facilidade de instalação</span>
+      <div class="score-track"><div class="score-fill" style="width:65%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div>
+      <span class="score-val" style="color:var(--yellow)">6.5</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Tamanho de comunidade</span>
+      <div class="score-track"><div class="score-fill" style="width:45%;background:linear-gradient(90deg,var(--pink),#ff6b6b)"></div></div>
+      <span class="score-val" style="color:var(--pink)">4.5</span>
+    </div>
+
+    <blockquote style="margin-top:2rem;">
+      O NeonX não compete com o lolcat — ele o supera em quase todas as dimensões técnicas enquanto ocupa uma categoria que o lolcat nunca tentou: <strong>engine de renderização estética de terminal</strong>. Uma ferramenta criada no Termux, distribuída com assinatura Ed25519 e rodando em WebAssembly.
+    </blockquote>
+  </div>
+</section>
+
+<footer>
+  <p>Análise · <span>NeonX v2.2.6-STABLE</span> · Comparativo com o ecossistema · <span>2026</span></p>
+  <p style="margin-top:0.4rem;">lolcat (busyloop) · lolcat-c (jaseg) · bat (sharkdp) · grc (garabik) · NeonX (inrryoff)</p>
+</footer>
+
+</body>
+</html>

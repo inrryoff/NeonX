@@ -23,11 +23,14 @@
 #define write _write
 #define wcsdup _wcsdup
 #endif
+#if defined(_WIN32) || defined(_WIN64)
+    #define WRITE_SIZE unsigned int
+#else
+    #define WRITE_SIZE size_t
+#endif
 
 extern int g_max_lines_limit;
-
-static uint64_t get_time_us(void)
-{
+static uint64_t get_time_us(void) {
 #ifdef _WIN32
     LARGE_INTEGER freq;
     LARGE_INTEGER now;
@@ -41,8 +44,7 @@ static uint64_t get_time_us(void)
 #endif
 }
 
-void cleanup_and_exit(Content *content_ptr, int exit_code)
-{
+void cleanup_and_exit(Content *content_ptr, int exit_code) {
     if (write(STDOUT_FILENO, "\033[?7h\033[?25h\033[0m\n", 16) == -1) {
     }
     free_content(content_ptr);
@@ -135,8 +137,7 @@ void load_input_data(struct neonx_options *opts, Content *content_ptr) {
 #ifdef __GNUC__
 __attribute__((format(printf, 3, 4)))
 #endif
-static size_t safe_append(char *ptr, size_t rem, const char *fmt, ...)
-{
+static size_t safe_append(char *ptr, size_t rem, const char *fmt, ...) {
     if (rem == 0) return 0;
     va_list args;
     va_start(args, fmt);
@@ -156,16 +157,26 @@ typedef struct {
 static void cli_set_color(RenderDriver *self, int r, int g, int b) {
     CliDriverCtx *ctx = (CliDriverCtx*)self->ctx;
     if (r == ctx->last_r && g == ctx->last_g && b == ctx->last_b) return;
-    if (ctx->buf_ptr && ctx->rem_ptr && *ctx->rem_ptr > 0) {
-        int n = snprintf(*ctx->buf_ptr, *ctx->rem_ptr, "\033[38;2;%d;%d;%dm", r, g, b);
-        if (n > 0) {
-            size_t written = (size_t)n;
-            if (written >= *ctx->rem_ptr) written = *ctx->rem_ptr - 1;
-            *ctx->buf_ptr += written;
-            *ctx->rem_ptr -= written;
-        }
+
+    char seq[32];
+    int n;
+    if (self->color_mode == COLOR_256) {
+        int ri = (r * 5 + 127) / 255;
+        int gi = (g * 5 + 127) / 255;
+        int bi = (b * 5 + 127) / 255;
+        int idx = 16 + 36*ri + 6*gi + bi;
+        n = snprintf(seq, sizeof(seq), "\033[38;5;%dm", idx);
     } else {
-        printf("\033[38;2;%d;%d;%dm", r, g, b);
+        n = snprintf(seq, sizeof(seq), "\033[38;2;%d;%d;%dm", r, g, b);
+    }
+
+    if (ctx->buf_ptr && ctx->rem_ptr && *ctx->rem_ptr > 0) {
+        size_t written = (size_t)n < *ctx->rem_ptr ? (size_t)n : *ctx->rem_ptr - 1;
+        memcpy(*ctx->buf_ptr, seq, written);
+        *ctx->buf_ptr += written;
+        *ctx->rem_ptr -= written;
+    } else {
+        fputs(seq, stdout);
     }
     ctx->last_r = r; ctx->last_g = g; ctx->last_b = b;
 }
@@ -200,10 +211,9 @@ static void cli_put_char(RenderDriver *self, wchar_t c) {
     }
 }
 
-static void print_colored_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, struct neonx_options *opts, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, char **buf_ptr, size_t *rem_ptr)
-{
+static void print_colored_line(wchar_t *line, size_t line_len, int32_t y_fixed, int32_t phase, struct neonx_options *opts, int32_t cx_fixed, int32_t cy_fixed, int32_t max_dist_fixed, char **buf_ptr, size_t *rem_ptr) {
     CliDriverCtx ctx = {buf_ptr, rem_ptr, -1, -1, -1};
-    RenderDriver driver = {cli_set_color, cli_reset_color, cli_put_char, &ctx};
+    RenderDriver driver = {cli_set_color, cli_reset_color, cli_put_char, &ctx, opts->color_mode};
     neonx_render_line(line, line_len, y_fixed, phase, opts->anim_mode, cx_fixed, cy_fixed, max_dist_fixed, &driver);
 }
 
@@ -217,9 +227,9 @@ int run_stream_mode(struct neonx_options *opts, Content *content_ptr)
     for (int i = 0; i < line_count; i++) {
         wchar_t *line_buf = content_ptr->lines[i];
         size_t len = content_ptr->line_lens[i];
-        int32_t y_fixed = FLOAT_TO_FIXED(i);
-        int32_t cy_fixed = FLOAT_TO_FIXED(0.5f);
-        int32_t cx_fixed = FLOAT_TO_FIXED((float)len / 2.0f);
+        int32_t y_fixed = (int32_t)(i)   << FIXED_SHIFT;
+        int32_t cy_fixed = FIXED_ONE >> 1;
+        int32_t cx_fixed = ((int32_t)(len) << FIXED_SHIFT) >> 1;
         int32_t max_dist_fixed = neonx_fast_dist_fixed(cx_fixed, cy_fixed);
 
         print_colored_line(line_buf, len, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, NULL, NULL);
@@ -237,9 +247,9 @@ int run_stream_mode(struct neonx_options *opts, Content *content_ptr)
         if (len > 0 && buf[len-1] == L'\n') buf[len-1] = L'\0';
         len = wcslen(buf);
         sanitize_ansi_escapes_w(buf);
-        int32_t y_fixed = FLOAT_TO_FIXED(line_count);
-        int32_t cy_fixed = FLOAT_TO_FIXED(0.5f);
-        int32_t cx_fixed = FLOAT_TO_FIXED((float)len / 2.0f);
+        int32_t y_fixed = (int32_t)line_count << FIXED_SHIFT;
+        int32_t cy_fixed = FIXED_ONE >> 1;
+        int32_t cx_fixed = ((int32_t)(len) << FIXED_SHIFT) >> 1;
         int32_t max_dist_fixed = neonx_fast_dist_fixed(cx_fixed, cy_fixed);
         print_colored_line(buf, len, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, NULL, NULL);
         printf("\033[0m\n");
@@ -275,8 +285,9 @@ int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
         return 1;
     }
     bool first_frame = true;
-    int32_t cx_fixed = FLOAT_TO_FIXED((float)max_w / 2.0f);
-    int32_t cy_fixed = FLOAT_TO_FIXED((float)content_ptr->count / 2.0f);
+    CliDriverCtx ctx = {NULL, NULL, -1, -1, -1};
+    int32_t cx_fixed = ((int32_t)max_w << FIXED_SHIFT) >> 1;
+    int32_t cy_fixed = ((int32_t)content_ptr->count << FIXED_SHIFT) >> 1;
     int32_t max_dist_fixed = neonx_fast_dist_fixed(cx_fixed, cy_fixed);
     uint64_t start_time_us = get_time_us();
     while (1) {
@@ -292,26 +303,27 @@ int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
         if (!first_frame) {
             if (content_ptr->count > 100) {
                 w = safe_append(ptr, rem, "\033[H");
-                ptr += w; rem -= w;
             } else {
                 w = safe_append(ptr, rem, "\033[%dA", content_ptr->count);
-                ptr += w; rem -= w;
             }
+            ptr += w; rem -= w;
         }
         first_frame = false;
         for (int y = 0; y < content_ptr->count; y++) {
-            wchar_t *line = content_ptr->lines[y];
+            wchar_t *line   = content_ptr->lines[y];
             size_t line_len = content_ptr->line_lens[y];
-            int32_t y_fixed = FLOAT_TO_FIXED(y);
-            w = safe_append(ptr, rem, "\r");
-            ptr += w; rem -= w;
-            print_colored_line(line, line_len, y_fixed, phase, opts, cx_fixed, cy_fixed, max_dist_fixed, &ptr, &rem);
+            int32_t y_fixed = (int32_t)y << FIXED_SHIFT;
+            if (rem > 1) { *ptr = '\r'; ptr++; rem--; }
+            ctx.buf_ptr = &ptr;
+            ctx.rem_ptr = &rem;
+            RenderDriver driver = {cli_set_color, cli_reset_color, cli_put_char, &ctx, opts->color_mode};
+            neonx_render_line(line, line_len, y_fixed, phase, opts->anim_mode, cx_fixed, cy_fixed, max_dist_fixed, &driver);
+
             w = safe_append(ptr, rem, "\033[0m\033[K\n");
             ptr += w; rem -= w;
         }
         w = safe_append(ptr, rem, "\033[?2026l");
-        ptr += w; rem -= w;
-        if (write(STDOUT_FILENO, frame_buf, (unsigned int)(ptr - frame_buf)) == -1) {
+        if (write(STDOUT_FILENO, frame_buf, (WRITE_SIZE)(ptr - frame_buf)) == -1) {
             free(frame_buf);
             cleanup_and_exit(content_ptr, 1);
         }
@@ -322,4 +334,3 @@ int run_buffered_mode(struct neonx_options *opts, Content *content_ptr) {
     free(frame_buf);
     return 0;
 }
-

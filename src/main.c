@@ -25,25 +25,37 @@ int g_max_lines_limit = 10000;
 extern uint32_t secure_random_u32(void);
 
 static int32_t secure_str_to_fixed(const char *s, bool *ok) {
-    if (!s || !*s) {
-        if (ok) *ok = false;
-        return 0;
-    }
-    char *endptr = NULL;
-    errno = 0;
-    double val = strtod(s, &endptr);
-    if (errno != 0 || endptr == s || (*endptr != '\0' && !isspace((unsigned char)*endptr))) {
-        if (ok) *ok = false;
-        return 0;
+    if (!s || !*s) { if (ok) *ok = false; return 0; }
+    
+    bool neg = false;
+    if (*s == '-') { neg = true; s++; }
+    else if (*s == '+') { s++; }
+    
+    int32_t int_part = 0;
+    while (*s >= '0' && *s <= '9') {
+        int_part = int_part * 10 + (*s - '0');
+        if (int_part > 32767) { if (ok) *ok = false; return 0; }
+        s++;
     }
     
-    if (val > 32767.0 || val < -32768.0) {
-        if (ok) *ok = false;
-        return 0;
+    int32_t frac_part = 0;
+    int32_t frac_div  = 1;
+    if (*s == '.') {
+        s++;
+        while (*s >= '0' && *s <= '9' && frac_div < 100000) {
+            frac_part = frac_part * 10 + (*s - '0');
+            frac_div  *= 10;
+            s++;
+        }
+        while (*s >= '0' && *s <= '9') s++;
     }
-
+    
+    if (*s != '\0' && !isspace((unsigned char)*s)) { if (ok) *ok = false; return 0; }
+    
+    int32_t result = (int_part << FIXED_SHIFT) + (int32_t)(((int64_t)frac_part * FIXED_ONE) / frac_div);
+    if (neg) result = -result;
     if (ok) *ok = true;
-    return FLOAT_TO_FIXED(val);
+    return result;
 }
 
 static bool parse_hex_color(const char *hex, int *r, int *g, int *b) {
@@ -117,13 +129,17 @@ static int handle_numeric_argument(const char *arg, const char *val, struct neon
             print_error_msg(MSG(MSG_ERR_MUST_BE_POSITIVE), "-F", NULL);
             return 3;
         }
+        if (fps > 360) {
+            print_error_msg(MSG(MSG_ERR_INVALID_NUMBER), "-F", val);
+            return 3;
+        }
         opts->frame_time_us = (uint32_t)(1000000LL / fps);
         return 0;
     }
 
     if (!strcmp(arg, "-m")) {
         int32_t mode = num_fixed / FIXED_ONE;
-        if (mode < 0 || mode > 11) {
+        if (mode < 0 || mode > 15) {
             fprintf(stderr, "%s", MSG(MSG_ERR_MODE_LIMIT));
             return 4;
         }
@@ -332,7 +348,8 @@ int main(int argc, char *argv[]) {
     set_integrity_status(auth_status);
 
     struct neonx_options opts = {0};
-    opts.speed_fixed = FLOAT_TO_FIXED(0.2f);
+    opts.color_mode = detect_color_mode();
+    opts.speed_fixed = 13107;
     opts.freq_fixed = 19660;
     opts.angle_fixed = -65536;
     opts.frame_time_us = 16666;

@@ -1,11 +1,6 @@
 #include "neonx.h"
-#include <math.h>
 #include <wchar.h>
 #include <string.h>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 #include <stdio.h>
 
@@ -51,9 +46,9 @@ static int32_t grad_sin_fixed = 0;
 
 static void precalc_gradient_angle(void) {
     if (gradient_angle_fixed >= 0) {
-        double rad = ((double)gradient_angle_fixed / 65536.0) * M_PI / 180.0;
-        grad_cos_fixed = (int32_t)(cos(rad) * 65536.0);
-        grad_sin_fixed = (int32_t)(sin(rad) * 65536.0);
+        int32_t rad_fixed = (int32_t)(((int64_t)gradient_angle_fixed * DEG_TO_RAD_FIXED) >> FIXED_SHIFT);
+        grad_sin_fixed = neonx_fast_sin_fixed(rad_fixed);
+        grad_cos_fixed = neonx_fast_sin_fixed(rad_fixed + FIXED_PI_2);
     }
 }
 
@@ -74,7 +69,6 @@ void apply_border_opacity_fixed(int32_t x, int32_t y, int32_t cx, int32_t cy, in
     if (*g < 0) *g = 0; else if (*g > 255) *g = 255;
     if (*b < 0) *b = 0; else if (*b > 255) *b = 255;
 }
-
 void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int32_t phase, int *r, int *g, int *b) {
     int32_t p;
     int32_t intensity = FIXED_ONE;
@@ -108,17 +102,54 @@ void neonx_get_color(int32_t x, int32_t y, int mode, int32_t cx, int32_t cy, int
         break;
     case 10: p = shader_matrix_fixed(x, y, phase, &intensity); break;
     case 11: p = shader_pulse_fixed(x, y, cx, cy, phase, &intensity); break;
+    case 12: {
+        int32_t dist = neonx_fast_dist_fixed(x - cx, y - cy);
+        if (dist == 0) dist = 1;
+        p = (int32_t)(((int64_t)FIXED_ONE << 14) / dist) - phase;
+        int32_t angle = FIXED_MUL(x - cx, 13107) + FIXED_MUL(y - cy, 6553);
+        p += angle;
+        intensity = FIXED_ONE;
+        break;
+    }
+    case 13: {
+        int32_t dx = x > cx ? x - cx : cx - x;
+        int32_t dy = y > cy ? y - cy : cy - y;
+        p = (dx + dy) - phase;
+        intensity = FIXED_ONE;
+        break;
+    }
+    case 14: {
+        int32_t h1 = neonx_fast_sin_fixed(FIXED_MUL(x, 13107) + FIXED_MUL(y,  6553) + phase);
+        int32_t h2 = neonx_fast_sin_fixed(FIXED_MUL(x, 26214) + FIXED_MUL(y, 13107) + phase * 2);
+        int32_t h3 = neonx_fast_sin_fixed(FIXED_MUL(x,  6553) + FIXED_MUL(y, 26214) + phase / 2);
+        p = h1 / 2 + h2 / 4 + h3 / 4;
+        intensity = FIXED_ONE;
+        break;
+    }
+    case 15: {
+        int32_t scan_pos = phase & 0x7FFFFFFF;
+        int32_t dist_scan = y - scan_pos;
+        if (dist_scan < 0) dist_scan = -dist_scan;
+        int32_t width = FIXED_ONE * 8;
+        if (dist_scan < width) {
+            intensity = FIXED_ONE - FIXED_MUL(dist_scan, FIXED_ONE / 8);
+        } else {
+            intensity = 32768;
+        }
+        p = phase + FIXED_MUL(x, 6553);
+        break;
+    }
     default:
         p = phase + FIXED_MUL(x, 13107) + FIXED_MUL(y, 6553);
-        if (gradient_angle_fixed >= 0) {
-            p += FIXED_MUL(grad_cos_fixed, x) + FIXED_MUL(grad_sin_fixed, y);
-        }
         intensity = FIXED_ONE;
         break;
     }
 
+    if (gradient_angle_fixed >= 0) {
+        p += FIXED_MUL(grad_cos_fixed, x) + FIXED_MUL(grad_sin_fixed, y);
+    }
+
     int32_t base_phase = FIXED_MUL(freq_fixed, p);
-    
     int raw_r, raw_g, raw_b;
 
     if (custom_gradient_enabled) {

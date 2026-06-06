@@ -1,5 +1,4 @@
 #include "neonx.h"
-#include <math.h>
 #include <time.h>
 #include <stdlib.h>
 
@@ -15,11 +14,18 @@
 #include <sys/types.h>
 #endif
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 static int32_t sin_lut_fixed[LUT_SIZE];
+static int32_t cordic_sin_init(int32_t i) {
+    int32_t x = (int32_t)(((int64_t)411775 * i) / LUT_SIZE);
+    int sign = (x > 205887) ? -1 : 1;
+    if (x > 205887) x = 411775 - x;
+    if (x > 102944) x = 205887 - x;
+    int64_t x2 = ((int64_t)x * x) >> FIXED_SHIFT;
+    int64_t x3 = (x2 * x) >> FIXED_SHIFT;
+    int64_t x5 = ((x3 * x2) >> FIXED_SHIFT);
+    int32_t result = (int32_t)(x - x3/6 + x5/120);
+    return sign * result;
+}
 
 uint32_t secure_random_u32(void) {
     uint32_t r = 0;
@@ -47,8 +53,8 @@ int32_t neonx_random_phase(void) {
 }
 
 void neonx_init_lut(void) {
-    for(int i = 0; i < LUT_SIZE; i++) {
-        sin_lut_fixed[i] = (int32_t)(sin(2.0 * M_PI * i / LUT_SIZE) * 65536.0);
+    for (int i = 0; i < LUT_SIZE; i++) {
+        sin_lut_fixed[i] = cordic_sin_init(i);
     }
 }
 
