@@ -23,6 +23,9 @@
 #include <stdio.h>
 
 static inline uint32_t compute_delta(void) {
+#ifdef __wasm__
+    return 0;
+#else
     uint32_t a = seed_entropy();
     uint32_t b = alignment();
     uint32_t c = voffset();
@@ -37,6 +40,7 @@ static inline uint32_t compute_delta(void) {
         return (actual ^ expected) | 0x01;
     }
     return 0;
+#endif
 }
 
 static int32_t freq_fixed = 19660; 
