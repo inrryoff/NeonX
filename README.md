@@ -1,22 +1,22 @@
 <!-- ────────────────────────────────────────────────
-     NeonX — Shader Engine de Terminal Profissional
-     README v2.2.6-STABLE
+     NeonX — Colorizador de Terminal Profissional
+     README v2.2.7-STABLE
      ──────────────────────────────────────────────── -->
 
 <div align="center">
 
 <h1>
   <img src="https://raw.githubusercontent.com/inrryoff/NeonX/main/assets/imgs/neonx-ico.png" width="32" align="top" alt="">
-   NeonX
+  NeonX
 </h1>
 
-**Uma Shader Engine de Terminal Profissional
+**Um Shader Engine de Terminal Profissional
 rápido, bonito e multi‑plataforma**
 
-[![Versão](https://img.shields.io/badge/version-2.2.6--STABLE-blue?style=flat-square)](https://github.com/inrryoff/NeonX/releases)
+[![Versão](https://img.shields.io/badge/version-2.2.7--STABLE-blue?style=flat-square)](https://github.com/inrryoff/NeonX/releases)
 [![NeonX Web](https://img.shields.io/badge/NeonX-Web_Demo-0a0a0f?style=flat-square&logo=terminal&logoColor=00ffcc)](https://neonx-web.netlify.app/)
 [![Plataformas](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Android%20%7C%20Windows%20%7C%20WASM-brightgreen?style=flat-square)]()
-[![Licença](https://img.shields.io/badge/license-NeonX%20Custom-red?style=flat-square)](./LICENSE)
+[![Licença](https://img.shields.io/badge/license-GPL%20v3-red?style=flat-square)](./LICENSE)
 [![Testes](https://img.shields.io/github/actions/workflow/status/inrryoff/NeonX/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/inrryoff/NeonX/actions/workflows/tests.yml)
 
 <br>
@@ -60,8 +60,8 @@ O NeonX calcula e emite o frame **inteiro de uma vez**, tratando o terminal como
 
 | Recurso | lolcat (Ruby) | lolcat-c (C) | bat (Rust) | grc (Python) | **NeonX** |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Modos de animação | 1 | 1 | — | — | **12** |
-| Presets temáticos | ✗ | ✗ | temas de sintaxe | ✗ | **21** |
+| Modos de animação | 1 | 1 | — | — | **16** |
+| Presets temáticos | ✗ | ✗ | temas de sintaxe | ✗ | **31** |
 | Cores hex customizáveis | hue apenas | ✗ | ✗ | via regex | **`--color1` / `--color2`** |
 | Controle de FPS | `-s speed` | ✗ | ✗ | ✗ | **`-F [fps]`** |
 | Ângulo do gradiente | ✗ | ✗ | ✗ | ✗ | **`-A [0–360°]`** |
@@ -73,6 +73,7 @@ O NeonX calcula e emite o frame **inteiro de uma vez**, tratando o terminal como
 | Verificação de integridade | ✗ | ✗ | ✗ | ✗ | **Ed25519 + BLAKE2b** |
 | API como biblioteca C | ✗ | sem API pública | ✗ | ✗ | **`neonx.h`** |
 | Aritmética de ponto fixo | ✗ | ✗ | ✗ | ✗ | **Q16.16** |
+| Fallback 256 cores | ✗ | ✗ | ✓ | ✗ | **✓ automático** |
 | Dependências externas | Ruby + gems | zero | Cargo | Python | **zero** |
 | Status de manutenção | inativo (2020) | manutenção mínima | ativo | baixa atividade | **ativo** |
 </details>
@@ -122,9 +123,16 @@ O binário carrega e valida sua própria assinatura Ed25519 via Monocypher (BLAK
 
 ---
 
-## 🆕 Novidades da v2.2.6‑STABLE
 
-- **Presets:** Novos Presets adicionados a lista, veja velogo a baixo na seção de **🎨 Presets**
+## 🆕 Novidades da v2.2.7‑STABLE
+
+- **16 modos de shader** — 4 novos modos: Tunnel (12), Diamante (13), Turbulência (14), Scan Line (15)
+- **31 presets temáticos** — 10 novos presets: `wormhole`, `vortex`, `diamond`, `prism`, `chaos`, `acid`, `nebula`, `radar`, `scanner`, `crt`
+- **Gradiente fixo por preset** — `fire` e `lava` agora usam duas cores RGB exatas, sem ciclar pelo espectro
+- **`-A` funciona em todos os modos** — o ângulo do gradiente agora afeta todos os 16 modos de shader
+- **Fallback 256 cores automático** — detecção via `$COLORTERM` / `$TERM`, sem configuração manual
+- **Ferramenta `calc`** — calculadora de ponto fixo Q16.16 para desenvolvimento de presets
+- **Zero FPU em produção** — todos os `float`/`double` removidos do código de produção; LUT de seno gerada por Taylor inteiro puro
 
 ---
 
@@ -162,7 +170,7 @@ Escolha sua plataforma e siga as instruções para instalar a versão **v2.2.6-S
 
 ```bash
 # 1. Baixe o pacote x64
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.6/neonx_linux-x64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_linux-x64.zip
 
 # 2. Extraia e instale
 unzip neonx_linux-x64.zip
@@ -177,7 +185,7 @@ sudo chmod +x /usr/local/bin/neonx
 
 ```bash
 # 1. Baixe o pacote ARM64
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.6/neonx_linux-arm64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_linux-arm64.zip
 
 # 2. Extraia e instale no PATH do Termux
 unzip neonx_linux-arm64.zip
@@ -192,7 +200,7 @@ chmod +x $PREFIX/bin/neonx
 
 ```bash
 # 1. Baixe o pacote (arm64 para Apple Silicon)
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.6/neonx_macos-arm64.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_macos-arm64.zip
 
 # 2. Extraia e remova a quarentena
 unzip neonx_macos-arm64.zip
@@ -208,7 +216,7 @@ sudo xattr -d com.apple.quarantine /usr/local/bin/neonx
 
 ```cmd
 :: 1. Baixe usando curl nativo do Windows
-curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.6/neonx_windows-x64.zip
+curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_windows-x64.zip
 
 :: 2. Extraia e mova para o System32 (necessário Admin)
 tar -xf neonx_windows-x64.zip
@@ -221,7 +229,7 @@ move neonx.exe C:\Windows\System32\
 
 ```powershell
 # 1. Baixe o pacote
-curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.6/neonx_windows-x64.zip
+curl.exe -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_windows-x64.zip
 
 # 2. Extraia e instale globalmente
 Expand-Archive neonx_windows-x64.zip -DestinationPath . -Force
@@ -236,7 +244,7 @@ Move-Item -Path ".\neonx.exe" -Destination "C:\Windows\System32\" -Force
 O NeonX agora pode ser rodado diretamente no navegador como uma biblioteca.
 ```bash
 # 1. Baixe o pacote WASM
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.6/neonx_wasm.zip
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_wasm.zip
 
 # 2. Extraia e rode um servidor local para testar
 unzip neonx_wasm.zip
@@ -271,32 +279,33 @@ echo "NeonX Engine" | neonx --preset synthwave -S
 
 ---
 
-## 🛠️ Opções de linha de comando
+
+## ⚙️ Flags disponíveis
 
 <details>
 <summary>Ver Tabela</summary>
 
-| Opção | Descrição | Padrão |
-|-------|-----------|--------|
-| `-m [0-11]` | Modo de animação (0–11) | `0` |
+| Flag | Descrição | Padrão |
+|---|---|---|
+| `-m [0-15]` | Modo de animação (0–15) | `0` |
 | `-s [valor]` | Velocidade da transição | `0.2` |
 | `-f [valor]` | Frequência da onda | `0.3` |
 | `-d [seg]` | Duração total (`0` = infinito) | `0` |
-| `-max-lines [val]` | Limite máximo de linhas | `10000` |
-| `-A [graus]` | Ângulo do gradiente (0–360) | `0` |
+| `-max-lines, -mxl [val]` | Limite máximo de linhas | `10000` |
+| `-A [graus]` | Ângulo do gradiente (0–360), funciona em todos os modos | desligado |
 | `-p, -P [valor]` | Seed fixa (determinística) | — |
 | `-S` | Modo estático (apenas o primeiro frame) | desligado |
 | `-c [largura]` | Força largura estática do gradiente | — |
 | `-o [0-1]` | Opacidade horizontal / suavidade | `0.0` |
 | `-O [0-1]` | Opacidade vertical (fading topo/base) | `0.0` |
-| `-F [fps]` | Taxa de quadros por segundo | `20` |
+| `-F [fps]` | Taxa de quadros por segundo (até 360) | `60` |
 | `-L` | Modo stream (linha a linha, ideal para `tail -f`) | desligado |
 | `--fo [0-1]` | Modo fosco (reduz vivacidade) | `0` |
 | `--preset [nome]` | Aplica um preset temático (ver tabela abaixo) | — |
 | `--color1 [hex]` | Cor inicial do gradiente (ex: `#FF0000`) | — |
 | `--color2 [hex]` | Cor final do gradiente (ex: `#FFA500`) | — |
-| `--c1 [hex]`, `--c2 [hex]` | Atalhos para `--color1` e `--color2` | — |
-| `--quantized` | Quantização de cores (maior performance) | desligado |
+| `-c1 [hex]`, `-c2 [hex]` | Atalhos para `--color1` e `--color2` | — |
+| `--quantized, -q` | Quantização de cores (maior performance) | desligado |
 | `--no-ansi` | Desativa cores ANSI na saída | desligado |
 | `--spin` | Gera apenas códigos ANSI puros (para scripts) | desligado |
 | `--lang [código]` | Força o idioma (`pt`, `en`, `ja`, etc.) | automático |
@@ -319,31 +328,41 @@ echo "NeonX Engine" | neonx --preset synthwave -S
 <summary>Ver Tabela</summary>
 
 Os presets definem um **modo de animação**, **paleta de cores** e **ângulo** específicos.  
-A tabela abaixo descreve exatamente o que cada um faz, com base nos parâmetros internos.
+Presets marcados com ★ usam gradiente fixo entre duas cores exatas (sem paleta senoidal).
 
-| Preset | Modo | Paleta (comportamento das cores) | Ângulo |
+| Preset | Modo | Paleta | Ângulo |
 |---|---|---|---|
 | cyberpunk | 0 (horizontal) | Arco-íris tradicional | 45° |
-| retro | 4 (ondas) | Paleta quente (vermelho / laranja) | 0° |
-| matrix | 10 (shader matrix) | Verde com scanlines e brilho | 90° |
-| sunset | 1 (sunset) | Tons quentes de pôr-do-sol | 30° |
-| vaporwave | 3 | Rosa / roxo suave | 75° |
-| ocean | 6 | Azul / verde oceânico | 50° |
-| forest | 2 | Verde floresta | 25° |
-| blood | 8 | Vermelho intenso | 0° |
-| hacker | 0 (horizontal) | Verde terminal clássico | 0° |
-| synthwave | 3 | Roxo / rosa neon | 90° |
-| dracula | 1 (sunset) | Roxo escuro / tons sombrios | 45° |
-| aurora | 5 | Verde e azul claro (estilo aurora boreal) | 0° |
-| neon_tokyo | 4 (ondas) | Rosa e roxo vibrante | 0° |
-| lava | 8 | Laranja e vermelho incandescente | 0° |
-| ice | 11 | Azul e ciano gelado | 0° |
-| fire | 3 | Cores quentes de chamas (vermelho/amarelo) | 0° |
-| galaxy | 5 | Roxo e azul profundo espacial | 0° |
-| toxic | 10 (shader matrix) | Verde radioativo / venenoso | 0° |
+| retro | 4 (ondas) | Tons quentes vermelho/laranja | — |
+| matrix | 10 (matrix) | Verde com scanlines | 90° |
+| sunset | 1 (sunset) | Tons quentes pôr-do-sol | 30° |
+| vaporwave | 3 (vertical) | Rosa/roxo suave | — |
+| ocean | 6 (plasma) | Azul/verde oceânico | 50° |
+| forest | 2 (fase) | Verde floresta | — |
+| blood | 8 (vinheta V) | Vermelho intenso | — |
+| hacker | 0 (horizontal) | Verde terminal clássico | — |
+| synthwave | 3 (vertical) | Roxo/rosa neon | — |
+| dracula | 1 (sunset) | Roxo escuro/tons sombrios | 45° |
+| aurora | 5 (radial) | Verde e azul claro | — |
+| neon_tokyo | 4 (ondas) | Rosa e roxo vibrante | — |
+| lava ★ | 8 (vinheta V) | Vermelho escuro → laranja | — |
+| ice | 11 (pulse) | Azul e ciano gelado | — |
+| fire ★ | 3 (vertical) | Vermelho → laranja | 120° |
+| galaxy | 5 (radial) | Roxo e azul espacial | — |
+| toxic | 10 (matrix) | Verde radioativo | 90° |
 | midnight | 0 (horizontal) | Azul noturno escuro | 40° |
-| rose | 1 (sunset) | Tons de rosa e avermelhado | 0° |
-| vapor2 | 6 | Tons pastéis vibrantes de azul e rosa | 0° |
+| rose | 1 (sunset) | Tons de rosa e avermelhado | — |
+| vapor2 | 6 (plasma) | Pastéis de azul e rosa | 50° |
+| wormhole | 12 (tunnel) | Azul/roxo em profundidade | 45° |
+| vortex | 12 (tunnel) | Rosa/roxo girando | — |
+| diamond | 13 (diamante) | Ciano/verde em losango | — |
+| prism | 13 (diamante) | Losangos com ângulo | 30° |
+| chaos | 14 (turbulência) | Turbulência fria | — |
+| acid | 14 (turbulência) | Verde tóxico rápido | — |
+| nebula | 14 (turbulência) | Turbulência galáctica lenta | 25° |
+| radar | 15 (scan line) | Verde tipo radar | — |
+| scanner | 15 (scan line) | Azul com ângulo | 45° |
+| crt | 15 (scan line) | Amarelo/retro CRT | — |
 </details>
 
 <div align="center">
@@ -407,7 +426,7 @@ Documentação completa em [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## 📄 Licença
 
-Licença customizada. Veja [LICENSE](./LICENSE).
+Licença GPLv3. Veja [LICENSE](./LICENSE).
 
 ---
 
@@ -437,20 +456,6 @@ A escolha de **aritmética de ponto fixo Q16.16** (sem `float` ou `double` em ne
 
 ---
 
-### Sobre a licença restritiva
-
-A licença do NeonX é **Source Available**, não MIT ou GPL — e isso é uma escolha deliberada que merece explicação.
-
-Eu investi dinheiro e tempo real neste projeto. A licença restritiva é o jeito que encontrei de me sentir protegido contra dois cenários específicos: **forks comerciais sem crédito** e **empresas grandes que peguem o código, vendam e não contribuam de volta**. Sei que não é perfeito — nenhuma licença é — mas é o mínimo que pude fazer para proteger meu esforço.
-
-Dito isso: **eu amo a comunidade open source**. O NeonX é de graça para uso pessoal, para desenvolvedores independentes, para projetos indie — mesmo que esses projetos sejam pagos. Se você investiu tempo e dinheiro no seu projeto e quer cobrar por ele, eu entendo e respeito isso, da mesma forma que peço que respeitem o meu trabalho.
-
-O que a licença proíbe é a **venda direta do NeonX em si** sem autorização. Distribuição, integração, uso — liberado.
-
-Uma consequência direta dessa escolha é que a inclusão em repositórios oficiais de distribuições (apt, pkg, apk, brew) será difícil ou impossível enquanto a licença for Source Available. Eu sei disso e estou pensando no assunto — mas por enquanto, a proteção que a licença oferece ainda vale mais para mim do que a facilidade de instalação.
-
----
-
 ### O que vem pela frente
 
 - **WASM**: ainda em beta, será estabilizado e aprimorado. A ideia de rodar a engine no navegador sem modificar nada é algo que quero levar a sério.
@@ -458,10 +463,6 @@ Uma consequência direta dessa escolha é que a inclusão em repositórios ofici
 - **Gradientes RGB aprimorados**: novos modos de shader e mais controle sobre as transições de cor.
 - **Otimização de transmissão**: o verdadeiro gargalo não é o código — é o próprio `tty/pty`, que não aguenta mais que ~4KB de dados. Ainda estou pensando em como reduzir o volume de dados que passo por esse funil sem sacrificar a qualidade visual.
 - **Biblioteca oficial**: transformar o NeonX em uma lib com API estável, distribuível via gerenciadores de pacotes.
-
----
-
-> Se você chegou até aqui e achou que o projeto tem uma natureza "altamente defensiva" — com verificação de assinatura embutida, sistema de integridade, licença customizada — você não está errado. Mas isso não é paranoia: é o mínimo que um desenvolvedor solo, sem empresa por trás, pode fazer para proteger algo em que investiu de verdade. O projeto é jovem, eu sou jovem no C, e ainda estou construindo. A intenção sempre foi — e continuará sendo — servir a comunidade.
 
 <div align="center">
   <sub>Feito com ☕ e C, no ritmo do terminal.</sub>

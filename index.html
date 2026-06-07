@@ -1,3 +1,21 @@
+<!--*
+ * NeonX — Terminal Shader Engine
+ * Copyright (C) 2026  inrryoff
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *-->
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -176,6 +194,17 @@
             background: rgba(255, 60, 172, 0.08) !important;
             border-color: rgba(255, 60, 172, 0.3) !important;
             box-shadow: 0 4px 20px rgba(255, 60, 172, 0.1) !important;
+        }
+        #license-link {
+            color: #f0c040 !important;
+        }
+        #license-link svg {
+            stroke: #f0c040 !important;
+        }
+        #license-link:hover {
+            background: rgba(240, 192, 64, 0.08) !important;
+            border-color: rgba(240, 192, 64, 0.3) !important;
+            box-shadow: 0 4px 20px rgba(240, 192, 64, 0.1) !important;
         }
 
         /* WIKI MODAL */
@@ -608,6 +637,12 @@
             </svg>
             Comparando o NeonX
         </a>
+        <a href="https://www.gnu.org/licenses/gpl-3.0-standalone.html" target="_blank" class="nav-item" id="license-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Licença GPL v3
+        </a>
     </div>
     <div class="sidebar-section">
         <div class="sidebar-title">Painel Avançado</div>
@@ -623,7 +658,6 @@
         <div class="control-group">
             <label>Modo Fosco (--fo) <span id="matte-status" class="status-led"></span><span id="matte-val" class="badge">0.50</span></label>
             <div class="row-flex"><input type="checkbox" id="enable-matte"><span>Reduzir Saturação</span></div>
-            <!-- Alterado: max modificado de 1 para 0.99 -->
             <input type="range" id="matte-intensity" min="0" max="0.99" step="0.01" value="0.5">
         </div>
         <div class="control-group"><label>Quantização (--quantized)</label><div class="row-flex"><input type="checkbox" id="param-quantized"><span>Redução de Bits</span></div></div>
