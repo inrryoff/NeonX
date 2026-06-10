@@ -77,7 +77,7 @@ void test_math_comprehensive() {
         int32_t angle = FLOAT_TO_FIXED(rad);
         int32_t got = neonx_fast_sin_fixed(angle);
         int32_t expected = FLOAT_TO_FIXED(sin(rad));
-        char ctx[64]; sprintf(ctx, "sin(%d°)", deg);
+        char ctx[64]; snprintf(ctx, "sin(%d°)", deg);
         assert_fixed_near("Math Sin", got, expected, 200, ctx);
     }
 
