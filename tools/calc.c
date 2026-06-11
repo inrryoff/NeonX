@@ -28,6 +28,11 @@
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
+/* Imprime um quadrinho colorido (2 células ANSI true-color) */
+static void print_swatch(int r, int g, int b) {
+    printf("\033[48;2;%d;%d;%dm  \033[0m", r, g, b);
+}
+
 static int32_t str_to_fixed(const char *s) {
     int neg = 0;
     if (*s == '-') { neg = 1; s++; }
@@ -159,7 +164,11 @@ static void list_all_palettes(void) {
         printf("  ── %s ──\n", families[f]);
         for (size_t i = 0; i < NUM_PALETTE; i++) {
             if (strcmp(palette_table[i].family, families[f]) == 0) {
-                printf("    %-14s  %s   off_r=%-7d off_g=%-7d off_b=%d\n",
+                int pr, pg, pb;
+                parse_hex_color(palette_table[i].hex, &pr, &pg, &pb);
+                printf("    ");
+                print_swatch(pr, pg, pb);
+                printf(" %-14s  %s   off_r=%-7d off_g=%-7d off_b=%d\n",
                        palette_table[i].name,
                        palette_table[i].hex,
                        palette_table[i].off_r,
@@ -188,10 +197,14 @@ static void print_palette(const char *color) {
             printf("  Espectro da família (%s):\n\n", palette_table[i].family);
             for (size_t j = 0; j < NUM_PALETTE; j++) {
                 if (strcmp(palette_table[j].family, palette_table[i].family) == 0) {
-                    printf("    %s   off_r=%-7d off_g=%-7d off_b=%d\n", 
-                           palette_table[j].hex, 
-                           palette_table[j].off_r, 
-                           palette_table[j].off_g, 
+                    int pr, pg, pb;
+                    parse_hex_color(palette_table[j].hex, &pr, &pg, &pb);
+                    printf("    ");
+                    print_swatch(pr, pg, pb);
+                    printf(" %s   off_r=%-7d off_g=%-7d off_b=%d\n",
+                           palette_table[j].hex,
+                           palette_table[j].off_r,
+                           palette_table[j].off_g,
                            palette_table[j].off_b);
                 }
             }
@@ -207,7 +220,11 @@ static void print_palette(const char *color) {
                 printf("\n  Espectro da família \"%s\":\n\n", color);
                 found = 1;
             }
-            printf("    %s   off_r=%-7d off_g=%-7d off_b=%d\n",
+            int pr, pg, pb;
+            parse_hex_color(palette_table[i].hex, &pr, &pg, &pb);
+            printf("    ");
+            print_swatch(pr, pg, pb);
+            printf(" %s   off_r=%-7d off_g=%-7d off_b=%d\n",
                    palette_table[i].hex,
                    palette_table[i].off_r,
                    palette_table[i].off_g,
@@ -305,43 +322,83 @@ static void hsl_to_rgb(float h, float s, float l, int *r, int *g, int *b) {
     *b = (int)((bf + m) * 255.0f);
 }
 
+/* entrada gerada para ordenação */
+typedef struct {
+    int r, g, b;
+    int32_t off_r, off_g, off_b;
+    float luma; /* lightness HSL = (max+min)/2 normalizado */
+} GenEntry;
+
+static int cmp_luma(const void *a, const void *b) {
+    const GenEntry *ea = (const GenEntry *)a;
+    const GenEntry *eb = (const GenEntry *)b;
+    if (ea->luma < eb->luma) return -1;
+    if (ea->luma > eb->luma) return  1;
+    return 0;
+}
+
 static void generate_spectrum(const char *family, int count) {
     float base_hue = 0.0f;
-    float hue_range = 50.0f;
-    
-    if (strcmp(family, "red") == 0) base_hue = 0.0f;
-    else if (strcmp(family, "orange") == 0) base_hue = 30.0f;
-    else if (strcmp(family, "yellow") == 0) base_hue = 60.0f;
-    else if (strcmp(family, "green") == 0) base_hue = 120.0f;
-    else if (strcmp(family, "cyan") == 0) base_hue = 180.0f;
-    else if (strcmp(family, "blue") == 0) base_hue = 240.0f;
+
+    if      (strcmp(family, "red")    == 0) base_hue =   0.0f;
+    else if (strcmp(family, "orange") == 0) base_hue =  30.0f;
+    else if (strcmp(family, "yellow") == 0) base_hue =  60.0f;
+    else if (strcmp(family, "green")  == 0) base_hue = 120.0f;
+    else if (strcmp(family, "cyan")   == 0) base_hue = 180.0f;
+    else if (strcmp(family, "blue")   == 0) base_hue = 240.0f;
     else if (strcmp(family, "purple") == 0) base_hue = 280.0f;
-    else if (strcmp(family, "pink") == 0) base_hue = 320.0f;
+    else if (strcmp(family, "pink")   == 0) base_hue = 320.0f;
     else {
         printf("\n  Família não suportada. Use: red, orange, yellow, green, cyan, blue, purple, pink.\n\n");
         return;
     }
 
-    printf("\n  Gerando %d variações calculadas para a família \"%s\":\n\n", count, family);
+    if (count < 1) count = 1;
+
+    GenEntry *entries = (GenEntry *)malloc((size_t)count * sizeof(GenEntry));
+    if (!entries) { printf("\n  Erro de memória.\n\n"); return; }
 
     for (int i = 0; i < count; i++) {
-        float h = base_hue - (hue_range / 2.0f) + ((hue_range / (float)count) * i);
-        if (h < 0) h += 360.0f;
-        if (h > 360) h -= 360.0f;
-        
-        float s = 0.7f + 0.3f * (float)(i % 3) / 2.0f;
-        float l = 0.4f + 0.2f * (float)(i % 4) / 3.0f;
+        /* hue FIXO — só lightness varia de 0.08 (preto) a 0.88 (branco) */
+        float l = 0.08f + 0.80f * (float)i / (float)(count > 1 ? count - 1 : 1);
+        /* saturação alta e fixa — garante que a cor seja sempre reconhecível */
+        float s = 0.90f;
+        /* nas extremidades muito escuras/claras, satura menos pra não virar cinza */
+        if (l < 0.15f) s = 0.70f + 0.20f * (l / 0.15f);
+        if (l > 0.75f) s = 0.90f - 0.50f * ((l - 0.75f) / 0.13f);
+        if (s < 0.0f) s = 0.0f;
+        if (s > 1.0f) s = 1.0f;
 
         int r, g, b;
-        hsl_to_rgb(h, s, l, &r, &g, &b);
+        hsl_to_rgb(base_hue, s, l, &r, &g, &b);
 
-        int32_t off_r = calc_sine_offset(r);
-        int32_t off_g = calc_sine_offset(g);
-        int32_t off_b = calc_sine_offset(b);
+        entries[i].r     = r;
+        entries[i].g     = g;
+        entries[i].b     = b;
+        entries[i].off_r = calc_sine_offset(r);
+        entries[i].off_g = calc_sine_offset(g);
+        entries[i].off_b = calc_sine_offset(b);
+        /* lightness HSL: (max+min)/2 */
+        int mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+        int mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        entries[i].luma = (mx + mn) / (2.0f * 255.0f);
+    }
 
-        printf("    #%02X%02X%02X   off_r=%-7d off_g=%-7d off_b=%d\n", r, g, b, off_r, off_g, off_b);
+    /* ordena do mais escuro ao mais claro (já deve estar em ordem, mas garante) */
+    qsort(entries, (size_t)count, sizeof(GenEntry), cmp_luma);
+
+    printf("\n  Gerando %d variações calculadas para a família \"%s\" (escuro → claro):\n\n",
+           count, family);
+
+    for (int i = 0; i < count; i++) {
+        printf("    ");
+        print_swatch(entries[i].r, entries[i].g, entries[i].b);
+        printf(" #%02X%02X%02X   off_r=%-7d off_g=%-7d off_b=%d\n",
+               entries[i].r, entries[i].g, entries[i].b,
+               entries[i].off_r, entries[i].off_g, entries[i].off_b);
     }
     printf("\n");
+    free(entries);
 }
 
 // ── main ───────────────────────────────────────────────────────────────────
