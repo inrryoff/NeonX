@@ -119,7 +119,7 @@ O binário carrega e valida sua própria assinatura Ed25519 via Monocypher (BLAK
 
 ---
 
-> 🌐 **[Ver comparativo completo com análise detalhada →](https://neonx-web.netlify.app/)**
+> 🌐 **[Ver comparativo completo com análise detalhada →](https://neonx-web.netlify.app/comparativo?v=2)**
 
 ---
 
