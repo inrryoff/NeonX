@@ -462,7 +462,6 @@ A escolha de **aritmética de ponto fixo Q16.16** (sem `float` ou `double` em ne
 - **Melhor suporte multiplataforma**: mais arquiteturas, melhor experiência em cada uma.
 - **Gradientes RGB aprimorados**: novos modos de shader e mais controle sobre as transições de cor.
 - **Otimização de transmissão**: o verdadeiro gargalo não é o código — é o próprio `tty/pty`, que não aguenta mais que ~4KB de dados. Ainda estou pensando em como reduzir o volume de dados que passo por esse funil sem sacrificar a qualidade visual.
-- **Biblioteca oficial**: transformar o NeonX em uma lib com API estável, distribuível via gerenciadores de pacotes.
 
 <div align="center">
   <sub>Feito com ☕ e C, no ritmo do terminal.</sub>
