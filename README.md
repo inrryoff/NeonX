@@ -169,11 +169,12 @@ Escolha sua plataforma e siga as instruções para instalar a versão **v2.2.6-S
 <summary>Visualizar instruções</summary>
 
 ```bash
-# 1. Baixe o pacote x64
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_linux-x64.zip
+# 1. Baixe o pacote
+arch=x64
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_linux-$arch.zip
 
 # 2. Extraia e instale
-unzip neonx_linux-x64.zip
+unzip neonx_linux-$arch.zip
 sudo mv neonx /usr/local/bin/
 sudo chmod +x /usr/local/bin/neonx
 ```
@@ -184,11 +185,12 @@ sudo chmod +x /usr/local/bin/neonx
 <summary>Visualizar instruções</summary>
 
 ```bash
-# 1. Baixe o pacote ARM64
-curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_linux-arm64.zip
+# 1. Baixe o pacote
+arch=arm64
+curl -LO https://github.com/inrryoff/NeonX/releases/download/v2.2.7/neonx_linux-$arch.zip
 
 # 2. Extraia e instale no PATH do Termux
-unzip neonx_linux-arm64.zip
+unzip neonx_linux-$arch.zip
 mv neonx $PREFIX/bin/
 chmod +x $PREFIX/bin/neonx
 ```
