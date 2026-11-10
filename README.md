@@ -380,6 +380,7 @@ Use o **código de dois caracteres** com `--lang`.
 
 <details>
 <summary>Ver Tabela</summary>
+
 | Código | Idioma | Código | Idioma |
 |:---|:---|:---|:---|
 | `pt` | Português | `en` | Inglês |
