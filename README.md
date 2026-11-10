@@ -162,7 +162,7 @@ cd NeonX
 
 ## 📦 Instalação já compilada (oficial)
 
-Escolha sua plataforma e siga as instruções para instalar a versão **v2.2.6-STABLE**:
+Escolha sua plataforma e siga as instruções para instalar a versão **v2.2.7-STABLE**:
 
 ### 🐧 Linux
 <details>
@@ -420,7 +420,6 @@ Documentação completa em [ARCHITECTURE.md](./ARCHITECTURE.md).
 ## 💖 Apoie o projeto
 
 - ⭐ **Dê uma estrela** no [GitHub](https://github.com/inrryoff/NeonX)
-- ☕ **Doação**: [Clique aqui](https://tipa.ai/TIPARYITV51W4R3SLEG22KVVK9I1)
 - 👨🏻‍💻 **GitHub**: [@inrryoff](https://github.com/inrryoff)
 - 👨🏻‍💻 **Telegram**: [@inrryoff](https://t.me/inrryoff)
 
@@ -455,15 +454,6 @@ Então decidi construir isso do zero, em C puro, desenvolvido no **Termux** (And
 Sem dependências externas, zero overhead de runtime, portável para qualquer plataforma que tenha um compilador. Eu não tinha experiência prévia em C quando comecei — tive que aprender a linguagem enquanto construía o projeto. Foi um investimento real de tempo e dedicação.
 
 A escolha de **aritmética de ponto fixo Q16.16** (sem `float` ou `double` em nenhum shader) garante comportamento consistente em qualquer plataforma — incluindo ambientes sem FPU dedicada, como alguns contextos WASM.
-
----
-
-### O que vem pela frente
-
-- **WASM**: ainda em beta, será estabilizado e aprimorado. A ideia de rodar a engine no navegador sem modificar nada é algo que quero levar a sério.
-- **Melhor suporte multiplataforma**: mais arquiteturas, melhor experiência em cada uma.
-- **Gradientes RGB aprimorados**: novos modos de shader e mais controle sobre as transições de cor.
-- **Otimização de transmissão**: o verdadeiro gargalo não é o código — é o próprio `tty/pty`, que não aguenta mais que ~4KB de dados. Ainda estou pensando em como reduzir o volume de dados que passo por esse funil sem sacrificar a qualidade visual.
 
 <div align="center">
   <sub>Feito com ☕ e C, no ritmo do terminal.</sub>
